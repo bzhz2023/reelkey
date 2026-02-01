@@ -25,13 +25,13 @@ const toLogString = (value: unknown) => {
   const normalized =
     value instanceof Error
       ? {
-          name: value.name,
-          message: value.message,
-          stack: value.stack,
-          status: (value as Record<string, unknown>).status,
-          statusText: (value as Record<string, unknown>).statusText,
-          error: (value as Record<string, unknown>).error,
-        }
+        name: value.name,
+        message: value.message,
+        stack: value.stack,
+        status: (value as Record<string, unknown>).status,
+        statusText: (value as Record<string, unknown>).statusText,
+        error: (value as Record<string, unknown>).error,
+      }
       : value;
   const seen = new WeakSet();
   try {
@@ -52,15 +52,15 @@ const toLogString = (value: unknown) => {
 const debugLogger =
   process.env.NODE_ENV === "development"
     ? {
-        level: "debug" as const,
-        log: (level: "debug" | "info" | "warn" | "error", message: string, ...args: unknown[]) => {
-          const suffix = args.length ? ` ${args.map(toLogString).join(" ")}` : "";
-          const line = `[Better Auth] ${message}${suffix}`.trimEnd();
-          if (level === "error") console.error(line);
-          else if (level === "warn") console.warn(line);
-          else console.log(line);
-        },
-      }
+      level: "debug" as const,
+      log: (level: "debug" | "info" | "warn" | "error", message: string, ...args: unknown[]) => {
+        const suffix = args.length ? ` ${args.map(toLogString).join(" ")}` : "";
+        const line = `[Better Auth] ${message}${suffix}`.trimEnd();
+        if (level === "error") console.error(line);
+        else if (level === "warn") console.warn(line);
+        else console.log(line);
+      },
+    }
     : undefined;
 
 type AuthPlugin =
@@ -209,16 +209,15 @@ export const auth = betterAuth({
   // Plugins
   plugins,
 
-  // Hooks - 自动赠送新用户积分
+  // Hooks - 自动赠送新用户积分（仅在注册时触发）
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
-      // 检查是否是注册相关的路径
-      if (ctx.path?.startsWith("/sign-up") || ctx.path?.startsWith("/sign-in")) {
+      // 只在注册路径触发，登录路径不触发（减少不必要的数据库查询）
+      if (ctx.path?.startsWith("/sign-up")) {
         const newSession = ctx.context?.newSession;
         if (newSession?.user?.id) {
           try {
             await creditService.grantNewUserCredits(newSession.user.id);
-            console.log(`[Auth] Granted new user credits to: ${newSession.user.id}`);
           } catch (error) {
             console.error("[Auth] Failed to grant new user credits:", error);
             // 不抛出错误，避免影响注册流程

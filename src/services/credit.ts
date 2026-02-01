@@ -45,7 +45,7 @@ export class CreditService {
     const now = new Date();
     const expiringSoonDate = new Date(
       now.getTime() +
-        CREDITS_CONFIG.expiration.warnBeforeDays * 24 * 60 * 60 * 1000
+      CREDITS_CONFIG.expiration.warnBeforeDays * 24 * 60 * 60 * 1000
     );
 
     const packages = await db
@@ -386,11 +386,18 @@ export class CreditService {
 
   /**
    * 新用户赠送积分
+   * - 幂等性：通过 transType=NEW_USER 检查防止重复发放
+   * - 配置：在 src/config/pricing-user.ts 中统一管理
    */
   async grantNewUserCredits(userId: string): Promise<void> {
     const { registerGift } = CREDITS_CONFIG;
-    if (!registerGift.enabled) return;
 
+    if (!registerGift.enabled) {
+      console.log(`[Credit] New user gift disabled, skipping for user: ${userId}`);
+      return;
+    }
+
+    // 检查是否已经发放过（幂等性保证）
     const [existing] = await db
       .select()
       .from(creditPackages)
@@ -402,8 +409,12 @@ export class CreditService {
       )
       .limit(1);
 
-    if (existing) return;
+    if (existing) {
+      console.log(`[Credit] User ${userId} already received welcome credits, skipping`);
+      return;
+    }
 
+    // 发放新用户积分
     await this.recharge({
       userId,
       credits: registerGift.amount,
@@ -412,6 +423,8 @@ export class CreditService {
       expiryDays: registerGift.expireDays,
       remark: "New user welcome credits",
     });
+
+    console.log(`[Credit] Granted ${registerGift.amount} welcome credits to new user: ${userId} (expires in ${registerGift.expireDays} days)`);
   }
 
   /**
