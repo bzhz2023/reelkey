@@ -202,7 +202,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "standard_pack",
     name: "Standard Pack",
-    priceUsd: 29.9,
+    priceUsd: 39.9, // 比月付 Pro 贵 33% ($29.90)
     credits: 1500, // 和月付 Pro 套餐积分相同
     popular: true, // 推荐
     enabled: true,
@@ -212,7 +212,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "pro_pack",
     name: "Pro Pack",
-    priceUsd: 79.9,
+    priceUsd: 99.9, // 比月付 Ultimate 贵 25% ($79.90)
     credits: 4500, // 和月付 Ultimate 套餐积分相同
     popular: false,
     enabled: true,
@@ -222,7 +222,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "studio_pack",
     name: "Studio Pack",
-    priceUsd: 99,
+    priceUsd: 129, // 比年付 Basic 贵 30% ($99)
     credits: 4800, // 和年付基础套餐积分相同
     popular: false,
     enabled: true,
@@ -232,7 +232,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "ultimate_pack",
     name: "Ultimate Pack",
-    priceUsd: 239,
+    priceUsd: 299, // 比年付 Pro 贵 25% ($239)
     credits: 18000, // 和年付 Pro 套餐积分相同
     popular: false,
     enabled: true,
