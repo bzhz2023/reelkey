@@ -75,7 +75,7 @@ export const NEW_USER_GIFT = {
   /** 是否启用赠送 */
   enabled: true,
   /** 赠送积分数量 */
-  credits: 50,
+  credits: 2,  // 1 个 Sora 2 视频
   /** 积分有效期（天）*/
   validDays: 30,
 };
@@ -114,7 +114,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "basic_monthly",
     name: "Basic Plan",
     priceUsd: 9.9,
-    credits: 100,
+    credits: 400, // ~40 Veo 3.1 视频
     period: "month" as const,
     popular: false,
     enabled: true,
@@ -124,17 +124,17 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "pro_monthly",
     name: "Pro Plan",
     priceUsd: 29.9,
-    credits: 500,
+    credits: 1500, // ~150 Veo 3.1 视频
     period: "month" as const,
     popular: true, // 推荐
     enabled: true,
     features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use"],
   },
   {
-    id: "team_monthly",
-    name: "Team Plan",
-    priceUsd: 99.9,
-    credits: 2000,
+    id: "ultimate_monthly",
+    name: "Ultimate Plan",
+    priceUsd: 79.9,
+    credits: 4500, // ~450 Veo 3.1 视频
     period: "month" as const,
     popular: false,
     enabled: true,
@@ -145,8 +145,8 @@ export const SUBSCRIPTION_PRODUCTS = [
   {
     id: "basic_yearly",
     name: "Basic Plan (Yearly)",
-    priceUsd: 99,
-    credits: 1200, // 100 × 12 月
+    priceUsd: 99, // 17% OFF (买10送12)
+    credits: 4800, // ~480 Veo 3.1 视频
     period: "year" as const,
     popular: false,
     enabled: true,
@@ -155,18 +155,18 @@ export const SUBSCRIPTION_PRODUCTS = [
   {
     id: "pro_yearly",
     name: "Pro Plan (Yearly)",
-    priceUsd: 299,
-    credits: 6000, // 500 × 12 月
+    priceUsd: 239, // 33% OFF 限时优惠
+    credits: 18000, // ~1,800 Veo 3.1 视频
     period: "year" as const,
     popular: true,
     enabled: true,
     features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use"],
   },
   {
-    id: "team_yearly",
-    name: "Team Plan (Yearly)",
-    priceUsd: 999,
-    credits: 24000, // 2000 × 12 月
+    id: "ultimate_yearly",
+    name: "Ultimate Plan (Yearly)",
+    priceUsd: 699, // 27% OFF
+    credits: 54000, // ~5,400 Veo 3.1 视频
     period: "year" as const,
     popular: false,
     enabled: true,
@@ -190,34 +190,54 @@ export const SUBSCRIPTION_PRODUCTS = [
  */
 export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
-    id: "starter",
+    id: "starter_pack",
     name: "Starter Pack",
-    priceUsd: 9.9,
-    credits: 100,
+    priceUsd: 14.9,
+    credits: 400, // 和月付基础套餐积分相同
     popular: false,
     enabled: true,
-    allowFreeUser: true, // 免费用户可购买
+    allowFreeUser: true, // 所有用户可购买
     features: ["hd_videos", "fast_generation"],
   },
   {
-    id: "standard",
+    id: "standard_pack",
     name: "Standard Pack",
-    priceUsd: 19.9,
-    credits: 250,
+    priceUsd: 29.9,
+    credits: 1500, // 和月付 Pro 套餐积分相同
     popular: true, // 推荐
     enabled: true,
-    allowFreeUser: true,
+    allowFreeUser: false, // 仅订阅用户
     features: ["hd_videos", "fast_generation", "no_watermark"],
   },
   {
-    id: "large",
-    name: "Large Pack",
-    priceUsd: 49.9,
-    credits: 700,
+    id: "pro_pack",
+    name: "Pro Pack",
+    priceUsd: 79.9,
+    credits: 4500, // 和月付 Ultimate 套餐积分相同
     popular: false,
     enabled: true,
-    allowFreeUser: true,
+    allowFreeUser: false, // 仅订阅用户
     features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use"],
+  },
+  {
+    id: "studio_pack",
+    name: "Studio Pack",
+    priceUsd: 99,
+    credits: 4800, // 和年付基础套餐积分相同
+    popular: false,
+    enabled: true,
+    allowFreeUser: false, // 仅订阅用户
+    features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use", "priority_support"],
+  },
+  {
+    id: "ultimate_pack",
+    name: "Ultimate Pack",
+    priceUsd: 239,
+    credits: 18000, // 和年付 Pro 套餐积分相同
+    popular: false,
+    enabled: true,
+    allowFreeUser: false, // 仅订阅用户
+    features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use", "priority_support", "api_access"],
   },
 ];
 
@@ -230,10 +250,10 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
  *
  * 💡 定价说明（基于 Evolink 1:1 成本，向上取整）:
  *
- * 1. **Sora 2 Lite**: 10s=2积分, 15s=3积分 (无水印)
- * 2. **Wan 2.6**: 720p: 5s=25积分, 10s=50积分, 15s=75积分
+ * 1. **Veo 3.1 Fast Lite**: 固定 10 积分（基准价格）
+ * 2. **Sora 2 Lite**: 10s=2积分, 15s=3积分 (无水印)
+ * 3. **Wan 2.6**: 720p: 5s=25积分, 10s=50积分, 15s=75积分
  *              1080p × 1.67 倍
- * 3. **Veo 3.1 Fast Lite**: 固定 10积分 (720p/1080p)
  * 4. **Seedance 1.5 Pro**: 按秒计费, 默认有音频
  *                          480p: 1.636 Credits/秒 → 2 积分/秒
  *                          720p: 3.557 Credits/秒 → 4 积分/秒
@@ -245,32 +265,32 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
  * - qualityMultiplier: 画质乘数（1080p vs 720p）
  */
 export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
+  /** Veo 3.1 Fast Lite - Google (基准价格) */
+  "veo-3.1": {
+    baseCredits: 10, // 固定 10积分/视频
+    perSecond: 0,
+    enabled: true,
+  },
+
   /** Sora 2 Lite - OpenAI */
   "sora-2": {
-    baseCredits: 2,       // 10秒 = 2积分 (1.6 Credits 向上取整)
-    perSecond: 0,         // 固定价格
+    baseCredits: 2, // 10秒 = 2积分 (1.6 Credits 向上取整)
+    perSecond: 0, // 固定价格
     enabled: true,
   },
 
   /** Wan 2.6 */
   "wan2.6": {
-    baseCredits: 25,      // 5秒 720p = 25积分
-    perSecond: 5,         // 每秒 = 5积分 (10秒 = 25 + 5×5 = 50积分)
+    baseCredits: 25, // 5秒 720p = 25积分
+    perSecond: 5, // 每秒 = 5积分 (10秒 = 25 + 5×5 = 50积分)
     qualityMultiplier: 1.67, // 1080p = 720p × 1.67 (41.75 / 25 ≈ 1.67)
-    enabled: true,
-  },
-
-  /** Veo 3.1 Fast Lite - Google */
-  "veo-3.1": {
-    baseCredits: 10,      // 固定 10积分 (9.6 Credits 向上取整)
-    perSecond: 0,
     enabled: true,
   },
 
   /** Seedance 1.5 Pro - 按秒计费（默认有音频） */
   "seedance-1.5-pro": {
-    baseCredits: 0,       // 不使用 baseCredits
-    perSecond: 4,         // 720p 有音频: 3.557 Credits/秒 → 4 积分/秒
+    baseCredits: 0, // 不使用 baseCredits
+    perSecond: 4, // 720p 有音频: 3.557 Credits/秒 → 4 积分/秒
     qualityMultiplier: 2, // 1080p = 720p × 2 (7.932 / 3.557 ≈ 2.23, 向上取整为 2)
     enabled: true,
   },
