@@ -114,7 +114,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "basic_monthly",
     name: "Basic Plan",
     priceUsd: 9.9,
-    credits: 400, // ~40 Veo 3.1 视频
+    credits: 280, // ~28 Veo 3.1 视频 (60% 毛利率)
     period: "month" as const,
     popular: false,
     enabled: true,
@@ -124,7 +124,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "pro_monthly",
     name: "Pro Plan",
     priceUsd: 29.9,
-    credits: 1500, // ~150 Veo 3.1 视频
+    credits: 860, // ~86 Veo 3.1 视频 (60% 毛利率)
     period: "month" as const,
     popular: true, // 推荐
     enabled: true,
@@ -134,7 +134,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "ultimate_monthly",
     name: "Ultimate Plan",
     priceUsd: 79.9,
-    credits: 4500, // ~450 Veo 3.1 视频
+    credits: 2290, // ~229 Veo 3.1 视频 (60% 毛利率)
     period: "month" as const,
     popular: false,
     enabled: true,
@@ -146,7 +146,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "basic_yearly",
     name: "Basic Plan (Yearly)",
     priceUsd: 99, // 17% OFF (买10送12)
-    credits: 4800, // ~480 Veo 3.1 视频
+    credits: 3360, // ~336 Veo 3.1 视频
     period: "year" as const,
     popular: false,
     enabled: true,
@@ -156,7 +156,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "pro_yearly",
     name: "Pro Plan (Yearly)",
     priceUsd: 239, // 33% OFF 限时优惠
-    credits: 18000, // ~1,800 Veo 3.1 视频
+    credits: 10320, // ~1,032 Veo 3.1 视频
     period: "year" as const,
     popular: true,
     enabled: true,
@@ -166,7 +166,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     id: "ultimate_yearly",
     name: "Ultimate Plan (Yearly)",
     priceUsd: 699, // 27% OFF
-    credits: 54000, // ~5,400 Veo 3.1 视频
+    credits: 27480, // ~2,748 Veo 3.1 视频
     period: "year" as const,
     popular: false,
     enabled: true,
@@ -193,7 +193,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     id: "starter_pack",
     name: "Starter Pack",
     priceUsd: 14.9,
-    credits: 400, // 和月付基础套餐积分相同
+    credits: 280, // 和月付基础套餐积分相同
     popular: false,
     enabled: true,
     allowFreeUser: true, // 所有用户可购买
@@ -203,7 +203,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     id: "standard_pack",
     name: "Standard Pack",
     priceUsd: 39.9, // 比月付 Pro 贵 33% ($29.90)
-    credits: 1500, // 和月付 Pro 套餐积分相同
+    credits: 860, // 和月付 Pro 套餐积分相同
     popular: true, // 推荐
     enabled: true,
     allowFreeUser: false, // 仅订阅用户
@@ -213,7 +213,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     id: "pro_pack",
     name: "Pro Pack",
     priceUsd: 99.9, // 比月付 Ultimate 贵 25% ($79.90)
-    credits: 4500, // 和月付 Ultimate 套餐积分相同
+    credits: 2290, // 和月付 Ultimate 套餐积分相同
     popular: false,
     enabled: true,
     allowFreeUser: false, // 仅订阅用户
@@ -223,7 +223,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     id: "studio_pack",
     name: "Studio Pack",
     priceUsd: 129, // 比年付 Basic 贵 30% ($99)
-    credits: 4800, // 和年付基础套餐积分相同
+    credits: 3360, // 和年付基础套餐积分相同
     popular: false,
     enabled: true,
     allowFreeUser: false, // 仅订阅用户
@@ -233,7 +233,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     id: "ultimate_pack",
     name: "Ultimate Pack",
     priceUsd: 299, // 比年付 Pro 贵 25% ($239)
-    credits: 18000, // 和年付 Pro 套餐积分相同
+    credits: 10320, // 和年付 Pro 套餐积分相同
     popular: false,
     enabled: true,
     allowFreeUser: false, // 仅订阅用户
