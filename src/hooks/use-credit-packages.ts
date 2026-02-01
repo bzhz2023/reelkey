@@ -22,14 +22,31 @@ export interface CreditsDictionary {
 }
 
 /**
- * Get package key from product ID
- * prod_sub_basic -> basic
- * prod_pack_starter -> starter
+ * Get package key from product ID or name
+ * Handles both old format (prod_sub_basic) and new Creem format (prod_xxx)
  */
-function getPackageKey(productId: string): string {
-  const match = productId.match(/prod_(?:sub|pack)_(\w+)/);
-  const rawKey = match?.[1] ?? productId;
-  return rawKey.replace(/_(monthly|yearly)$/, "");
+function getPackageKey(productId: string, productName: string): string {
+  // Try to extract from old Product ID format first
+  const match = productId.match(/prod_(?:sub|pack)_([a-zA-Z0-9]+)/);
+  if (match) {
+    const rawKey = match[1];
+    return rawKey.replace(/_(monthly|yearly)$/, "");
+  }
+
+  // For new Creem Product IDs, map from product name
+  const nameToKeyMap: Record<string, string> = {
+    "Basic Plan": "basic",
+    "Pro Plan": "pro",
+    "Ultimate Plan": "team", // Use team for Ultimate
+    "Basic Plan (Yearly)": "basic",
+    "Pro Plan (Yearly)": "pro",
+    "Ultimate Plan (Yearly)": "team",
+    "Starter Pack": "starter",
+    "Standard Pack": "standard",
+    "Pro Pack": "pro",
+  };
+
+  return nameToKeyMap[productName] || productId;
 }
 
 /**
@@ -42,9 +59,9 @@ export function getLocalizedSubscriptionPackages(
 
   return packages.map((pkg: CreditPackageConfig) => ({
     ...pkg,
-    displayName: dictionary.packages[getPackageKey(pkg.id)]?.name || pkg.id,
+    displayName: dictionary.packages[getPackageKey(pkg.id, pkg.name)]?.name || pkg.name,
     displayDescription:
-      dictionary.packages[getPackageKey(pkg.id)]?.description || "",
+      dictionary.packages[getPackageKey(pkg.id, pkg.name)]?.description || "",
     localizedFeatures: (pkg.features || []).map((key: string) => {
       const featureKey = key.replace("credits.features.", "");
       return dictionary.features[featureKey] || key;
@@ -62,9 +79,9 @@ export function getLocalizedOnetimePackages(
 
   return packages.map((pkg: CreditPackageConfig) => ({
     ...pkg,
-    displayName: dictionary.packages[getPackageKey(pkg.id)]?.name || pkg.id,
+    displayName: dictionary.packages[getPackageKey(pkg.id, pkg.name)]?.name || pkg.name,
     displayDescription:
-      dictionary.packages[getPackageKey(pkg.id)]?.description || "",
+      dictionary.packages[getPackageKey(pkg.id, pkg.name)]?.description || "",
     localizedFeatures: (pkg.features || []).map((key: string) => {
       const featureKey = key.replace("credits.features.", "");
       return dictionary.features[featureKey] || key;

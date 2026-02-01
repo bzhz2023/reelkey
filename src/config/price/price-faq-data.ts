@@ -4,133 +4,162 @@ interface FAQItem {
   answer: string;
 }
 
+/**
+ * 定价页面 FAQ 数据
+ *
+ * 基于 PRICING_REFERENCE.md 文档更新
+ */
 export const priceFaqDataMap: Record<string, FAQItem[]> = {
   zh: [
     {
       id: "item-1",
-      question: "免费计划的费用是多少？",
+      question: "积分是如何工作的？",
       answer:
-        "我们的免费计划完全免费，没有月费或年费。这是一个开始使用和探索我们基本功能的好方法。",
+        "每次生成视频时会消耗积分。不同模型和不同分辨率消耗的积分不同。例如，Veo 3.1 生成一个视频消耗 10 积分。您可以随时在账户中查看积分余额。",
     },
     {
       id: "item-2",
-      question: "专业月度计划的费用是多少？",
+      question: "Basic 计划的费用是多少？",
       answer:
-        "专业月度计划的价格是每月30美元。它提供了访问我们核心功能的权限，并且是按月计费的。",
+        "Basic 月付计划每月 9.90 美元，提供 280 积分（约 28 个视频）。年付计划 99 美元，提供 3,360 积分（约 336 个视频），相当于省了 2 个月的费用。",
     },
     {
       id: "item-3",
-      question: "商务月度计划的价格是多少？",
+      question: "Pro 计划包含哪些功能？",
       answer:
-        "商务月度计划的价格是每月60美元。它提供高级功能，并且也是按月计费，增加了灵活性。",
+        "Pro 计划每月提供 960 积分（约 96 个视频），每月 29.90 美元。年付 299 美元，提供 11,520 积分。Pro 计划包含无水印、优先支持和商业使用权，是最受欢迎的选择。",
     },
     {
       id: "item-4",
-      question: "你们提供年度订阅计划吗？",
+      question: "我可以一次性购买积分吗？",
       answer:
-        "是的，我们提供年度订阅计划，以便更多的节省。专业年度计划的费用是每年288美元，商务年度计划是每年600美元。",
+        "是的！我们提供一次性积分包：Starter Pack（280 积分，14.90 美元）、Standard Pack（960 积分，39.90 美元）和 Pro Pack（2,850 积分，99.90 美元）。积分包有效期为 1 年。",
     },
     {
       id: "item-5",
-      question: "付费计划有试用期吗？",
+      question: "订阅和一次性购买有什么区别？",
       answer:
-        "我们为专业月度和专业年度计划提供14天的免费试用期。这是一个在承诺付费订阅之前体验所有功能的好方法。",
+        "订阅每月自动为您充值积分，月付积分有效期为 30 天。一次性购买积分包只需支付一次，积分有效期为 1 年。订阅用户享受更优惠的单价，年付订阅可省 17%。",
+    },
+    {
+      id: "item-6",
+      question: "我可以随时取消订阅吗？",
+      answer:
+        "是的，您可以随时取消订阅。取消后，您将在当前计费周期结束后停止续费，已经充值的积分不会受到影响。",
     },
   ],
   en: [
     {
       id: "item-1",
-      question: "What is the cost of the free plan?",
+      question: "How do credits work?",
       answer:
-        "Our free plan is completely free, with no monthly or annual charges. It's a great way to get started and explore our basic features.",
+        "Each video generation consumes credits. Different models and resolutions consume different amounts. For example, Veo 3.1 consumes 10 credits per video. You can check your credit balance anytime in your account.",
     },
     {
       id: "item-2",
-      question: "How much does the Pro Monthly plan cost?",
+      question: "How much does the Basic plan cost?",
       answer:
-        "The Pro Monthly plan is priced at $30 per month. It provides access to our core features and is billed on a monthly basis.",
+        "The Basic monthly plan is $9.90/month with 280 credits (~28 videos). The yearly plan is $99 with 3,360 credits (~336 videos), saving you 2 months of payments.",
     },
     {
       id: "item-3",
-      question: "What is the price of the Business Monthly plan?",
+      question: "What's included in the Pro plan?",
       answer:
-        "The Business Monthly plan is available for $60 per month. It offers advanced features and is billed on a monthly basis for added flexibility.",
+        "The Pro plan provides 960 credits per month (~96 videos) at $29.90/month. The yearly plan is $299 with 11,520 credits. The Pro plan includes watermark-free videos, priority support, and commercial license. It's our most popular choice.",
     },
     {
       id: "item-4",
-      question: "Do you offer any annual subscription plans?",
+      question: "Can I purchase credits one-time?",
       answer:
-        "Yes, we offer annual subscription plans for even more savings. The Pro Annual plan is $288 per year, and the Business Annual plan is $600 per year.",
+        "Yes! We offer one-time credit packages: Starter Pack (280 credits, $14.90), Standard Pack (960 credits, $39.90), and Pro Pack (2,850 credits, $99.90). Credit packages are valid for 1 year.",
     },
     {
       id: "item-5",
-      question: "Is there a trial period for the paid plans?",
+      question: "What's the difference between subscription and one-time purchase?",
       answer:
-        "We offer a 14-day free trial for both the Pro Monthly and Pro Annual plans. It's a great way to experience all the features before committing to a paid subscription.",
+        "Subscriptions automatically recharge your credits monthly. Monthly subscription credits are valid for 30 days. One-time credit packages require a single payment and credits are valid for 1 year. Subscribers enjoy better per-credit rates, and yearly plans save 17%.",
+    },
+    {
+      id: "item-6",
+      question: "Can I cancel my subscription anytime?",
+      answer:
+        "Yes, you can cancel your subscription anytime. After cancellation, you'll stop being charged at the end of your current billing period, and your existing credits will not be affected.",
     },
   ],
   ja: [
     {
       id: "item-1",
-      question: "無料プランの費用はいくらですか？",
+      question: "クレジットはどのように機能しますか？",
       answer:
-        "私たちの無料プランは完全に無料で、月額料金や年間料金はかかりません。基本的な機能を使い始めるには最適な方法です。",
+        "動画を生成するたびにクレジットが消費されます。モデルや解像度によって消費量が異なります。例えば、Veo 3.1 は動画あたり 10 クレジットを消費します。アカウントでいつでもクレジット残高を確認できます。",
     },
     {
       id: "item-2",
-      question: "プロ月額プランの費用はいくらですか？",
+      question: "Basic プランの費用はいくらですか？",
       answer:
-        "プロ月額プランは月に30ドルで、核心機能へのアクセスを提供し、月額で課金されます。",
+        "Basic 月額プランは月額 9.90 ドルで 280 クレジット（約 28 本の動画）。年額プランは 99 ドルで 3,360 クレジット（約 336 本の動画）で、2 ヶ月分の支払いを節約できます。",
     },
     {
       id: "item-3",
-      question: "ビジネス月額プランの価格はいくらですか？",
+      question: "Pro プランには何が含まれていますか？",
       answer:
-        "ビジネス月額プランは月に60ドルで、高度な機能を提供し、柔軟性を高めるために月額で課金されます。",
+        "Pro プランは月額 29.90 ドルで 960 クレジット（約 96 本の動画）。年額プランは 299 ドルで 11,520 クレジット。Pro プランにはウォーターマークなし、優先サポート、商用利用権が含まれ、最も人気のある選択肢です。",
     },
     {
       id: "item-4",
-      question: "年間サブスクリプションプランを提供していますか？",
+      question: "クレジットを一回限りの購入でできますか？",
       answer:
-        "はい、さらなる節約のために年間サブスクリプションプランを提供しています。プロ年間プランは年間288ドル、ビジネス年間プランは年間600ドルです。",
+        "はい！Starter Pack（280 クレジット、14.90 ドル）、Standard Pack（960 クレジット、39.90 ドル）、Pro Pack（2,850 クレジット、99.90 ドル）の一回限りのクレジットパッケージをご用意しています。有効期間は 1 年です。",
     },
     {
       id: "item-5",
-      question: "有料プランには試用期間がありますか？",
+      question: "サブスクリプションと一回限りの購入の違いは何ですか？",
       answer:
-        "プロ月額プランとプロ年間プランの両方に14日間の無料トライアルを提供しています。これは、有料サブスクリプションを行う前に全ての機能を体験するのに最適な方法です。",
+        "サブスクリプションは毎月自動的にクレジットをチャージします。月額サブスクリプションのクレジットは 30 日間有効です。一回限りのクレジットパッケージは一度の支払いで、クレジットは 1 年間有効です。サブスクライバーはよりお得なレートを享受でき、年額プランは 17% 節約できます。",
+    },
+    {
+      id: "item-6",
+      question: "サブスクリプションをいつでもキャンセルできますか？",
+      answer:
+        "はい、いつでもサブスクリプションをキャンセルできます。キャンセル後、現在の請求期間の終了時に課金が停止され、既存のクレジットには影響しません。",
     },
   ],
   ko: [
     {
       id: "item-1",
-      question: "무료 플랜의 비용은 얼마인가요?",
+      question: "크레딧은 어떻게 작동하나요?",
       answer:
-        "저희 무료 플랜은 완전히 무료이며, 월간 또는 연간 요금이 없습니다. 기본 기능을 시작하고 탐색하는 데 좋은 방법입니다.",
+        "비디오를 생성할 때마다 크레딧이 소비됩니다. 모델과 해상도에 따라 소비량이 다릅니다. 예를 들어, Veo 3.1은 비디오당 10 크레딧을 소비합니다. 계정에서 언제든지 크레딧 잔액을 확인할 수 있습니다.",
     },
     {
       id: "item-2",
-      question: "프로 월간 플랜의 비용은 얼마인가요?",
+      question: "Basic 플랜의 비용은 얼마인가요?",
       answer:
-        "프로 월간 플랜은 월 30달러입니다. 이 플랜은 핵심 기능에 대한 접근을 제공하며 월간으로 청구됩니다.",
+        "Basic 월간 플랜은 월 $9.90에 280 크레딧(약 28개 비디오)을 제공합니다. 연간 플랜은 $99에 3,360 크레딧(약 336개 비디오)을 제공하며 2개월치 요금을 절약할 수 있습니다.",
     },
     {
       id: "item-3",
-      question: "비즈니스 월간 플랜의 가격은 얼마인가요?",
+      question: "Pro 플랜에는 무엇이 포함되어 있나요?",
       answer:
-        "비즈니스 월간 플랜은 월 60달러입니다. 이 플랜은 고급 기능을 제공하며 유연성을 더하기 위해 월간으로 청구됩니다.",
+        "Pro 플랜은 월 $29.90에 월 960 크레딧(약 96개 비디오)을 제공합니다. 연간 플랜은 $299에 11,520 크레딧을 제공합니다. Pro 플랜에는 워터마크 제거, 우선 지원, 상업용 라이선스가 포함되어 있으며 가장 인기 있는 선택입니다.",
     },
     {
       id: "item-4",
-      question: "연간 구독 플랜을 제공하나요?",
+      question: "일회성 크레딧을 구매할 수 있나요?",
       answer:
-        "네, 더 큰 절약을 위해 연간 구독 플랜을 제공합니다. 프로 연간 플랜은 연 288달러이며, 비즈니스 연간 플랜은 연 600달러입니다.",
+        "네! Starter Pack(280 크레딧, $14.90), Standard Pack(960 크레딧, $39.90), Pro Pack(2,850 크레딧, $99.90)의 일회성 크레딧 패키지를 제공합니다. 크레딧 패키지는 1년 동안 유효합니다.",
     },
     {
       id: "item-5",
-      question: "유료 플랜에는 체험 기간이 있나요?",
+      question: "구독과 일회성 구매의 차이점은 무엇인가요?",
       answer:
-        "저희는 프로 월간 및 프로 연간 플랜에 대해 14일 무료 체험 기간을 제공합니다. 유료 구독을 하기 전에 모든 기능을 경험할 수 있는 좋은 방법입니다.",
+        "구독은 매월 자동으로 크레딧을 충전합니다. 월간 구독 크레딧은 30일 동안 유효합니다. 일회성 크레딧 패키지는 한 번의 결제로 되며 크레딧은 1년 동안 유효합니다. 구독자는 더 저렴한 크레딧 단가를 누릴 수 있으며 연간 플랜은 17% 절약됩니다.",
+    },
+    {
+      id: "item-6",
+      question: "언제든지 구독을 취소할 수 있나요?",
+      answer:
+        "네, 언제든지 구독을 취소할 수 있습니다. 취소 후 현재 청구 기간이 끝날 때 요금 청구가 중지되며 기존 크레딧에는 영향을 받지 않습니다.",
     },
   ],
 };

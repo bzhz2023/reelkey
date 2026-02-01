@@ -13,6 +13,7 @@ export interface CreditPackagePrice {
 
 export interface CreditPackageConfig {
   id: string;
+  name: string;              // 产品显示名称
   credits: number;           // 积分数量
   price: CreditPackagePrice;
   type: ProductType;
@@ -101,6 +102,7 @@ export const CREDITS_CONFIG = {
         product.id,
         {
           id: product.id,
+          name: product.name,
           credits: product.credits,
           price: {
             priceId:
@@ -124,6 +126,7 @@ export const CREDITS_CONFIG = {
       pkg.id,
       {
         id: pkg.id,
+        name: pkg.name,
         credits: pkg.credits,
         price: {
           priceId:

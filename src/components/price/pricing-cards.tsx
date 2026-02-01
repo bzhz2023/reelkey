@@ -115,23 +115,11 @@ export function PricingCards({
               </ul>
 
               {userId && subscriptionPlan ? (
-                offer.id === "starter" ? (
-                  <LocaleLink
-                    href="/my-creations"
-                    className={buttonVariants({
-                      className: "w-full",
-                      variant: "default",
-                    })}
-                  >
-                    {t('go_to_dashboard')}
-                  </LocaleLink>
-                ) : (
-                  <BillingFormButton
-                    year={isYearly}
-                    offer={offer}
-                    subscriptionPlan={subscriptionPlan}
-                  />
-                )
+                <BillingFormButton
+                  year={isYearly}
+                  offer={offer}
+                  subscriptionPlan={subscriptionPlan}
+                />
               ) : (
                 <Button onClick={signInModal.onOpen}>{t('signup')}</Button>
               )}

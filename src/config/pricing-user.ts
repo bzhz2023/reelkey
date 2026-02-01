@@ -19,10 +19,16 @@
  * - 要禁用某个产品，将 enabled 改为 false
  *
  * ⚠️ 注意事项：
- * - 不要修改 id 字段（用于数据库关联）
+ * - id 字段：必须填入 Creem 后台的 Product ID（格式：prod_xxx）
  * - 价格使用美元单位（如 9.9 表示 $9.90）
  * - 积分数量是整数
  * - allowFreeUser: 是否允许免费用户购买（可选，默认 true）
+ *
+ * 🔄 Creem 配置流程：
+ * 1. 在 Creem 后台创建产品（订阅和积分包）
+ * 2. 复制每个产品的 Product ID（如 prod_4yNyvLWQ88n8AqJj35uOvK）
+ * 3. 将 Product ID 填入下方对应产品的 id 字段
+ * 4. .env.local 中无需配置 Price ID（已弃用）
  *
  * ============================================
  */
@@ -100,18 +106,21 @@ export const CREDIT_EXPIRATION = {
  * 订阅产品列表
  *
  * 每个产品包含：
- * - id: 产品唯一标识（不要改）
+ * - id: Creem Product ID（从 Creem 后台复制，如 prod_xxx）
  * - name: 显示名称
  * - priceUsd: 价格（美元）
  * - credits: 每周期赠送积分
  * - period: 付费周期 ("month" 或 "year")
  * - popular: 是否标记为推荐（最多选1-2个）
  * - enabled: 是否启用该产品
+ *
+ * ⚠️ 重要：id 字段必须是 Creem 后台的 Product ID（格式：prod_xxx）
+ * 在 Creem 后台创建产品后，复制 Product ID 到下方对应的 id 字段
  */
 export const SUBSCRIPTION_PRODUCTS = [
   // ===== 月付订阅 =====
   {
-    id: "basic_monthly",
+    id: "prod_jsRIeZmqn3L9NN0fiFIn6", // 从 Creem 后台复制 Basic Monthly Product ID
     name: "Basic Plan",
     priceUsd: 9.9,
     credits: 280, // ~28 Veo 3.1 视频 (60% 毛利率)
@@ -121,7 +130,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     features: ["hd_videos", "fast_generation"],
   },
   {
-    id: "pro_monthly",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z16", // 从 Creem 后台复制 Pro Monthly Product ID
     name: "Pro Plan",
     priceUsd: 29.9,
     credits: 960, // ~96 Veo 3.1 视频 (55% 毛利率，比 Basic 便宜 12%)
@@ -131,7 +140,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use"],
   },
   {
-    id: "ultimate_monthly",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z18", // 从 Creem 后台复制 Ultimate Monthly Product ID
     name: "Ultimate Plan",
     priceUsd: 79.9,
     credits: 2850, // ~285 Veo 3.1 视频 (50% 毛利率，比 Basic 便宜 21%)
@@ -143,7 +152,7 @@ export const SUBSCRIPTION_PRODUCTS = [
 
   // ===== 年付订阅（月付 × 10，买 10 送 2） =====
   {
-    id: "basic_yearly",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z10", // 从 Creem 后台复制 Basic Yearly Product ID
     name: "Basic Plan (Yearly)",
     priceUsd: 99, // 月付 × 10 (省 2 个月)
     credits: 3360, // 280 × 12
@@ -153,7 +162,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     features: ["hd_videos", "fast_generation"],
   },
   {
-    id: "pro_yearly",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z55", // 从 Creem 后台复制 Pro Yearly Product ID
     name: "Pro Plan (Yearly)",
     priceUsd: 299, // 月付 × 10 (省 2 个月)
     credits: 11520, // 960 × 12
@@ -163,7 +172,7 @@ export const SUBSCRIPTION_PRODUCTS = [
     features: ["hd_videos", "fast_generation", "no_watermark", "commercial_use"],
   },
   {
-    id: "ultimate_yearly",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z21", // 从 Creem 后台复制 Ultimate Yearly Product ID
     name: "Ultimate Plan (Yearly)",
     priceUsd: 799, // 月付 × 10 (省 2 个月)
     credits: 34200, // 2850 × 12
@@ -187,10 +196,12 @@ export const SUBSCRIPTION_PRODUCTS = [
  * - true:  所有用户都可以购买此积分包
  * - false: 只有订阅用户才能购买此积分包
  * - 不填: 默认为 true（所有用户可购买）
+ *
+ * ⚠️ 重要：id 字段必须是 Creem 后台的 Product ID（格式：prod_xxx）
  */
 export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
-    id: "starter_pack",
+    id: "prod_3tlZPSRNHZSaNq22zX2ZPO", // 从 Creem 后台复制 Starter Pack Product ID
     name: "Starter Pack",
     priceUsd: 14.9,
     credits: 280, // 和 Basic 月付积分相同
@@ -200,7 +211,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     features: ["hd_videos", "fast_generation"],
   },
   {
-    id: "standard_pack",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z12", // 从 Creem 后台复制 Standard Pack Product ID
     name: "Standard Pack",
     priceUsd: 39.9, // 比月付 Pro 贵 33%
     credits: 960, // 和 Pro 月付积分相同
@@ -210,7 +221,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     features: ["hd_videos", "fast_generation", "no_watermark"],
   },
   {
-    id: "pro_pack",
+    id: "prod_3tlZPSRNHZSaNq22zX2Z13", // 从 Creem 后台复制 Pro Pack Product ID
     name: "Pro Pack",
     priceUsd: 99.9, // 比月付 Ultimate 贵 25%
     credits: 2850, // 和 Ultimate 月付积分相同
@@ -289,8 +300,8 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
 export const PAYMENT_CONFIG = {
   /** 使用 Creem 支付 */
   provider: "creem",
-  /** 支付成功后的回调地址（自动生成）*/
+  /** Creem Webhook URL（用于接收支付状态通知）*/
   webhookUrl: process.env.NEXT_PUBLIC_APP_URL
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/credit/callback`
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/creem/webhook`
     : "",
 };
