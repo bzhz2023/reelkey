@@ -185,6 +185,69 @@ if (env.CREEM_API_KEY) {
       onRevokeAccess: async ({ customer, product }) => {
         console.log("Creem access revoked:", { customer, product });
       },
+
+      // 处理一次性购买（checkout.completed 事件不触发 onGrantAccess）
+      onCheckoutCompleted: async (checkoutData) => {
+        // 只处理一次性购买（onetime）
+        // billing_type 可能是 "onetime" 或 "one-time" 取决于 API 版本
+        const productType = checkoutData.product?.billing_type as string;
+        if (productType !== "onetime" && productType !== "one-time") {
+          console.log(`[Creem] Skipping checkout.completed for subscription product`);
+          return;
+        }
+
+        const product = checkoutData.product;
+        const productConfig = getProductById(product.id);
+        if (!productConfig) {
+          console.error(`[Creem] Unknown product in checkout: ${product.id}`);
+          return;
+        }
+
+        const credits = productConfig.credits;
+        if (credits <= 0) return;
+
+        // 从 metadata 获取用户 ID
+        const referenceId = checkoutData.metadata?.referenceId as string | undefined;
+        if (!referenceId) {
+          console.error(`[Creem] No referenceId in checkout metadata`);
+          return;
+        }
+
+        // 使用 order ID 作为唯一标识
+        const orderId = typeof checkoutData.order === "object"
+          ? checkoutData.order?.id
+          : checkoutData.order;
+        const orderNo = orderId
+          ? `creem_${orderId}`
+          : `creem_onetime_${referenceId}_${Date.now()}`;
+
+        // 防止重复处理
+        const [existing] = await db
+          .select({ id: creditPackages.id })
+          .from(creditPackages)
+          .where(eq(creditPackages.orderNo, orderNo))
+          .limit(1);
+
+        if (existing) {
+          console.log(`[Creem] Duplicate checkout ignored: ${orderNo}`);
+          return;
+        }
+
+        const productName = product?.name ?? productConfig.id;
+
+        console.log(`[Creem] Processing one-time purchase: ${productName}, credits: ${credits}, userId: ${referenceId}`);
+
+        await creditService.recharge({
+          userId: referenceId,
+          credits,
+          orderNo,
+          transType: CreditTransType.ORDER_PAY,
+          expiryDays: getProductExpiryDays(productConfig),
+          remark: `Creem payment: ${productName}`,
+        });
+
+        console.log(`[Creem] One-time purchase completed: ${orderNo}`);
+      },
     })
   );
 }
