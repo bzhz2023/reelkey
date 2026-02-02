@@ -204,6 +204,10 @@ git checkout upstream/main -- src/components/landing
 - **状态与通知**：SSE + 15s 轮询，生成完成支持浏览器通知与 toast  
 - **My Creations 体验优化**：4:3 卡片、hover 自动播放、错误信息展示在预览区  
 
+### 2026-02-02
+- **定价组件升级**：默认展示 Monthly，Yearly 20% OFF 标签，高亮 Popular 方案 UI  
+- **权限与修复**：CreditHistory 崩溃修复，针对免费用户的购买限制逻辑（仅 Subscribers 可买特定包）
+
 ## 🗺 路线图
 
 - [x] 多 AI 模型支持
