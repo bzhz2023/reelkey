@@ -57,6 +57,34 @@ export function CreditsPage({ locale }: CreditsPageProps) {
     router.push(`/${locale}/pricing`);
   };
 
+  // 处理支付成功回调
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const paymentStatus = searchParams.get("payment");
+    const returnTo = searchParams.get("returnTo");
+
+    if (paymentStatus === "success") {
+      // 移除 URL 参数，避免刷新重复触发
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+
+      // 显示成功提示
+      // toast.success(t("paymentSuccess"));
+
+      // 如果有 returnTo，延迟跳转回去
+      if (returnTo) {
+        const decodedPath = decodeURIComponent(returnTo);
+        // 使用 toast 显示正在跳转
+        // toast.info(t("redirectingBack"));
+
+        // 延迟跳转，让用户看清成功提示
+        setTimeout(() => {
+          router.push(decodedPath);
+        }, 1500);
+      }
+    }
+  }, [router]);
+
   return (
     <div className="space-y-8">
       {/* Header */}

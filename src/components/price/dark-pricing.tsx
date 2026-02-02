@@ -95,9 +95,12 @@ export function DarkPricing({
 
     startTransition(async () => {
       const origin = window.location.origin;
+      // 支付成功后跳转到 credits 页面，同时将当前页面作为 returnTo 参数
+      const currentPath = window.location.pathname;
+      const returnTo = encodeURIComponent(currentPath);
       const { data, error } = await creem.createCheckout({
         productId: product.id,
-        successUrl: `${origin}/my-creations?payment=success`,
+        successUrl: `${origin}/credits?payment=success&returnTo=${returnTo}`,
         metadata: {
           plan: product.id,
         },
