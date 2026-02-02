@@ -285,16 +285,18 @@ export const auth = betterAuth({
   // Hooks - 自动赠送新用户积分（仅在注册时触发）
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
-      // 只在注册路径触发，登录路径不触发（减少不必要的数据库查询）
-      if (ctx.path?.startsWith("/sign-up")) {
-        const newSession = ctx.context?.newSession;
-        if (newSession?.user?.id) {
-          try {
-            await creditService.grantNewUserCredits(newSession.user.id);
-          } catch (error) {
-            console.error("[Auth] Failed to grant new user credits:", error);
-            // 不抛出错误，避免影响注册流程
-          }
+      // 只要有新 session 创建（注册或登录），都尝试检查并发放新用户积分
+      // grantNewUserCredits 内部有幂等性检查，只会发放一次
+      // 这样可以覆盖 Email 注册、OAuth 注册等所有场景
+      const newSession = ctx.context?.newSession;
+      if (newSession?.user?.id) {
+        try {
+          // 不等待这个操作，避免阻塞登录/注册响应（虽然它是异步的，但 await 会阻塞中间件链）
+          // 但作为 after hook，最好还是 await 确保执行完成，反正数据库查询很快
+          await creditService.grantNewUserCredits(newSession.user.id);
+        } catch (error) {
+          console.error("[Auth] Failed to grant new user credits:", error);
+          // 不抛出错误，避免影响用户登录
         }
       }
     }),
