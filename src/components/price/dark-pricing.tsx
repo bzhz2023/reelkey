@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Balancer from "react-wrap-balancer";
 import { IconCheck, IconX } from "@tabler/icons-react";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { creem } from "@/lib/auth/client";
@@ -100,12 +101,20 @@ export function DarkPricing({
 
     startTransition(async () => {
       const origin = window.location.origin;
-      // 支付成功后跳转到 credits 页面，同时将当前页面作为 returnTo 参数
+      // 支付成功后跳转到 credits 页面
+      // 如果当前不在 pricing 页面（例如嵌入在其他页面的弹窗），则设置 returnTo 以便跳回
+      // 如果本来就在 pricing 页面，则不设置 returnTo，让用户停留在 credits 页面查看余额
       const currentPath = window.location.pathname;
-      const returnTo = encodeURIComponent(currentPath);
+      const isPricingPage = currentPath.includes("/pricing");
+      const returnTo = isPricingPage ? "" : encodeURIComponent(currentPath);
+
+      const successUrl = returnTo
+        ? `${origin}/credits?payment=success&returnTo=${returnTo}`
+        : `${origin}/credits?payment=success`;
+
       const { data, error } = await creem.createCheckout({
         productId: product.id,
-        successUrl: `${origin}/credits?payment=success&returnTo=${returnTo}`,
+        successUrl,
         metadata: {
           plan: product.id,
         },
@@ -376,7 +385,7 @@ function PricingCard({
             <button
               onClick={onPortal}
               className={cn(
-                "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+                "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
                 "hover:opacity-90",
                 isRecommended
                   ? "bg-primary text-primary-foreground"
@@ -394,7 +403,7 @@ function PricingCard({
                       disabled={isPending || isRestricted}
                       onClick={() => onCheckout(product)}
                       className={cn(
-                        "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+                        "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
                         "disabled:opacity-50 disabled:cursor-not-allowed",
                         "hover:opacity-90",
                         isRecommended
@@ -404,8 +413,8 @@ function PricingCard({
                     >
                       {isPending ? (
                         <>
-                          <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing...
                         </>
                       ) : isRestricted ? (
                         "Subscribers Only"

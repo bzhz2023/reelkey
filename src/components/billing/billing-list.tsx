@@ -43,7 +43,10 @@ export function BillingList({ invoices, hasMore, onLoadMore }: BillingListProps)
       {/* List */}
       <div className="border border-border rounded-lg divide-y divide-border">
         {invoices.map((invoice) => {
-          const config = statusConfig[invoice.status];
+          const config = statusConfig[invoice.status] || {
+            label: invoice.status,
+            className: "bg-muted text-muted-foreground border-border",
+          };
           const totalAmount = `${invoice.currency} ${invoice.amount.toFixed(2)}`;
 
           return (
