@@ -22,6 +22,7 @@ import { useNotificationDeduplication } from "@/hooks/use-notification-deduplica
 import { videoTaskStorage } from "@/lib/video-task-storage";
 import { videoHistoryStorage, type VideoHistoryItem } from "@/lib/video-history-storage";
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
+import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
 import { siteConfig } from "@/config/site";
 import type { Video } from "@/db";
 import type { ToolPageConfig } from "@/config/tool-pages";
@@ -406,6 +407,8 @@ export function ToolPageLayout({
           localStorage.setItem(NOTIFICATION_ASKED_KEY, "1");
           toast.info(tNotify("generationWillNotify"), {
             description: tNotify("notificationDescription"),
+            duration: Infinity, // 保持显示直到用户操作
+            closeButton: true,  // 显示关闭按钮
             action: {
               label: tNotify("enableNotifications"),
               onClick: () => {
@@ -565,11 +568,98 @@ export function ToolPageLayout({
   // Unauthenticated Layout: Scrollable, Tool Area + Landing Page
   if (!user) {
     return (
-      <div className="flex flex-1 flex-col lg:flex-row h-full overflow-hidden">
+      <>
+        <div className="flex flex-1 flex-col lg:flex-row h-full overflow-hidden">
+          {/* Mobile Tabs */}
+          {showMobileTabs && (
+            <div className="lg:hidden flex border-b border-border shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab("generator")}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "generator"
+                  ? "text-foreground border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {tTool("generator")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("result")}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "result"
+                  ? "text-foreground border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {tTool("result")}
+              </button>
+            </div>
+          )}
+
+          {/* Desktop Sidebar (Left) is handled by the parent layout wrapper, 
+            but here we control the content area to be scrollable */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {/* Tool Area Container */}
+            <div className="container mx-auto max-w-[1600px] p-6 lg:p-8">
+              <div className={`flex flex-col lg:flex-row gap-6 ${activeTab === "generator" ? "" : "lg:flex"}`}>
+
+                {/* Generator Panel Side */}
+                <div className={`${activeTab === "generator" ? "block" : "hidden"} lg:block w-full lg:w-[380px] shrink-0`}>
+                  <GeneratorPanel
+                    toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                    isLoading={isSubmitting}
+                    onSubmit={handleSubmit}
+                    availableModelIds={config.generator.models.available}
+                    defaultModelId={config.generator.models.default}
+                    initialPrompt={prefillData?.prompt}
+                    initialModelId={prefillData?.model}
+                    initialDuration={prefillData?.duration}
+                    initialAspectRatio={prefillData?.aspectRatio}
+                    initialQuality={prefillData?.quality}
+                    initialImageUrl={prefillData?.imageUrl}
+                  />
+                </div>
+
+                {/* Result/Preview Side */}
+                <div className={`${activeTab === "result" ? "block" : "hidden"} lg:block flex-1 min-h-[500px] rounded-2xl border border-border bg-muted/20 overflow-hidden relative`}>
+                  {/* Preview Placeholder for Unauthenticated Users */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 text-muted-foreground">
+                    <div className="w-16 h-16 rounded-full bg-muted/50 mb-4 flex items-center justify-center">
+                      <svg className="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Detailed Preview</h3>
+                    <p className="text-sm max-w-xs">Login to generate and view your high-quality AI videos.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Landing Page Content */}
+            <ToolLandingPage
+              config={config}
+              locale={locale}
+            />
+          </div>
+        </div>
+
+        {/* 全局升级弹窗 */}
+        <UpgradeModal />
+      </>
+    );
+  }
+
+  // Authenticated Layout: Three-column application mode
+  return (
+    <>
+      <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
         {/* Mobile Tabs */}
         {showMobileTabs && (
-          <div className="lg:hidden flex border-b border-border shrink-0">
+          <div className="lg:hidden flex border-b border-border mb-4 shrink-0">
             <button
+              type="button"
               onClick={() => setActiveTab("generator")}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "generator"
                 ? "text-foreground border-b-2 border-primary"
@@ -579,6 +669,7 @@ export function ToolPageLayout({
               {tTool("generator")}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("result")}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "result"
                 ? "text-foreground border-b-2 border-primary"
@@ -590,122 +681,48 @@ export function ToolPageLayout({
           </div>
         )}
 
-        {/* Desktop Sidebar (Left) is handled by the parent layout wrapper, 
-            but here we control the content area to be scrollable */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {/* Tool Area Container */}
-          <div className="container mx-auto max-w-[1600px] p-6 lg:p-8">
-            <div className={`flex flex-col lg:flex-row gap-6 ${activeTab === "generator" ? "" : "lg:flex"}`}>
-
-              {/* Generator Panel Side */}
-              <div className={`${activeTab === "generator" ? "block" : "hidden"} lg:block w-full lg:w-[380px] shrink-0`}>
-                <GeneratorPanel
-                  toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
-                  isLoading={isSubmitting}
-                  onSubmit={handleSubmit}
-                  availableModelIds={config.generator.models.available}
-                  defaultModelId={config.generator.models.default}
-                  initialPrompt={prefillData?.prompt}
-                  initialModelId={prefillData?.model}
-                  initialDuration={prefillData?.duration}
-                  initialAspectRatio={prefillData?.aspectRatio}
-                  initialQuality={prefillData?.quality}
-                  initialImageUrl={prefillData?.imageUrl}
-                />
-              </div>
-
-              {/* Result/Preview Side */}
-              <div className={`${activeTab === "result" ? "block" : "hidden"} lg:block flex-1 min-h-[500px] rounded-2xl border border-border bg-muted/20 overflow-hidden relative`}>
-                {/* Preview Placeholder for Unauthenticated Users */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 text-muted-foreground">
-                  <div className="w-16 h-16 rounded-full bg-muted/50 mb-4 flex items-center justify-center">
-                    <svg className="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Detailed Preview</h3>
-                  <p className="text-sm max-w-xs">Login to generate and view your high-quality AI videos.</p>
-                </div>
-              </div>
+        <div className="grid min-h-0 h-fit max-h-[calc(100svh-120px)] grid-cols-1 lg:grid-cols-[380px_minmax(0,1.2fr)] gap-5">
+          {/* Generator Panel */}
+          <div
+            className={`${activeTab === "generator" ? "flex" : "hidden"
+              } lg:flex flex-col h-full min-h-0`}
+          >
+            <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
+              <GeneratorPanel
+                toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                isLoading={isSubmitting}
+                onSubmit={handleSubmit}
+                availableModelIds={config.generator.models.available}
+                defaultModelId={config.generator.models.default}
+                initialPrompt={prefillData?.prompt}
+                initialModelId={prefillData?.model}
+                initialDuration={prefillData?.duration}
+                initialAspectRatio={prefillData?.aspectRatio}
+                initialQuality={prefillData?.quality}
+                initialImageUrl={prefillData?.imageUrl}
+              />
             </div>
           </div>
 
-          {/* Landing Page Content */}
-          <ToolLandingPage
-            config={config}
-            locale={locale}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Authenticated Layout: Three-column application mode
-  return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
-      {/* Mobile Tabs */}
-      {showMobileTabs && (
-        <div className="lg:hidden flex border-b border-border mb-4 shrink-0">
-          <button
-            onClick={() => setActiveTab("generator")}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "generator"
-              ? "text-foreground border-b-2 border-primary"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
+          {/* Result Panel */}
+          <div
+            className={`${activeTab === "result" ? "flex" : "hidden"
+              } lg:flex flex-1 h-full min-h-0`}
           >
-            {tTool("generator")}
-          </button>
-          <button
-            onClick={() => setActiveTab("result")}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "result"
-              ? "text-foreground border-b-2 border-primary"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            {tTool("result")}
-          </button>
-        </div>
-      )}
-
-      <div className="grid min-h-0 h-fit max-h-[calc(100svh-120px)] grid-cols-1 lg:grid-cols-[380px_minmax(0,1.2fr)] gap-5">
-        {/* Generator Panel */}
-        <div
-          className={`${activeTab === "generator" ? "flex" : "hidden"
-            } lg:flex flex-col h-full min-h-0`}
-        >
-          <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
-            <GeneratorPanel
-              toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
-              isLoading={isSubmitting}
-              onSubmit={handleSubmit}
-              availableModelIds={config.generator.models.available}
-              defaultModelId={config.generator.models.default}
-              initialPrompt={prefillData?.prompt}
-              initialModelId={prefillData?.model}
-              initialDuration={prefillData?.duration}
-              initialAspectRatio={prefillData?.aspectRatio}
-              initialQuality={prefillData?.quality}
-              initialImageUrl={prefillData?.imageUrl}
+            <VideoHistoryPanel
+              historyItems={historyItems}
+              generatingIds={generatingIds}
+              onDelete={handleDelete}
+              className="h-full min-h-0"
             />
           </div>
-        </div>
 
-        {/* Result Panel */}
-        <div
-          className={`${activeTab === "result" ? "flex" : "hidden"
-            } lg:flex flex-1 h-full min-h-0`}
-        >
-          <VideoHistoryPanel
-            historyItems={historyItems}
-            generatingIds={generatingIds}
-            onDelete={handleDelete}
-            className="h-full min-h-0"
-          />
         </div>
-
       </div>
-    </div>
+
+      {/* 全局升级弹窗 */}
+      <UpgradeModal />
+    </>
   );
 }
 
