@@ -126,6 +126,12 @@ if (env.CREEM_API_KEY) {
       defaultSuccessUrl: "/dashboard",
 
       onGrantAccess: async ({ product, customer, metadata }) => {
+        console.log(`[Creem] onGrantAccess called`, {
+          productId: product?.id,
+          productName: product?.name,
+          metadata,
+        });
+
         const productConfig = getProductById(product.id);
         if (!productConfig) {
           console.error(`[Creem] Unknown product: ${product.id}`);
@@ -135,24 +141,24 @@ if (env.CREEM_API_KEY) {
         const credits = productConfig.credits;
         if (credits <= 0) return;
 
+        // 从 metadata 获取用户 ID（Creem 插件在 checkout 时自动设置 referenceId）
         const meta = (metadata ?? {}) as Record<string, unknown>;
-        const metaOrderId =
-          typeof meta.paymentId === "string"
-            ? meta.paymentId
-            : typeof meta.subscriptionId === "string"
-              ? meta.subscriptionId
-              : typeof meta.orderId === "string"
-                ? meta.orderId
-                : undefined;
-        const customerData = customer as unknown as {
-          userId: string;
-          subscriptionId?: string;
-        };
+        const userId = meta.referenceId as string | undefined;
 
-        const orderId = metaOrderId ?? customerData.subscriptionId;
-        const orderNo = orderId
-          ? `creem_${orderId}`
-          : `creem_${productConfig.type}_${customerData.userId}_${Date.now()}`;
+        if (!userId) {
+          console.error(`[Creem] No referenceId in metadata, cannot process subscription`);
+          return;
+        }
+
+        // 获取订阅 ID 用于防止重复处理
+        const subscriptionId =
+          typeof meta.subscriptionId === "string"
+            ? meta.subscriptionId
+            : (customer as { id?: string })?.id;
+
+        const orderNo = subscriptionId
+          ? `creem_sub_${subscriptionId}`
+          : `creem_${productConfig.type}_${userId}_${Date.now()}`;
 
         const [existing] = await db
           .select({ id: creditPackages.id })
@@ -172,14 +178,18 @@ if (env.CREEM_API_KEY) {
 
         const productName = product?.name ?? productConfig.id;
 
+        console.log(`[Creem] Processing subscription: ${productName}, credits: ${credits}, userId: ${userId}`);
+
         await creditService.recharge({
-          userId: customerData.userId,
+          userId,
           credits,
           orderNo,
           transType,
           expiryDays: getProductExpiryDays(productConfig),
           remark: `Creem payment: ${productName}`,
         });
+
+        console.log(`[Creem] Subscription processed: ${orderNo}`);
       },
 
       onRevokeAccess: async ({ customer, product }) => {
