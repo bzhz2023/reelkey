@@ -4,6 +4,7 @@ import {
   creditHolds,
   creditPackages,
   creditTransactions,
+  customers,
   db,
   type CreditPackage,
 } from "@/db";
@@ -30,6 +31,7 @@ export interface CreditBalance {
   frozenCredits: number; // 冻结中积分
   availableCredits: number; // 可用积分 (total - used - frozen)
   expiringSoon: number; // 即将过期（7天内）
+  plan?: "FREE" | "PRO" | "BUSINESS" | null; // 用户订阅计划
 }
 
 interface PackageAllocation {
@@ -60,7 +62,14 @@ export class CreditService {
             gt(creditPackages.expiredAt, now)
           )
         )
-      );
+      )
+
+
+    const [customer] = await db
+      .select({ plan: customers.plan })
+      .from(customers)
+      .where(eq(customers.authUserId, userId))
+      .limit(1);
 
     let totalCredits = 0;
     let usedCredits = 0;
@@ -87,6 +96,7 @@ export class CreditService {
         0
       ),
       expiringSoon,
+      plan: customer?.plan,
     };
   }
 

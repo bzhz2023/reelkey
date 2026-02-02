@@ -16,28 +16,38 @@ interface CreditHistoryProps {
   onLoadMore?: () => void;
 }
 
-const typeConfig = {
-  video_generate: {
+const typeConfig: Record<string, { icon: any; label: string; color: string }> = {
+  NEW_USER: {
+    icon: ShoppingBag,
+    label: "New User Gift",
+    color: "text-emerald-500",
+  },
+  VIDEO_CONSUME: { // Was video_generate
     icon: Video,
     label: "Video Gen",
     color: "text-rose-500",
   },
-  order_pay: {
+  ORDER_PAY: {
     icon: ShoppingBag,
     label: "Purchase",
     color: "text-emerald-500",
   },
-  subscription: {
+  SUBSCRIPTION: {
     icon: ShoppingBag,
     label: "Subscription",
     color: "text-emerald-500",
   },
-  video_refund: {
+  REFUND: { // Was video_refund
     icon: RotateCcw,
     label: "Refund",
     color: "text-emerald-500",
   },
-  admin_adjust: {
+  EXPIRED: {
+    icon: ShoppingBag,
+    label: "Expired",
+    color: "text-muted-foreground",
+  },
+  SYSTEM_ADJUST: { // Was admin_adjust
     icon: Settings,
     label: "Admin Adjust",
     color: "text-muted-foreground",
@@ -84,7 +94,11 @@ export function CreditHistory({ transactions, hasMore, onLoadMore }: CreditHisto
             </thead>
             <tbody className="divide-y divide-border">
               {transactions.filter(Boolean).map((transaction) => {
-                const config = typeConfig[transaction.transType];
+                const config = typeConfig[transaction.transType] || {
+                  icon: Settings,
+                  label: transaction.transType,
+                  color: "text-muted-foreground"
+                };
                 const Icon = config.icon;
                 const isPositive = transaction.credits > 0;
 

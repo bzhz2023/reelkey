@@ -17,6 +17,8 @@ import {
   type CreditsDictionary,
   type LocalizedPackage,
 } from "@/hooks/use-credit-packages";
+import { useCredits } from "@/stores/credits-store";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DarkPricingProps {
   userId?: string;
@@ -54,11 +56,14 @@ export function DarkPricing({
   dictCredits,
 }: DarkPricingProps) {
   const t = useTranslations("PricingCards");
-  const [activeTab, setActiveTab] = useState<PricingTab>("onetime");
+  const [activeTab, setActiveTab] = useState<PricingTab>("monthly");
   const [hasAccess, setHasAccess] = useState(false);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const signInModal = useSigninModal();
+  const { balance } = useCredits();
+  const userPlan = balance?.plan || "FREE";
+  const isFreeUser = !userPlan || userPlan === "FREE";
 
   // 组织产品数据
   const allSubscriptionProducts = useMemo(
@@ -189,7 +194,7 @@ export function DarkPricing({
           >
             {t("yearly")}
             <span className="ml-1.5 rounded-md bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">
-              {t("off_percent")}
+              20% OFF
             </span>
           </TabButton>
         </div>
@@ -208,6 +213,9 @@ export function DarkPricing({
               included: product.localizedFeatures.some(f => f === feature.text),
             }));
 
+            // 检查是否允许免费用户购买
+            const isRestricted = isFreeUser && product.allowFreeUser === false;
+
             return (
               <PricingCard
                 key={product.id}
@@ -217,6 +225,7 @@ export function DarkPricing({
                 isCurrent={isCurrent}
                 userId={userId}
                 isPending={isPending}
+                isRestricted={isRestricted} // Pass restriction status
                 buyCreditsLabel={buyCreditsLabel}
                 dictPrice={dictPrice}
                 dictCredits={dictCredits}
@@ -281,6 +290,7 @@ interface PricingCardProps {
   onCheckout: (product: LocalizedPackage) => void;
   onPortal: () => void;
   signInModal: { onOpen: () => void };
+  isRestricted?: boolean;
 }
 
 function PricingCard({
@@ -296,17 +306,26 @@ function PricingCard({
   onCheckout,
   onPortal,
   signInModal,
+  isRestricted = false,
 }: PricingCardProps) {
   const t = useTranslations("PricingCards");
 
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl border",
-        isRecommended && "border-primary"
+        "relative flex flex-col overflow-hidden rounded-xl border transition-all duration-200",
+        isRecommended
+          ? "border-primary shadow-lg scale-105 z-10 bg-secondary/5"
+          : "border-border bg-card hover:bg-muted/10 opacity-80 hover:opacity-100"
       )}
     >
-      <div className="min-h-[150px] items-start space-y-4 bg-secondary/30 p-6">
+      {isRecommended && (
+        <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-primary" />
+      )}
+      <div className={cn(
+        "min-h-[150px] items-start space-y-4 p-6",
+        isRecommended ? "bg-secondary/40" : "bg-secondary/20"
+      )}>
         <p className="font-urban flex text-sm font-bold uppercase tracking-wider text-muted-foreground">
           {product.displayName}
         </p>
@@ -367,29 +386,44 @@ function PricingCard({
               {dictPrice.manage_subscription}
             </button>
           ) : (
-            <button
-              disabled={isPending}
-              onClick={() => onCheckout(product)}
-              className={cn(
-                "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "hover:opacity-90",
-                isRecommended
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-primary text-primary-foreground"
-              )}
-            >
-              {isPending ? (
-                <>
-                  <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
-                  Loading...
-                </>
-              ) : product.billingPeriod ? (
-                dictPrice.upgrade
-              ) : (
-                buyCreditsLabel
-              )}
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="w-full">
+                    <button
+                      disabled={isPending || isRestricted}
+                      onClick={() => onCheckout(product)}
+                      className={cn(
+                        "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                        "hover:opacity-90",
+                        isRecommended
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-primary text-primary-foreground"
+                      )}
+                    >
+                      {isPending ? (
+                        <>
+                          <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : isRestricted ? (
+                        "Subscribers Only"
+                      ) : product.billingPeriod ? (
+                        dictPrice.upgrade
+                      ) : (
+                        buyCreditsLabel
+                      )}
+                    </button>
+                  </span>
+                </TooltipTrigger>
+                {isRestricted && (
+                  <TooltipContent>
+                    <p>This pack is only available to active subscribers.</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )
         ) : (
           <button
