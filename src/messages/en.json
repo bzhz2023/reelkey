@@ -478,11 +478,13 @@
       "history": "Credit History",
       "loadMore": "Load More",
       "types": {
-        "videoGenerate": "Video Gen",
-        "purchase": "Purchase",
-        "refund": "Refund",
+        "new_user": "Welcome Bonus",
+        "order_pay": "Credit Pack",
         "subscription": "Subscription",
-        "adminAdjust": "Admin Adjust"
+        "video_consume": "Video Gen",
+        "refund": "Refund",
+        "expired": "Expired",
+        "system_adjust": "Admin Adjust"
       }
     },
     "settings": {

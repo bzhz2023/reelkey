@@ -506,11 +506,13 @@
       "history": "积分历史",
       "loadMore": "加载更多",
       "types": {
-        "videoGenerate": "视频生成",
-        "purchase": "购买",
+        "new_user": "新用户赠送",
+        "order_pay": "积分包购买",
+        "subscription": "订阅充值",
+        "video_consume": "视频生成",
         "refund": "退款",
-        "subscription": "订阅",
-        "adminAdjust": "管理员调整"
+        "expired": "已过期",
+        "system_adjust": "管理员调整"
       }
     },
     "settings": {
