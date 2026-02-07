@@ -213,38 +213,41 @@
   },
   "FAQ": {
     "title": "常见问题",
-    "subtitle": "关于 VideoFly 模板的一切",
+    "subtitle": "关于 VideoFly 的一切",
     "contact": "还有其他问题？请联系我们",
-    "template": {
-      "question": "什么是 VideoFly 模板？",
-      "answer": "VideoFly 是一个生产级 AI 视频生成 SaaS 模板，基于 Next.js 15、React 19 和 Drizzle ORM 构建。它包含了启动自己的 AI 视频平台所需的一切：用户认证、积分系统、AI 供应商集成、支付处理，以及可直接定制的精美 UI。"
+    "general": {
+      "question": "什么是 VideoFly？",
+      "answer": "VideoFly 是一个领先的 AI 视频生成平台，让您能在几分钟内将文本和图片转化为高质量视频。由 Sora 2 和 Veo 3.1 等先进模型驱动，无需昂贵的设备即可让您的创意变为现实。"
     },
-    "deployment": {
-      "question": "如何部署这个模板？",
-      "answer": "VideoFly 可以部署到 Vercel、Railway 或任何 Node.js 托管平台。只需连接您的 GitHub 仓库，设置所需的环境变量，然后部署即可。模板在 /docs 文件夹中包含详细文档，指导您完成整个过程。"
+    "commercial": {
+      "question": "我可以将视频用于商业用途吗？",
+      "answer": "可以！使用我们的专业版和团队版计划生成的视频包含完整的商业许可，您可以将其用于营销、社交媒体和商业项目中。"
     },
     "aiModels": {
-      "question": "支持哪些 AI 模型？",
-      "answer": "模板目前支持 Evolink（Sora 2、Wan 2.6、Veo 3.1、Seedance）和 Kie.ai。模块化的供应商架构使添加更多 AI 供应商变得简单。您可以在 config/pricing-user.ts 文件中配置模型和价格。"
+      "question": "你们使用哪些 AI 模型？",
+      "answer": "我们会集成业界最顶尖的视频生成模型，包括 Sora 2、Veo 3.1 等。我们会持续更新平台，确保为您提供最新、最强大的模型能力。"
     },
     "credits": {
       "question": "积分系统是如何工作的？",
-      "answer": "VideoFly 使用基于 FIFO 的积分系统，采用冻结/结算/释放模式。用户购买积分包或订阅，在生成视频时消耗积分。系统支持积分过期、退款和详细的交易记录。"
+      "answer": "您使用积分来生成视频。不同的模型和视频时长会消耗不同数量的积分。您可以购买积分包或订阅月度计划，以优惠价格获取稳定的积分。"
     },
-    "customization": {
-      "question": "我可以自定义 UI 和品牌吗？",
-      "answer": "当然可以！模板基于 Tailwind CSS 4 和 shadcn/ui 组件构建，使定制变得简单直观。所有的颜色、字体和样式都可以通过 Tailwind 配置进行修改。组件结构模块化且有完善的文档。"
+    "refund": {
+      "question": "提供退款吗？",
+      "answer": "我们提供满意度保证。如果因系统错误导致视频生成失败，我们将退还积分。对于订阅付款，如果您不满意，请在 7 天内联系我们的支持团队。"
     },
-    "payment": {
-      "question": "集成了哪些支付提供商？",
-      "answer": "VideoFly 以 Creem 为主要支付集成提供商，Stripe 作为备选选项。两者都支持订阅和一次性购买。支付 webhook 系统会自动将积分分配到用户账户。"
+    "support": {
+      "question": "如何获取支持？",
+      "answer": "我们的专属支持团队 7x24 小时待命。您可以通过网站上的联系表格或发送邮件至 support@videofly.app 联系我们。"
     }
   },
   "Footer": {
     "product": "产品",
     "company": "公司",
     "legal": "法律",
-    "copyright": "© {year} VideoFly. 保留所有权利。"
+    "copyright": "© {year} VideoFly. 保留所有权利。",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookie": "Cookie 政策"
   },
   "Credits": {
     "title": "积分",

@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import { AvatarCircles } from "@/components/magicui/avatar-circles";
-import { Marquee } from "@/components/magicui/marquee";
+// import { AvatarCircles } from "@/components/magicui/avatar-circles";
+// import { Marquee } from "@/components/magicui/marquee";
 import { LocaleLink } from "@/i18n/navigation";
 import { cn } from "@/components/ui";
 
@@ -185,8 +185,8 @@ export function CTASection() {
                     </motion.div>
                   </div>
 
-                  {/* 社交证明 - 头像 */}
-                  <motion.div
+                  {/* 社交证明 - 头像 (Hidden for audit) */}
+                  {/* <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -209,7 +209,7 @@ export function CTASection() {
                         {t("from")} 2,000+ {t("reviews")}
                       </p>
                     </div>
-                  </motion.div>
+                  </motion.div> */}
                 </div>
 
                 {/* 右侧: 预览卡片 */}
@@ -225,35 +225,25 @@ export function CTASection() {
 
                   {/* 视频预览卡片 */}
                   <div className="relative rounded-2xl border border-white/20 dark:border-white/10 bg-white/60 dark:bg-black/30 backdrop-blur-sm overflow-hidden">
-                    {/* 模拟视频播放器 */}
-                    <div className="aspect-video bg-gradient-to-br from-muted/80 to-muted/60 flex items-center justify-center">
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        className="relative"
-                      >
-                        {/* 播放按钮 */}
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg cursor-pointer">
-                          <Video className="h-10 w-10 text-white" />
-                        </div>
-                        {/* 波纹动画 */}
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 animate-ping opacity-30" />
-                      </motion.div>
+                    {/* 静态图片预览 (Video preview replaced with image for audit) */}
+                    <div className="aspect-video bg-muted/80 flex items-center justify-center overflow-hidden">
+                      <motion.img
+                        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"
+                        alt="AI Video Generation Preview"
+                        className="w-full h-full object-cover"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.5 }}
+                      />
                     </div>
 
-                    {/* 模拟进度条 */}
+                    {/* 模拟进度条 - 保持不动或移除动画 */}
                     <div className="p-4 space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{t("generating")}</span>
                         <span className="font-medium text-primary">100%</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: "100%" }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 2, ease: "easeOut" }}
-                          className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
-                        />
+                        <div className="h-full w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
                         {t("readyIn")} 2-5 {t("minutes")}
@@ -265,8 +255,8 @@ export function CTASection() {
             </motion.div>
           </BlurFade>
 
-          {/* 评价 Marquee */}
-          <BlurFade delay={0.2} inView>
+          {/* 评价 Marquee (Hidden for audit) */}
+          {/* <BlurFade delay={0.2} inView>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -303,7 +293,7 @@ export function CTASection() {
                 ))}
               </Marquee>
             </motion.div>
-          </BlurFade>
+          </BlurFade> */}
         </div>
       </div>
     </section>

@@ -18,12 +18,12 @@ interface FAQItem {
 
 const faqData: FAQItem[] = [
   {
-    questionKey: "template.question",
-    answerKey: "template.answer",
+    questionKey: "general.question",
+    answerKey: "general.answer",
   },
   {
-    questionKey: "deployment.question",
-    answerKey: "deployment.answer",
+    questionKey: "commercial.question",
+    answerKey: "commercial.answer",
   },
   {
     questionKey: "aiModels.question",
@@ -34,12 +34,12 @@ const faqData: FAQItem[] = [
     answerKey: "credits.answer",
   },
   {
-    questionKey: "customization.question",
-    answerKey: "customization.answer",
+    questionKey: "refund.question",
+    answerKey: "refund.answer",
   },
   {
-    questionKey: "payment.question",
-    answerKey: "payment.answer",
+    questionKey: "support.question",
+    answerKey: "support.answer",
   },
 ];
 

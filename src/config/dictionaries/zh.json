@@ -35,6 +35,11 @@
     "main_nav_products": "产品",
     "main_nav_blog": "博客",
     "main_nav_documentation": "文档",
+    "legal": {
+      "privacy": "隐私政策",
+      "terms": "服务条款",
+      "cookie": "Cookie 政策"
+    },
     "login": "登录",
     "signup": "注册",
     "": "",

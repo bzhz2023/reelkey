@@ -185,38 +185,41 @@
   },
   "FAQ": {
     "title": "Frequently Asked Questions",
-    "subtitle": "Everything you need to know about VideoFly template",
+    "subtitle": "Everything you need to know about VideoFly",
     "contact": "Still have questions? Contact us at",
-    "template": {
-      "question": "What is VideoFly template?",
-      "answer": "VideoFly is a production-ready AI video generation SaaS template built with Next.js 15, React 19, and Drizzle ORM. It includes everything you need to launch your own AI video platform: user authentication, credit system, AI provider integration, payment processing, and a beautiful UI ready for customization."
+    "general": {
+      "question": "What is VideoFly?",
+      "answer": "VideoFly is a cutting-edge AI video generation platform that allows you to transform text and images into high-quality videos in minutes. Powered by advanced models like Sora 2 and Veo 3.1, it enables creators to bring their visions to life without expensive equipment."
     },
-    "deployment": {
-      "question": "How do I deploy this template?",
-      "answer": "VideoFly can be deployed to Vercel, Railway, or any Node.js hosting platform. Simply connect your GitHub repository, set up the required environment variables, and deploy. The template includes detailed documentation in the /docs folder to guide you through the process."
+    "commercial": {
+      "question": "Can I use the videos for commercial purposes?",
+      "answer": "Yes! Videos generated with our Pro and Team plans come with a full commercial license, allowing you to use them in your marketing, social media, and commercial projects."
     },
     "aiModels": {
-      "question": "Which AI models are supported?",
-      "answer": "The template currently supports Evolink (Sora 2, Wan 2.6, Veo 3.1, Seedance) and Kie.ai. The modular provider architecture makes it easy to add more AI providers. You can configure models and pricing in the config/pricing-user.ts file."
+      "question": "Which AI models do you use?",
+      "answer": "We integrate the industry's best video generation models, including Sora 2, Veo 3.1, and others. We continuously update our platform to include the latest and most capable models available."
     },
     "credits": {
       "question": "How does the credit system work?",
-      "answer": "VideoFly uses a FIFO-based credit system with freeze/settle/release pattern. Users purchase credit packages or subscriptions, which are consumed when generating videos. The system supports credit expiration, refunds, and detailed transaction history."
+      "answer": "You use credits to generate videos. Different models and video durations consume different amounts of credits. You can purchase credit packs or subscribe to a monthly plan to receive a steady supply of credits at a discount."
     },
-    "customization": {
-      "question": "Can I customize the UI and branding?",
-      "answer": "Absolutely! The template is built with Tailwind CSS 4 and shadcn/ui components, making customization straightforward. All colors, fonts, and styling can be modified through the Tailwind configuration. The component structure is modular and well-documented."
+    "refund": {
+      "question": "Do you offer refunds?",
+      "answer": "We offer a satisfaction guarantee. If a generated video fails due to a system error, we will refund the credits. For subscription payments, please contact our support team within 7 days if you're not satisfied."
     },
-    "payment": {
-      "question": "What payment providers are integrated?",
-      "answer": "VideoFly integrates with Creem as the primary payment provider, with Stripe available as a secondary option. Both support subscriptions and one-time purchases. The payment webhook system automatically handles credit allocation to user accounts."
+    "support": {
+      "question": "How can I get support?",
+      "answer": "Our dedicated support team is available 24/7. You can reach us via the contact form on our website or by emailing support@videofly.app."
     }
   },
   "Footer": {
     "product": "Product",
     "company": "Company",
     "legal": "Legal",
-    "copyright": "© {year} VideoFly. All rights reserved."
+    "copyright": "© {year} VideoFly. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookie": "Cookie Policy"
   },
   "Credits": {
     "title": "Credits",

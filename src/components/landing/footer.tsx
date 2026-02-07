@@ -21,21 +21,21 @@ export function LandingFooter() {
         { title: "Pricing", href: "/pricing" },
       ],
     },
-    {
-      title: t('company'),
-      links: [
-        { title: "About", href: "/about" },
-        { title: "Blog", href: "/blog" },
-        { title: "Careers", href: "/careers" },
-        { title: "Contact", href: "/contact" },
-      ],
-    },
+    // {
+    //   title: t('company'),
+    //   links: [
+    //     { title: "About", href: "/about" },
+    //     { title: "Blog", href: "/blog" },
+    //     { title: "Careers", href: "/careers" },
+    //     { title: "Contact", href: "/contact" },
+    //   ],
+    // },
     {
       title: t('legal'),
       links: [
-        { title: "Privacy Policy", href: "/privacy" },
-        { title: "Terms of Service", href: "/terms" },
-        { title: "Cookie Policy", href: "/cookies" },
+        { title: t('privacy'), href: "/privacy" },
+        { title: t('terms'), href: "/terms" },
+        // { title: t('cookie'), href: "/cookies" },
       ],
     },
   ];

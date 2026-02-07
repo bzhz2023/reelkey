@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { Menu, Globe } from "lucide-react";
-import { useLocalePathname, useLocaleRouter } from "@/i18n/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -53,8 +53,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const signInModal = useSigninModal();
   const t = useTranslations();
   const locale = useLocale();
-  const pathname = useLocalePathname();
-  const router = useLocaleRouter();
+  const pathname = usePathname();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
 
@@ -73,7 +73,30 @@ export function LandingHeader({ user }: { user?: User | null }) {
   // Language switcher function
   const switchLocale = (newLocale: string) => {
     startTransition(() => {
-      router.push(pathname, { locale: newLocale });
+      let newPath = pathname;
+
+      // Clean up the path by removing existing locale prefix
+      if (newPath.startsWith("/zh") || newPath.startsWith("/en")) {
+        newPath = newPath.replace(/^\/(zh|en)/, "");
+      }
+
+      // Ensure root path handling
+      if (newPath === "") newPath = "/";
+
+      // Construct new path with target locale
+      if (newLocale === "zh") {
+        if (newPath === "/") {
+          newPath = "/zh";
+        } else if (!newPath.startsWith("/zh")) {
+          newPath = `/zh${newPath}`;
+        }
+      } else {
+        // For 'en' (default), ensure no prefix
+        // newPath is already cleaned
+      }
+
+      router.push(newPath);
+      router.refresh(); // Force server components to re-render with new locale
     });
   };
 
@@ -102,8 +125,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
             className="[--radix-navigation-menu-viewport-width:400px]"
           >
             <NavigationMenuList>
-              {/* Models Dropdown */}
-              <NavigationMenuItem>
+              {/* Models Dropdown (Hidden for audit) */}
+              {/* <NavigationMenuItem>
                 <NavigationMenuTrigger>{t('Header.models')}</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] grid-cols-2 gap-2 p-4">
@@ -124,7 +147,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     ))}
                   </ul>
                 </NavigationMenuContent>
-              </NavigationMenuItem>
+              </NavigationMenuItem> */}
 
               {/* Tools Dropdown */}
               <NavigationMenuItem>
@@ -165,8 +188,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
-              {/* Docs Link */}
-              <NavigationMenuItem>
+              {/* Docs Link (Hidden for audit) */}
+              {/* <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <a
                     href={headerDocs.href}
@@ -180,7 +203,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     {t('Header.docs')}
                   </a>
                 </NavigationMenuLink>
-              </NavigationMenuItem>
+              </NavigationMenuItem> */}
             </NavigationMenuList>
           </NavigationMenu>
 
@@ -306,8 +329,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
 
                 <div className="mt-8 flex flex-col gap-4">
                   <Accordion type="single" collapsible className="w-full">
-                    {/* Models */}
-                    <AccordionItem value="models" className="border-b-0">
+                    {/* Models (Hidden for audit) */}
+                    {/* <AccordionItem value="models" className="border-b-0">
                       <AccordionTrigger className="py-0 font-semibold hover:no-underline">
                         {t('Header.models')}
                       </AccordionTrigger>
@@ -325,7 +348,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                           </LocaleLink>
                         ))}
                       </AccordionContent>
-                    </AccordionItem>
+                    </AccordionItem> */}
 
                     {/* Tools */}
                     <AccordionItem value="tools" className="border-b-0">
@@ -358,8 +381,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     {t('Header.pricing')}
                   </LocaleLink>
 
-                  {/* Docs */}
-                  <a
+                  {/* Docs (Hidden for audit) */}
+                  {/* <a
                     href={headerDocs.href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -367,7 +390,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                   >
                     <BookOpen className="h-4 w-4" />
                     {t('Header.docs')}
-                  </a>
+                  </a> */}
 
                   {/* Language */}
                   <div className="flex items-center gap-3 p-2">

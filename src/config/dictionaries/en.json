@@ -35,6 +35,11 @@
     "main_nav_products": "Products",
     "main_nav_blog": "Blog",
     "main_nav_documentation": "Documentation",
+    "legal": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookie": "Cookie Policy"
+    },
     "login": "Login",
     "signup": "Sign up",
     "": "",
