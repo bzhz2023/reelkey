@@ -3,14 +3,25 @@ import type { Video } from "@/db";
 
 interface UseVideoPollingOptions {
   pollInterval?: number;
+  maxConsecutiveErrors?: number;
+  maxBackoffMs?: number;
   onCompleted?: (video: Video) => void;
   onFailed?: (args: { videoId: string; error?: string }) => void;
 }
 
 export function useVideoPolling(options: UseVideoPollingOptions = {}) {
-  const { pollInterval = 15000, onCompleted, onFailed } = options;
+  const {
+    pollInterval = 15000,
+    maxConsecutiveErrors = 5,
+    maxBackoffMs = 120000,
+    onCompleted,
+    onFailed,
+  } = options;
 
-  const pollingIntervals = useRef<Map<string, ReturnType<typeof setInterval>>>(
+  const pollingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map()
+  );
+  const pollingState = useRef<Map<string, { consecutiveErrors: number; nextDelay: number }>>(
     new Map()
   );
 
@@ -24,22 +35,29 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
   }, []);
 
   const stopPolling = useCallback((videoId: string) => {
-    const intervalId = pollingIntervals.current.get(videoId);
-    if (intervalId) {
-      clearInterval(intervalId);
-      pollingIntervals.current.delete(videoId);
+    const timerId = pollingTimers.current.get(videoId);
+    if (timerId) {
+      clearTimeout(timerId);
+      pollingTimers.current.delete(videoId);
     }
+    pollingState.current.delete(videoId);
   }, []);
 
   const startPolling = useCallback(
     (videoId: string) => {
       if (!videoId) return;
 
-      if (pollingIntervals.current.has(videoId)) {
+      if (pollingState.current.has(videoId)) {
         stopPolling(videoId);
       }
 
+      pollingState.current.set(videoId, {
+        consecutiveErrors: 0,
+        nextDelay: pollInterval,
+      });
+
       const pollStatus = async () => {
+        if (!pollingState.current.has(videoId)) return;
         try {
           const response = await fetch(`/api/v1/video/${videoId}/status`);
           if (!response.ok) {
@@ -63,26 +81,58 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
           } else if (status === "FAILED") {
             stopPolling(videoId);
             onFailed?.({ videoId, error });
+          } else {
+            const state = pollingState.current.get(videoId);
+            if (state) {
+              state.consecutiveErrors = 0;
+              state.nextDelay = pollInterval;
+            }
           }
         } catch (pollError) {
           console.error("Polling error:", pollError);
+          const state = pollingState.current.get(videoId);
+          if (state) {
+            state.consecutiveErrors += 1;
+            const backoff = Math.min(
+              maxBackoffMs,
+              pollInterval * Math.pow(2, state.consecutiveErrors)
+            );
+            state.nextDelay = backoff;
+            if (state.consecutiveErrors >= maxConsecutiveErrors) {
+              console.warn(`Polling stopped for ${videoId} after repeated errors`);
+              stopPolling(videoId);
+              return;
+            }
+          }
         }
+
+        const state = pollingState.current.get(videoId);
+        if (!state) return;
+        const timerId = setTimeout(pollStatus, state.nextDelay);
+        pollingTimers.current.set(videoId, timerId);
       };
 
       pollStatus();
-      const intervalId = setInterval(pollStatus, pollInterval);
-      pollingIntervals.current.set(videoId, intervalId);
     },
-    [pollInterval, onCompleted, onFailed, fetchVideoDetail, stopPolling]
+    [
+      pollInterval,
+      maxConsecutiveErrors,
+      maxBackoffMs,
+      onCompleted,
+      onFailed,
+      fetchVideoDetail,
+      stopPolling,
+    ]
   );
 
   const stopAllPolling = useCallback(() => {
-    pollingIntervals.current.forEach((intervalId) => clearInterval(intervalId));
-    pollingIntervals.current.clear();
+    pollingTimers.current.forEach((timerId) => clearTimeout(timerId));
+    pollingTimers.current.clear();
+    pollingState.current.clear();
   }, []);
 
   const isPolling = useCallback((videoId: string) => {
-    return pollingIntervals.current.has(videoId);
+    return pollingState.current.has(videoId);
   }, []);
 
   useEffect(() => {

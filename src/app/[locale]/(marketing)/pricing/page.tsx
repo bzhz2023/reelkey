@@ -8,10 +8,25 @@ import { billingProvider } from "@/config/billing-provider";
 import { getUserPlans } from "@/services/billing";
 import type { CreditsDictionary } from "@/hooks/use-credit-packages";
 import type { UserSubscriptionPlan } from "@/types";
+import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
 
-export const metadata = {
-  title: "Pricing",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const { locale } = await params;
+  const alternates = buildAlternates("/pricing", locale);
+
+  return {
+    title: "Pricing",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
+  };
+}
 
 export default async function PricingPage() {
   const user = await getCurrentUser();

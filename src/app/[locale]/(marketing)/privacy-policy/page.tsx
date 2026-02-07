@@ -1,4 +1,23 @@
 import { useTranslations } from "next-intl";
+import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const { locale } = await params;
+  const alternates = buildAlternates("/privacy-policy", locale);
+
+  return {
+    title: "Privacy Policy",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
+  };
+}
 
 export default function PrivacyPolicyPage() {
     const t = useTranslations("Privacy");

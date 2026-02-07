@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware(routing);
  * Maps old dashboard routes to new routes
  */
 const legacyRedirects: Record<string, string> = {
-  "/dashboard": "/image-to-video",
+  "/dashboard": "/text-to-video",
   "/dashboard/videos": "/my-creations",
   "/dashboard/billing": "/credits",
   "/dashboard/settings": "/settings",

@@ -1,9 +1,28 @@
 import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
 
 interface ModelPageProps {
   params: Promise<{
     locale: Locale;
   }>;
+}
+
+const pathSegment = "wan-2-6";
+
+export async function generateMetadata({
+  params,
+}: ModelPageProps) {
+  const { locale } = await params;
+  const alternates = buildAlternates(`/${pathSegment}`, locale);
+
+  return {
+    title: "Wan 2.6 - VideoFly",
+    description: "Advanced video generation model",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
+  };
 }
 
 export default async function ModelPage({ params }: ModelPageProps) {

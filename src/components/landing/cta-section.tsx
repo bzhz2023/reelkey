@@ -161,25 +161,28 @@ export function CTASection() {
 
                   {/* CTA 按钮组 */}
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <ShimmerButton
-                      shimmerColor="#ffffff"
-                      shimmerSize="0.05em"
-                      shimmerDuration="3s"
-                      borderRadius="100px"
-                      background="linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
-                      className="px-8 py-3 text-base font-medium shadow-lg shadow-blue-500/25"
-                    >
-                      {t("getStarted")}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </ShimmerButton>
+                    <LocaleLink href="/#generator">
+                      <ShimmerButton
+                        shimmerColor="#ffffff"
+                        shimmerSize="0.05em"
+                        shimmerDuration="3s"
+                        borderRadius="100px"
+                        background="linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
+                        className="px-8 py-3 text-base font-medium shadow-lg shadow-blue-500/25"
+                      >
+                        {t("getStarted")}
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </ShimmerButton>
+                    </LocaleLink>
 
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-6 py-3 text-base font-medium rounded-full border-2 border-border bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all"
-                    >
-                      {t("learnMore")}
-                    </motion.button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <LocaleLink
+                        href="/#generator"
+                        className="inline-flex px-6 py-3 text-base font-medium rounded-full border-2 border-border bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all"
+                      >
+                        {t("learnMore")}
+                      </LocaleLink>
+                    </motion.div>
                   </div>
 
                   {/* 社交证明 - 头像 */}

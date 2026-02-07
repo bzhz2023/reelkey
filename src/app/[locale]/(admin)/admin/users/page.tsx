@@ -19,6 +19,7 @@ import {
   Search,
   Shield,
 } from "@/components/ui/icons";
+import { UserVideosButton } from "@/components/admin/users/user-videos-button";
 
 interface UsersPageProps {
   searchParams: Promise<{
@@ -137,12 +138,13 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                   <TableHead>可用积分</TableHead>
                   <TableHead>状态</TableHead>
                   <TableHead>注册时间</TableHead>
+                  <TableHead>操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {usersWithStats.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                       暂无数据
                     </TableCell>
                   </TableRow>
@@ -189,6 +191,14 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString("zh-CN")}
+                      </TableCell>
+                      <TableCell>
+                        <UserVideosButton
+                          userId={user.id}
+                          userName={user.name}
+                          userEmail={user.email}
+                          videoCount={user.videoCount}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

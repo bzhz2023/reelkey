@@ -155,7 +155,7 @@ export function ShowcaseSection() {
                   <div className="relative aspect-video overflow-hidden">
                     <motion.img
                       src={video.thumbnail}
-                      alt={video.title}
+                      alt={`${video.title} - ${video.description}. AI-generated video example showing ${video.tag} capabilities.`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
@@ -215,7 +215,7 @@ export function ShowcaseSection() {
             className="text-center"
           >
             <p className="text-muted-foreground mb-6">{t("ctaText")}</p>
-            <LocaleLink href="/demo">
+            <LocaleLink href="/#generator">
               <ShimmerButton
                 shimmerColor="#ffffff"
                 shimmerSize="0.05em"

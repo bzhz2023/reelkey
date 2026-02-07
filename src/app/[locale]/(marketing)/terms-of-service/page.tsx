@@ -1,4 +1,23 @@
 import { useTranslations } from "next-intl";
+import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const { locale } = await params;
+  const alternates = buildAlternates("/terms-of-service", locale);
+
+  return {
+    title: "Terms of Service",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
+  };
+}
 
 export default function TermsOfServicePage() {
     const t = useTranslations("Terms");

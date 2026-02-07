@@ -1,4 +1,5 @@
 import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
 
 interface ModelPageProps {
   params: Promise<{
@@ -12,27 +13,28 @@ const modelInfo: Record<string, { name: string; provider: string; description: s
   "seedance-1-5": { name: "Seedance 1.5", provider: "ByteDance", description: "Professional AI video generation" },
   "wan-2-6": { name: "Wan 2.6", provider: "Alibaba", description: "Advanced video generation model" },
 };
+const pathSegment = "sora-2";
 
 export async function generateMetadata({ params }: ModelPageProps) {
   const { locale } = await params;
-  const pathSegment = getPathSegment(params);
+  const alternates = buildAlternates(`/${pathSegment}`, locale);
+  const info = modelInfo[pathSegment];
 
   return {
-    title: `${modelInfo[pathSegment]?.name || "Model"} - VideoFly`,
-    description: modelInfo[pathSegment]?.description || "AI Video Generation Platform",
+    title: `${info?.name || "Model"} - VideoFly`,
+    description: info?.description || "AI Video Generation Platform",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
   };
-}
-
-function getPathSegment(params: Promise<{ locale: Locale }>) {
-  // This is a workaround - in real usage we'd get the path from the route
-  return "sora-2"; // default
 }
 
 export default async function ModelPage({ params }: ModelPageProps) {
   const { locale } = await params;
 
   // Get the model name from the file path (we'll use a simpler approach)
-  const modelName = "Sora 2"; // This will be dynamic based on the route
+  const modelName = modelInfo[pathSegment]?.name || "Model";
 
   return (
     <div className="container mx-auto px-4 py-20">

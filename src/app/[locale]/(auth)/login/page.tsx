@@ -46,7 +46,7 @@ export default async function LoginPage({
             className="mx-auto"
             width="64"
             height="64"
-            alt=""
+            alt="VideoFly Logo - AI Video Generation Platform"
           />
           <h1 className="text-2xl font-semibold tracking-tight">
             {dict.login.welcome_back}

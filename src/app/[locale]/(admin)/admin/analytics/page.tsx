@@ -1,29 +1,34 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "@/components/ui/icons";
+import { analyticsService, TimeRange } from "@/lib/admin/analytics";
+import { AnalyticsHeader } from "@/components/admin/analytics/analytics-header";
+import { StatsCards } from "@/components/admin/analytics/stats-cards";
+import { FunnelChart } from "@/components/admin/analytics/funnel-chart";
+import { TrendChart } from "@/components/admin/analytics/trend-chart";
 
-export default function AdminAnalyticsPage() {
+interface AdminAnalyticsPageProps {
+  searchParams: Promise<{
+    range?: TimeRange;
+  }>;
+}
+
+export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
+  const params = await searchParams;
+  const range = params.range || "30d";
+
+  // Fetch all analytics data in parallel
+  const analyticsData = await analyticsService.getAnalyticsData(range);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">数据分析</h1>
-        <p className="text-muted-foreground">
-          查看详细的数据分析和趋势
-        </p>
-      </div>
+      <AnalyticsHeader />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            即将推出
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            详细的数据分析功能正在开发中。敬请期待！
-          </p>
-        </CardContent>
-      </Card>
+      {/* Stats Cards */}
+      <StatsCards stats={analyticsData.stats} />
+
+      {/* Charts Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <FunnelChart data={analyticsData.funnel} />
+        <TrendChart data={analyticsData.trend} />
+      </div>
     </div>
   );
 }

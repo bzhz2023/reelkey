@@ -284,7 +284,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden pb-20">
+    <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
       {/* 背景渐变效果 */}
       <div className="absolute inset-0 -z-20">
         {/* 顶部径向渐变 - 天蓝色 */}

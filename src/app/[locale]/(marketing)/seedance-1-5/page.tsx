@@ -1,9 +1,28 @@
 import type { Locale } from "@/config/i18n-config";
+import { buildAlternates } from "@/lib/seo";
 
 interface ModelPageProps {
   params: Promise<{
     locale: Locale;
   }>;
+}
+
+const pathSegment = "seedance-1-5";
+
+export async function generateMetadata({
+  params,
+}: ModelPageProps) {
+  const { locale } = await params;
+  const alternates = buildAlternates(`/${pathSegment}`, locale);
+
+  return {
+    title: "Seedance 1.5 - VideoFly",
+    description: "Professional AI video generation",
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
+  };
 }
 
 export default async function ModelPage({ params }: ModelPageProps) {

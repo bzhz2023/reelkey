@@ -87,7 +87,7 @@ export function ToolPageLayout({
   const searchParams = useSearchParams();
   const { balance, optimisticFreeze, optimisticRelease, invalidate } = useCredits();
   const { openModal } = useUpgradeModal();
-  const { shouldNotify, markNotified } = useNotificationDeduplication();
+  const { shouldNotify, markNotified, resetNotification } = useNotificationDeduplication();
   const videoIdFromQuery = searchParams.get("id");
   const NOTIFICATION_ASKED_KEY = "videofly_notification_asked";
   const tNotify = useTranslations("Notifications");
@@ -230,14 +230,19 @@ export function ToolPageLayout({
           user.id
         );
       }
-      if (error) {
-        toast.error(error);
+      const notificationKey = `${videoId}:failed`;
+      if (shouldNotify(notificationKey)) {
+        const message = error || "Video generation failed";
+        toast.error(message);
+        markNotified(notificationKey);
       }
     },
-    [removeGeneratingId, user?.id, invalidate]
+    [removeGeneratingId, user?.id, invalidate, shouldNotify, markNotified]
   );
 
   const { startPolling, stopPolling, isPolling } = useVideoPolling({
+    maxConsecutiveErrors: 3,
+    maxBackoffMs: 60000,
     onCompleted: handleCompleted,
     onFailed: handleFailed,
   });
@@ -308,6 +313,8 @@ export function ToolPageLayout({
 
     // 立即添加到历史记录（即使是正在生成中）
     const existingItem = historyItems.find(item => item.uuid === videoIdFromQuery);
+    const existingStatus = existingItem?.status?.toLowerCase();
+    const isTerminalStatus = existingStatus === "completed" || existingStatus === "failed";
     if (!existingItem) {
       const newItem: VideoHistoryItem = {
         uuid: videoIdFromQuery,
@@ -325,11 +332,26 @@ export function ToolPageLayout({
     }
 
     setActiveTab("result");
-    addGeneratingId(videoIdFromQuery);
-    if (!isPolling(videoIdFromQuery)) {
-      startPolling(videoIdFromQuery);
+    if (!isTerminalStatus) {
+      addGeneratingId(videoIdFromQuery);
+      if (!isPolling(videoIdFromQuery)) {
+        startPolling(videoIdFromQuery);
+      }
+    } else {
+      removeGeneratingId(videoIdFromQuery);
+      stopPolling(videoIdFromQuery);
     }
-  }, [videoIdFromQuery, user?.id, isPolling, startPolling, addGeneratingId, prefillData, historyItems]);
+  }, [
+    videoIdFromQuery,
+    user?.id,
+    isPolling,
+    startPolling,
+    stopPolling,
+    addGeneratingId,
+    removeGeneratingId,
+    prefillData,
+    historyItems,
+  ]);
 
   // SSE: listen for backend completion events
   useEffect(() => {
@@ -547,7 +569,9 @@ export function ToolPageLayout({
       if (!response.ok) {
         throw new Error("Failed to retry video");
       }
-      const result = await response.json();
+      await response.json();
+      resetNotification(uuid);
+      resetNotification(`${uuid}:failed`);
       addGeneratingId(uuid);
       startPolling(uuid);
       setCurrentVideos((prev) =>
@@ -560,7 +584,7 @@ export function ToolPageLayout({
       console.error("Retry error:", error);
       toast.error("Failed to retry video");
     }
-  }, [addGeneratingId, startPolling]);
+  }, [addGeneratingId, startPolling, resetNotification]);
 
   // 移动端：显示标签导航
   const showMobileTabs = true;
