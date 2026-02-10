@@ -1,6 +1,6 @@
 "use client";
 
-import { Github, Twitter, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
 import { cn } from "@/components/ui";
@@ -40,18 +40,6 @@ export function LandingFooter() {
     },
   ];
 
-  const socialLinks = [
-    {
-      name: "GitHub",
-      href: "https://github.com/videofly/videofly",
-      icon: Github,
-    },
-    {
-      name: "Twitter",
-      href: "https://twitter.com/videofly",
-      icon: Twitter,
-    },
-  ];
 
   return (
     <footer className="border-t border-border bg-background">
@@ -69,23 +57,6 @@ export function LandingFooter() {
             <p className="text-sm text-muted-foreground mb-4">
               Transform your ideas into stunning videos with AI.
             </p>
-            {/* Social Links */}
-            <div className="flex items-center gap-3">
-              {socialLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-9 w-9 flex items-center justify-center rounded-full border border-border hover:bg-muted hover:text-foreground transition-colors"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                );
-              })}
-            </div>
           </div>
 
           {/* Footer Links */}
