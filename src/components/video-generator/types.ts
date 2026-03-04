@@ -22,7 +22,7 @@ export type GenerationType = "video" | "image";
 /**
  * Model badge types for highlighting special features
  */
-export type ModelBadge = "New" | "Hot" | "Audio" | "Beta" | "Pro";
+export type ModelBadge = "New" | "Hot" | "Audio" | "Beta" | "Pro" | "Coming Soon";
 
 /**
  * Upload type determines how many image slots are shown

@@ -135,7 +135,7 @@ function calculateSeedanceCredits(params: CreditCalculationParams): number {
   let perSecond = 4;
 
   // 根据分辨率调整
-  if (resolution < 480) {
+  if (resolution <= 480) {
     // 480p
     perSecond = hasAudio ? 2 : 1;
   } else if (resolution >= 1080) {

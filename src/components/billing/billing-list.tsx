@@ -84,6 +84,7 @@ export function BillingList({ invoices, hasMore, onLoadMore }: BillingListProps)
       {hasMore && onLoadMore && (
         <div className="text-center pt-4">
           <button
+            type="button"
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium rounded-md border border-border hover:bg-muted transition-colors"
           >

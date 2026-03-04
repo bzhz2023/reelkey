@@ -45,11 +45,14 @@ export async function GET(request: NextRequest) {
       status: string;
       evolinkStatus: string;
       action: string;
+      videoUrl?: string;
+      thumbnailUrl?: string;
+      error?: string;
     }> = [];
 
     // 检查每个视频的实际状态
     for (const video of stuckVideos) {
-      if (!video.external_task_id) {
+      if (!video.externalTaskId) {
         results.push({
           uuid: video.uuid,
           status: video.status,
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
       try {
         // 从 evolink 获取状态
         const provider = getProvider("evolink");
-        const taskStatus = await provider.getTaskStatus(video.external_task_id);
+        const taskStatus = await provider.getTaskStatus(video.externalTaskId);
 
         if (taskStatus.status === "completed" && taskStatus.videoUrl) {
           // 任务已完成，返回信息
@@ -155,20 +158,15 @@ export async function POST(request: NextRequest) {
 
     // 手动触发完成流程
     const { videoService } = await import("@/services/video");
-    await videoService.tryCompleteGeneration({
-      videoUuid,
-      provider: video.provider || "evolink",
-      payload: {
-        id: video.external_task_id || "",
-        status: "completed",
-        progress: 100,
-        results: [videoUrl],
-        data: {
-          video_url: videoUrl,
-          thumbnail_url: thumbnailUrl,
-        },
-      },
-    });
+    const result = {
+      taskId: video.externalTaskId || "",
+      provider: (video.provider || "evolink") as "evolink" | "kie",
+      status: "completed" as const,
+      progress: 100,
+      videoUrl: videoUrl,
+      thumbnailUrl: thumbnailUrl,
+    };
+    await videoService.tryCompleteGeneration(videoUuid, result);
 
     return NextResponse.json({
       success: true,

@@ -151,7 +151,7 @@ export function HeaderSimple({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="default" size="sm" onClick={signInModal.onOpen}>
+            <Button variant="default" size="sm" onClick={() => signInModal.onOpen()}>
               {tCommon("login")}
             </Button>
           )}

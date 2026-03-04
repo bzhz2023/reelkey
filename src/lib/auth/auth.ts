@@ -28,9 +28,9 @@ const toLogString = (value: unknown) => {
         name: value.name,
         message: value.message,
         stack: value.stack,
-        status: (value as Record<string, unknown>).status,
-        statusText: (value as Record<string, unknown>).statusText,
-        error: (value as Record<string, unknown>).error,
+        status: (value as unknown as Record<string, unknown>).status,
+        statusText: (value as unknown as Record<string, unknown>).statusText,
+        error: (value as unknown as Record<string, unknown>).error,
       }
       : value;
   const seen = new WeakSet();

@@ -14,6 +14,7 @@ import { QueryProvider } from "@/components/query-provider";
 
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PlausibleAnalytics } from "@/components/plausible-provider";
 import { i18n } from "@/config/i18n-config";
 import { siteConfig } from "@/config/site";
 
@@ -41,20 +42,19 @@ export const metadata = {
   },
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "Shadcn ui",
-    "Sass",
-    "Fast ",
-    "Simple ",
-    "Easy",
-    "Cloud Native",
+    "AI video generator",
+    "text to video",
+    "image to video",
+    "AI video",
+    "video generation",
+    "AI tools",
   ],
   authors: [
     {
-      name: "VideoFly",
+      name: siteConfig.name,
     },
   ],
-  creator: "VideoFly",
+  creator: siteConfig.name,
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -62,6 +62,11 @@ export const metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
   },
   icons: {
     icon: "/logo.svg",
@@ -102,6 +107,7 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>
+              <PlausibleAnalytics />
               {children}
               <Analytics />
               <SpeedInsights />

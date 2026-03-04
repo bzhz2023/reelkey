@@ -7,6 +7,7 @@ import { getProvider, type ProviderType, type VideoTaskResponse } from "../ai";
 import { creditService } from "./credit";
 import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
 import { emitVideoEvent } from "@/lib/video-events";
+import { ApiError } from "@/lib/api/error";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -39,12 +40,41 @@ export class VideoService {
   }
 
   /**
+   * Parse insufficient credits error and convert to structured ApiError
+   */
+  private toInsufficientCreditsApiError(
+    error: unknown,
+    fallbackRequiredCredits: number
+  ): ApiError | null {
+    const message = error instanceof Error ? error.message : String(error);
+    const match = message.match(
+      /Insufficient credits\.\s*Required:\s*(\d+)(?:,\s*Available:\s*(\d+))?/i
+    );
+    if (!match) return null;
+
+    const requiredCredits =
+      Number.parseInt(match[1] || "", 10) || fallbackRequiredCredits;
+    const availableCredits = match[2]
+      ? Number.parseInt(match[2], 10)
+      : undefined;
+
+    return new ApiError("Insufficient credits", 402, {
+      code: "INSUFFICIENT_CREDITS",
+      requiredCredits,
+      availableCredits,
+    });
+  }
+
+  /**
    * Create video generation task
    */
   async generate(params: GenerateVideoParams): Promise<VideoGenerationResult> {
     const modelConfig = getModelConfig(params.model);
     if (!modelConfig) {
-      throw new Error(`Unsupported model: ${params.model}`);
+      throw new ApiError(`Unsupported model: ${params.model}`, 400, {
+        code: "UNSUPPORTED_MODEL",
+        model: params.model,
+      });
     }
 
     const effectiveDuration = params.duration || modelConfig.durations[0] || 5;
@@ -59,7 +89,14 @@ export class VideoService {
       (params.imageUrls && params.imageUrls.length > 0) || Boolean(params.imageUrl);
 
     if (hasImageInput && !modelConfig.supportImageToVideo) {
-      throw new Error(`Model ${params.model} does not support image-to-video`);
+      throw new ApiError(
+        `Model ${params.model} does not support image-to-video`,
+        400,
+        {
+          code: "IMAGE_TO_VIDEO_NOT_SUPPORTED",
+          model: params.model,
+        }
+      );
     }
 
     const videoUuid = `vid_${nanoid(21)}`;
@@ -111,6 +148,14 @@ export class VideoService {
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
+
+      const insufficientCreditsError = this.toInsufficientCreditsApiError(
+        error,
+        creditsRequired
+      );
+      if (insufficientCreditsError) {
+        throw insufficientCreditsError;
+      }
       throw error;
     }
 
@@ -123,7 +168,10 @@ export class VideoService {
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
-      throw new Error(`Insufficient credits. Required: ${creditsRequired}`);
+      throw new ApiError("Insufficient credits", 402, {
+        code: "INSUFFICIENT_CREDITS",
+        requiredCredits: creditsRequired,
+      });
     }
 
     // ✅ 支持通过环境变量选择 provider
@@ -312,7 +360,7 @@ export class VideoService {
   /**
    * Try to complete generation (transaction + optimistic lock)
    */
-  private async tryCompleteGeneration(
+  async tryCompleteGeneration(
     videoUuid: string,
     result: VideoTaskResponse
   ): Promise<{ status: string; videoUrl?: string | null }> {

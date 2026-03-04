@@ -6,7 +6,6 @@ export type ProductType = "subscription" | "one-time";
 export type ProviderType = "evolink" | "kie";
 
 export interface CreditPackagePrice {
-  priceId: string;           // Creem/Stripe 价格 ID
   amount: number;            // 价格（美分）
   currency: string;
 }
@@ -41,6 +40,10 @@ export interface ModelConfig {
     perExtraSecond?: number; // 每额外秒积分
     highQualityMultiplier?: number; // 高质量乘数
   };
+  /** Whether the model is enabled (default: true). Disabled models can still be shown with a badge */
+  enabled?: boolean;
+  /** Optional badge text for disabled/upcoming models (e.g., "Coming Soon") */
+  badge?: string;
 }
 
 // ============================================
@@ -105,8 +108,6 @@ export const CREDITS_CONFIG = {
           name: product.name,
           credits: product.credits,
           price: {
-            priceId:
-              process.env[`NEXT_PUBLIC_CREEM_PRICE_SUB_${planType}_${envKey}`] || "",
             amount: usdToCents(product.priceUsd),
             currency: "USD",
           },
@@ -129,8 +130,6 @@ export const CREDITS_CONFIG = {
         name: pkg.name,
         credits: pkg.credits,
         price: {
-          priceId:
-            process.env[`NEXT_PUBLIC_CREEM_PRICE_PACK_${pkg.id.toUpperCase()}`] || "",
           amount: usdToCents(pkg.priceUsd),
           currency: "USD",
         },
@@ -147,7 +146,6 @@ export const CREDITS_CONFIG = {
   // ========== AI 模型配置（从 pricing-user.ts 生成）==========
   models: Object.fromEntries(
     Object.entries(VIDEO_MODEL_PRICING)
-      .filter(([_, pricing]) => pricing.enabled)
       .map(([modelId, pricing]) => {
         // 模型基础配置（从 defaults.ts 获取）
         const baseConfigs: Record<string, Omit<ModelConfig, "creditCost">> = {
@@ -216,6 +214,8 @@ export const CREDITS_CONFIG = {
           {
             ...baseConfig,
             creditCost,
+            enabled: pricing.enabled,
+            badge: pricing.enabled ? undefined : "Coming Soon",
           },
         ];
       })
@@ -260,9 +260,17 @@ export function getProductExpiryDays(product: CreditPackageConfig): number {
     : CREDITS_CONFIG.expiration.purchaseDays;
 }
 
-/** 获取所有可用模型 */
+/** 获取所有模型（按显示顺序排序） */
 export function getAvailableModels(): ModelConfig[] {
-  return Object.values(CREDITS_CONFIG.models);
+  // Define display order (newest/most important first)
+  // Models not in this list are sorted to the end
+  const displayOrder = Object.keys(VIDEO_MODEL_PRICING);
+  const orderMap = new Map(displayOrder.map((id, index) => [id, index]));
+  return Object.values(CREDITS_CONFIG.models).sort((a, b) => {
+    const aOrder = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+    return aOrder - bOrder;
+  });
 }
 
 /** 根据模型 ID 获取配置 */
@@ -279,7 +287,18 @@ export function calculateModelCredits(
   if (!config) return 0;
 
   const { base, perExtraSecond = 0, highQualityMultiplier = 1 } = config.creditCost;
-  const isHighQuality = params.quality?.toLowerCase() === "high" || params.quality?.includes("1080");
+
+  const parseQualityToResolution = (quality?: string): number => {
+    if (!quality) return 720;
+    const normalized = quality.toLowerCase();
+    if (normalized.includes("1080")) return 1080;
+    if (normalized.includes("720")) return 720;
+    if (normalized.includes("480")) return 480;
+    if (normalized === "high") return 1080;
+    return 720;
+  };
+  const resolution = parseQualityToResolution(params.quality);
+  const isHighQuality = resolution >= 1080 || params.quality?.toLowerCase() === "high";
 
   let credits = 0;
 

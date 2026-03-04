@@ -95,7 +95,7 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
             state.consecutiveErrors += 1;
             const backoff = Math.min(
               maxBackoffMs,
-              pollInterval * Math.pow(2, state.consecutiveErrors)
+              pollInterval * 2 ** state.consecutiveErrors
             );
             state.nextDelay = backoff;
             if (state.consecutiveErrors >= maxConsecutiveErrors) {

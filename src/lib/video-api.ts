@@ -5,31 +5,39 @@ import type { SubmitData } from "@/components/video-generator";
  */
 export interface VideoGenerateRequest {
   prompt: string;
-  model: "sora-2";
-  duration: 10 | 15;
-  aspectRatio?: "16:9" | "9:16";
-  quality?: "standard" | "high";
+  model: string;
+  duration: number;
+  aspectRatio?: string;
+  quality?: string;
   imageUrl?: string;
+  imageUrls?: string[];
+  generateAudio?: boolean;
 }
 
 /**
  * Parse duration string to number
- * "10s" -> 10, "15s" -> 15
+ * "10s" -> 10, "5s" -> 5, etc.
+ * Clamps to valid range 4-30
  */
-export function parseDuration(duration?: string): 10 | 15 {
+export function parseDuration(duration?: string): number {
   if (!duration) return 10;
   const num = Number.parseInt(duration.replace(/\D/g, ""));
-  return num === 15 ? 15 : 10;
+  if (num < 4) return 4;
+  if (num > 30) return 30;
+  return num;
 }
 
 /**
  * Convert resolution to quality
- * "1080P" / "1080p" -> "high"
- * "720P" / "720p" / other -> "standard"
+ * "1080P" / "1080p" -> "1080p"
+ * "720P" / "720p" -> "720p"
+ * "480P" / "480p" -> "480p"
  */
-export function resolutionToQuality(resolution?: string): "standard" | "high" {
-  if (!resolution) return "standard";
-  return resolution.toLowerCase().includes("1080") ? "high" : "standard";
+export function resolutionToQuality(resolution?: string): string {
+  if (!resolution) return "720p";
+  if (resolution.toLowerCase().includes("1080")) return "1080p";
+  if (resolution.toLowerCase().includes("480")) return "480p";
+  return "720p";
 }
 
 /**
@@ -59,27 +67,37 @@ export async function uploadImage(file: File): Promise<string> {
 export async function transformSubmitData(
   data: SubmitData
 ): Promise<VideoGenerateRequest> {
-  // Upload image if exists
+  // Upload images if exist (parallel upload for multiple images)
   let imageUrl: string | undefined;
+  let imageUrls: string[] | undefined;
   if (data.images && data.images.length > 0) {
-    imageUrl = await uploadImage(data.images[0]);
+    const urls = await Promise.all(data.images.map(uploadImage));
+    if (urls.length === 1) {
+      imageUrl = urls[0];
+    } else {
+      imageUrls = urls;
+    }
   }
 
   // Determine quality: use direct quality field if present, otherwise convert from resolution
-  let quality: "standard" | "high" | undefined;
+  let quality: string | undefined;
   if (data.quality) {
-    quality = data.quality as "standard" | "high";
+    quality = data.quality;
   } else if (data.resolution) {
     quality = resolutionToQuality(data.resolution);
   }
 
+  const model = data.model || "sora-2";
+
   return {
     prompt: data.prompt,
-    model: "sora-2",
+    model,
     duration: parseDuration(data.duration),
-    aspectRatio: data.aspectRatio as "16:9" | "9:16" | undefined,
+    aspectRatio: data.aspectRatio || undefined,
     quality,
     imageUrl,
+    imageUrls,
+    generateAudio: data.generateAudio,
   };
 }
 

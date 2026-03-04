@@ -12,22 +12,7 @@ import { eq, or, sql } from "drizzle-orm";
 import { getProvider } from "@/ai";
 import { videoService } from "@/services/video";
 
-interface EvolinkTaskResponse {
-  id: string;
-  status: string;
-  progress: number;
-  results?: string[];
-  error?: {
-    code: string;
-    message: string;
-  };
-  data?: {
-    video_url?: string;
-    thumbnail_url?: string;
-  };
-}
-
-async function checkEvolinkTask(taskId: string): Promise<EvolinkTaskResponse> {
+async function checkEvolinkTask(taskId: string) {
   const provider = getProvider("evolink");
   return await provider.getTaskStatus(taskId);
 }
@@ -49,16 +34,16 @@ async function recoverVideo(videoUuid: string) {
 
   console.log(`   状态: ${video.status}`);
   console.log(`   Provider: ${video.provider}`);
-  console.log(`   任务ID: ${video.external_task_id}`);
+  console.log(`   任务ID: ${video.externalTaskId}`);
 
-  if (!video.external_task_id) {
-    console.log(`   ⚠️  没有 external_task_id，无法查询`);
+  if (!video.externalTaskId) {
+    console.log(`   ⚠️  没有 externalTaskId，无法查询`);
     return;
   }
 
   // 2. 从 evolink 获取实际状态
   try {
-    const taskStatus = await checkEvolinkTask(video.external_task_id);
+    const taskStatus = await checkEvolinkTask(video.externalTaskId);
     console.log(`   Evolink 状态: ${taskStatus.status}`);
     console.log(`   进度: ${taskStatus.progress}%`);
 
@@ -67,20 +52,15 @@ async function recoverVideo(videoUuid: string) {
       console.log(`   ✅ 任务已完成，开始更新数据库...`);
 
       // 触发完成流程（下载视频、上传到R2、结算积分等）
-      await videoService.tryCompleteGeneration({
-        videoUuid,
-        provider: video.provider || "evolink",
-        payload: {
-          id: taskStatus.taskId,
-          status: "completed",
-          progress: 100,
-          results: taskStatus.results || [taskStatus.videoUrl],
-          data: {
-            video_url: taskStatus.videoUrl,
-            thumbnail_url: taskStatus.thumbnailUrl,
-          },
-        },
-      });
+      const result = {
+        taskId: taskStatus.taskId,
+        provider: (video.provider || "evolink") as "evolink" | "kie",
+        status: "completed" as const,
+        progress: 100,
+        videoUrl: taskStatus.videoUrl,
+        thumbnailUrl: taskStatus.thumbnailUrl,
+      };
+      await videoService.tryCompleteGeneration(videoUuid, result);
 
       console.log(`   ✅ 恢复成功！`);
     } else if (taskStatus.status === "failed") {
@@ -92,8 +72,8 @@ async function recoverVideo(videoUuid: string) {
         .update(videos)
         .set({
           status: "FAILED",
-          error_message: taskStatus.error?.message || "Task failed",
-          updated_at: new Date(),
+          errorMessage: taskStatus.error?.message || "Task failed",
+          updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoUuid));
 
