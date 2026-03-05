@@ -22,7 +22,7 @@ export const siteConfig: SiteConfig = {
 
 File: `src/app/layout.tsx`
 
-Update the `metadata` export:
+**注意**：此文件使用 `getLocale()` (next-intl) 获取语言，不要修改 locale 获取逻辑。只更新 `metadata` export：
 
 ```ts
 export const metadata: Metadata = {
@@ -78,79 +78,19 @@ const descriptions = {
 
 ## 4.4 JSON-LD Structured Data
 
-Add to `src/app/layout.tsx` inside `<body>`. Use `@graph` to combine multiple schemas:
+**已内置于模板中 — 无需手动添加。**
 
-```tsx
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "name": "{projectName}",
-          "url": "{appUrl}",
-          "description": "{description}",
-          "inLanguage": ["en", "zh"]
-        },
-        {
-          "@type": "Organization",
-          "name": "{projectName}",
-          "url": "{appUrl}",
-          "logo": "{appUrl}/logo.svg",
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "email": "{supportEmail}",
-            "contactType": "customer support"
-          }
-        },
-        {
-          "@type": "SoftwareApplication",
-          "name": "{projectName}",
-          "applicationCategory": "MultimediaApplication",
-          "operatingSystem": "Web",
-          "url": "{appUrl}",
-          "description": "{description}",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-          }
-        }
-      ]
-    }),
-  }}
-/>
-```
+### WebSite + Organization Schema（已内置）
 
-### FAQPage Schema (+40% AI 可见性)
+`src/app/layout.tsx` 的 `<head>` 中已包含 WebSite 和 Organization JSON-LD schema。品牌名通过 `siteConfig` 引用，Step 2 的全局替换会自动更新。
 
-在 FAQ section 所在页面添加 FAQPage schema。这是 **GEO 优化中提升最大的单一措施**：
+如需扩展（如添加 SoftwareApplication schema），在现有 `@graph` 数组中追加即可。
 
-```tsx
-// 在 marketing page 或独立 FAQ 页面中
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": faqItems.map(item => ({
-        "@type": "Question",
-        "name": item.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": item.answer
-        }
-      }))
-    }),
-  }}
-/>
-```
+### FAQPage Schema（已内置，+40% AI 可见性）
 
-### SpeakableSpecification (语音搜索 + AI 提取)
+`src/components/landing/faq-section.tsx` 已内置 FAQPage JSON-LD schema，自动从 i18n 读取 FAQ 内容。当 Step 5 替换 FAQ 文案后，schema 会自动适配。**不要重复添加。**
+
+### SpeakableSpecification (可选，语音搜索 + AI 提取)
 
 可选，添加到 WebPage schema 中，帮助 AI 知道哪些内容最适合引用：
 

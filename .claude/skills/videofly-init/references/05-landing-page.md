@@ -71,6 +71,15 @@ Key ones for landing:
 - `Sheet` — for mobile nav (currently used)
 - `Separator` — for section dividers
 
+## 模板已内置的优化
+
+以下优化已直接内置于模板代码中，**初始化时无需手动处理**：
+
+- **主题色自适应**：所有 landing 组件（Hero、Features、HowItWorks、CTA）已使用 `oklch(from var(--primary) ...)` CSS 相对色语法，颜色会自动跟随 Step 3 设置的主题色
+- **Hero badge**：已从 i18n (`Hero.badge`) 读取并渲染，替换文案即可生效
+- **FAQPage JSON-LD**：已内置于 `faq-section.tsx`，自动从 i18n 读取 FAQ 内容生成结构化数据
+- **无假数据**：CTA section 的假评价/头像已删除，不存在需要清理的虚假社交证明
+
 ## Current Landing Structure & Components Used
 
 ```
@@ -82,7 +91,7 @@ Features              | BlurFade, ShimmerButton, motion               | Features
 HowItWorks            | BlurFade, NumberTicker, motion                | HowItWorks.*
 Showcase (commented)  | BlurFade, BorderBeam, ShimmerButton           | Showcase.*
 CTA                   | BlurFade, ShimmerButton, BorderBeam, motion   | CTA.*
-FAQ                   | BlurFade, Accordion                           | FAQ.*
+FAQ                   | BlurFade, Accordion, JSON-LD                  | FAQ.*
 Header                | NavigationMenu, DropdownMenu, Sheet, Button   | Navigation.*
 Footer                | LocaleLink                                    | Footer.*
 ```
@@ -114,7 +123,7 @@ If not: do basic brand-name replacement only; keep generic AI video descriptions
 When customizing the landing page, suggest component upgrades based on the product type:
 
 ### Hero Section
-- **Current**: Static title with BlurFade + Meteors
+- **Current**: Badge (from i18n) + static title with BlurFade + Meteors + theme-adaptive oklch gradients
 - **Options**:
   - Add `WordRotate` or `MorphingText` to cycle through product benefits in subtitle
   - Replace `Meteors` with `AnimatedGridPattern` or `Ripple` for different vibes
@@ -136,10 +145,10 @@ When customizing the landing page, suggest component upgrades based on the produ
   - Use `AnimatedList` for staggered step appearance
 
 ### CTA Section
-- **Current**: BorderBeam card with ShimmerButton
+- **Current**: BorderBeam card with ShimmerButton, theme-adaptive oklch colors, no fake social proof
 - **Options**:
   - Use `RainbowButton` or `PulsatingButton` for stronger CTA
-  - Enable `AvatarCircles` + `Marquee` when real testimonials exist
+  - Add `AvatarCircles` + `Marquee` when real testimonials are available (code needs to be added fresh — old fake data was deleted)
   - Add `Confetti` trigger on CTA click for delight
 
 ### General
@@ -206,10 +215,8 @@ Or use Tailwind's dark: prefix if adding as className.
 Based on product type, decide:
 - **Show Showcase section?** — Uncomment if product has portfolio/gallery aspect
 - **Show Models dropdown in nav?** — Only if multiple AI models exposed to users
-- **Show Avatar circles / Marquee testimonials in CTA?** — Only when real testimonials exist
+- **Add social proof to CTA?** — Only when real testimonials exist. Add `AvatarCircles` + `Marquee` components with real data (no fake data exists in template)
 - **Show Discord/GitHub links?** — Only if community exists
-
-For hidden sections (currently commented with "Hidden for audit"), leave them commented unless user specifically requests enabling them.
 
 ## Files to Modify
 
