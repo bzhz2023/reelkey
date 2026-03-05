@@ -71,14 +71,14 @@ Key ones for landing:
 - `Sheet` — for mobile nav (currently used)
 - `Separator` — for section dividers
 
-## 模板已内置的优化
+## Built-in Template Optimizations
 
-以下优化已直接内置于模板代码中，**初始化时无需手动处理**：
+The following are already built into the template code — **no manual handling needed during init**:
 
-- **主题色自适应**：所有 landing 组件（Hero、Features、HowItWorks、CTA）已使用 `oklch(from var(--primary) ...)` CSS 相对色语法，颜色会自动跟随 Step 3 设置的主题色
-- **Hero badge**：已从 i18n (`Hero.badge`) 读取并渲染，替换文案即可生效
-- **FAQPage JSON-LD**：已内置于 `faq-section.tsx`，自动从 i18n 读取 FAQ 内容生成结构化数据
-- **无假数据**：CTA section 的假评价/头像已删除，不存在需要清理的虚假社交证明
+- **Theme-adaptive colors**: all landing components (Hero, Features, HowItWorks, CTA) use `oklch(from var(--primary) ...)` CSS relative color syntax — colors auto-follow the theme set in Step 3
+- **Hero badge**: already reads from i18n (`Hero.badge`) and renders — just replace the copy
+- **FAQPage JSON-LD**: built into `faq-section.tsx`, auto-reads FAQ content from i18n for structured data
+- **No fake data**: CTA section's fake testimonials/avatars have been deleted — no fake social proof to clean up
 
 ## Current Landing Structure & Components Used
 

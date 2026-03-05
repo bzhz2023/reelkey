@@ -12,7 +12,7 @@ Replace placeholders:
 - `{{PROJECT_NAME}}` → projectName
 - `{{DESCRIPTION}}` → description (truncate to ~80 chars)
 - `{{DOMAIN}}` → domain
-- `{{PRIMARY_COLOR}}` → primaryColor
+- `{{PRIMARY_COLOR}}` → primaryColorHex
 - `{{LOGO_EMOJI}}` → logoEmoji
 
 Page requirements:

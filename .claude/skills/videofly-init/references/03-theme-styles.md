@@ -1,64 +1,64 @@
 # Step 3: Theme & Style Configuration
 
-使用 tweakcn 主题生成器创建完整的主题配色，替换到 `src/styles/globals.css` 中。
+Generate a complete theme palette using tweakcn theme editor, apply to `src/styles/globals.css`.
 
-## 方案: tweakcn 主题生成器
+## Approach: tweakcn Theme Editor
 
-**推荐方式** — 使用 CLI 直接安装预制主题或自定义主题：
+**Note**: tweakcn CLI (`pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/...`) is known to be unstable and frequently fails. **Prefer manual approach.**
 
-```bash
-# 安装预制主题（示例：twitter 主题）
-pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/twitter.json
+### Workflow
 
-# 或者访问编辑器自定义主题，然后复制 CSS 变量
-# https://tweakcn.com/editor/theme
-```
+1. Based on user's `primaryColor`, find the closest preset theme in tweakcn editor
+2. **Recommended (manual copy)**:
+   - Use WebFetch to fetch tweakcn editor page for preset theme CSS variables
+   - Or visit https://tweakcn.com/editor/theme to select preset theme
+   - Copy generated oklch CSS variables into `globals.css` `:root` and `.dark` blocks
+3. **Fallback (CLI, may fail)**:
+   - `pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/{theme}.json`
+   - If CLI fails, fall back to manual approach
+4. **Last resort (hand-write oklch)**:
+   - If above methods are unavailable, manually write oklch CSS variables based on brand color
+   - Set `--primary` to brand color, derive other tokens via hue offsets
+5. Verify dark mode and light mode appearance
 
-### 工作流
+### Recommended Preset Themes
 
-1. 根据用户的 `primaryColor`，在 tweakcn 编辑器中选择最接近的预设或自定义调色
-2. **CLI 方式**：找到合适的预制主题 URL，运行 `pnpm dlx shadcn@latest add {theme-url}`
-3. **手动方式**：在 https://tweakcn.com/editor/theme 中调整颜色，复制生成的 CSS 变量到 `globals.css`
-4. 验证 dark mode 和 light mode 效果
+Select starting point based on brand color:
 
-### 推荐预制主题
+| Color Family | Recommended Theme | Editor URL |
+|-------------|------------------|-----------|
+| Blue | twitter, ocean | tweakcn.com/editor/theme |
+| Purple | default (shadcn) | tweakcn.com/editor/theme |
+| Green | emerald | tweakcn.com/editor/theme |
+| Orange / Warm | amber | tweakcn.com/editor/theme |
 
-根据品牌主色选择起点：
-
-| 品牌色调 | 推荐主题 |
-|---------|---------|
-| 蓝色系 | twitter, ocean |
-| 紫色系 | default (shadcn) |
-| 绿色系 | emerald |
-| 橙色/暖色系 | amber |
-
-如果预制主题都不合适，在编辑器中用品牌色自定义。
+If no preset fits, customize in the editor using brand color.
 
 ## Target File
 
-`src/styles/globals.css` — `:root` 和 `.dark` 块中的 CSS custom properties。
+`src/styles/globals.css` — CSS custom properties in `:root` and `.dark` blocks.
 
 ## What NOT to Change
 
-- `--radius` 值
-- `--shadow-*` 值（全部 8 级）
+- `--radius` values
+- `--shadow-*` values (all 8 levels)
 - `--font-sans`, `--font-heading`
 - Animation keyframes
-- `@theme inline` 块结构
-- `@import` 语句
+- `@theme inline` block structure
+- `@import` statements
 
-## 备用主题文件
+## Alternative Theme Files
 
-项目中有三个备用主题在 `src/styles/themes/`：
+Project has three alternative themes in `src/styles/themes/`:
 - `emerald-dark.css`
 - `modern-blue.css`
 - `purple-gradient.css`
 
-除非用户特别要求，不要修改这些文件。
+Do not modify these unless user specifically requests.
 
-## 验证
+## Verification
 
-主题安装/修改后：
-1. 运行 `pnpm dev` 查看效果
-2. 检查 dark mode（默认）和 light mode 显示是否正常
-3. 确认 landing page 各 section 的主题色跟随 `--primary` 自动适配（已在模板代码中使用 CSS 变量）
+After theme install/modification:
+1. Run `pnpm dev` to preview
+2. Check dark mode (default) and light mode display
+3. Confirm landing page sections auto-adapt to `--primary` (template code uses CSS variables)

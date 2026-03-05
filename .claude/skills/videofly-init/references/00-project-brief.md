@@ -19,84 +19,95 @@ Ask user via AskUserQuestion if not provided:
 | `referenceUrl` | null | URL to fetch for content generation |
 | `supportEmail` | `support@{domain}` | Must be valid email format |
 | `logoEmoji` | 🎬 | Single emoji character |
-| `primaryColor` | `紫罗兰` | 中文颜色名（见下方颜色表） |
+| `primaryColor` | violet | Color name in Chinese or English (see color table below) |
 | `locales` | `["en", "zh"]` | Array of locale codes |
 | `darkMode` | `true` | Boolean |
 
 ## Auto-Derived Fields
 
-Compute these from required fields — never ask user:
+Compute from user inputs — never ask:
 
 ```
-packageName       = kebab-case(projectName)     # "ClipMagic" → "clip-magic"
-localStoragePrefix = snake_case(projectName)     # "ClipMagic" → "clip_magic"
-appUrl            = "https://{domain}"           # "clipmagic.com" → "https://clipmagic.com"
-privacyEmail      = "privacy@{domain}"
+packageName        = kebab-case(projectName)     # "ClipMagic" -> "clip-magic"
+localStoragePrefix = snake_case(projectName)     # "ClipMagic" -> "clip_magic"
+appUrl             = "https://{domain}"           # "clipmagic.com" -> "https://clipmagic.com"
+privacyEmail       = "privacy@{domain}"
+primaryColorHex    = color name -> hex (see mapping table below)
 ```
+
+## Color Name -> Hex Mapping
+
+Convert user's color name to hex for Step 3 (theme), Step 6 (logo), Step 7 (OG image):
+
+| Name (CN) | Name (EN) | Hex | oklch approx |
+|-----------|-----------|-----|-------------|
+| sky blue | `#38bdf8` | 0.77 0.15 230 |
+| indigo | `#6366f1` | 0.55 0.22 265 |
+| royal blue | `#3b82f6` | 0.62 0.19 250 |
+| violet | `#7c3aed` | 0.53 0.24 285 |
+| lavender | `#a78bfa` | 0.68 0.16 285 |
+| magenta | `#ec4899` | 0.59 0.22 350 |
+| coral | `#f97316` | 0.70 0.19 45 |
+| rose | `#f43f5e` | 0.59 0.23 15 |
+| amber | `#f59e0b` | 0.75 0.17 70 |
+| gold | `#eab308` | 0.78 0.17 85 |
+| emerald | `#10b981` | 0.68 0.16 165 |
+| mint | `#34d399` | 0.76 0.15 165 |
+| forest green | `#047857` | 0.50 0.14 165 |
+| cyan | `#06b6d4` | 0.70 0.14 210 |
+| graphite | `#57534e` | 0.42 0.01 60 |
+
+If user says a color not in the table (e.g., "blue", "green"), pick the closest hex based on semantics.
+
+### Default Color by Product Type
+
+If user doesn't specify a color, auto-recommend based on product description:
+
+| Product Type | Recommended | Feel |
+|-------------|-------------|------|
+| AI / Tech / Dev tools | violet | Innovation, intelligence |
+| Video / Creative / Design | magenta | Creative, energetic |
+| Finance / Business / Enterprise | indigo | Trust, professional |
+| Social / Content / Media | sky blue | Open, friendly |
+| E-commerce / Retail | coral | Passion, action |
+| Health / Eco / Education | emerald | Natural, growth |
+| Gaming / Entertainment | amber | Energy, warmth |
+| Luxury / Premium | graphite | Premium, sophisticated |
 
 ## Collection Flow
 
 1. Check if user already provided fields in their message
 2. For missing required fields: use AskUserQuestion with one question per field
-3. For missing optional fields: use defaults silently
+3. **Actively present optional fields**: after collecting required fields, show all optional fields with their defaults and ask if user wants to change any:
+
+```
+Optional fields (press enter to use defaults, or type to change):
+- Reference URL (referenceUrl): none  <-- providing this enables auto-generated copy & FAQ
+- Support email (supportEmail): support@{domain}
+- Logo Emoji: 🎬
+- Brand color (primaryColor): violet (auto-recommended based on product type)
+```
+
+**Important**: `referenceUrl` significantly affects content generation (determines whether copy, FAQ, SEO keywords are auto-generated). Must actively prompt user.
+
 4. Print normalized brief summary for user confirmation:
 
 ```
 Project Brief:
-  Name:       {projectName}
-  Domain:     {domain}
+  Name:        {projectName}
+  Domain:      {domain}
   Description: {description}
-  Email:      {supportEmail}
-  Color:      {primaryColor}（如：紫罗兰、天蓝、琥珀）
-  Locales:    {locales}
-  Reference:  {referenceUrl || "none"}
+  Email:       {supportEmail}
+  Color:       {primaryColor} -> {primaryColorHex}
+  Locales:     {locales}
+  Reference:   {referenceUrl || "none"}
 ```
-
-## 颜色名称参考表
-
-用户用中文颜色名指定品牌色。在 Step 3 中，根据颜色名在 tweakcn 主题编辑器中选择对应色调。
-
-### 按产品类型推荐默认色
-
-如果用户没指定颜色，根据产品描述智能推荐：
-
-| 产品类型 | 推荐色 | 色调感觉 |
-|---------|--------|---------|
-| AI/科技/开发工具 | 紫罗兰 | 创新、智能 |
-| 视频/创意/设计 | 品红/洋红 | 创意、活力 |
-| 金融/商务/企业 | 靛蓝 | 信任、专业 |
-| 社交/内容/媒体 | 天蓝 | 开放、友好 |
-| 电商/零售 | 珊瑚红 | 热情、行动力 |
-| 健康/环保/教育 | 翠绿 | 自然、成长 |
-| 游戏/娱乐 | 琥珀 | 活力、温暖 |
-| 奢侈品/高端 | 石墨/炭黑 | 高级、沉稳 |
-
-### 可用颜色名称
-
-| 中文名 | 色系 |
-|-------|------|
-| 天蓝 | 蓝色系 (偏亮) |
-| 靛蓝 | 蓝色系 (偏深) |
-| 宝蓝 | 蓝色系 (经典) |
-| 紫罗兰 | 紫色系 |
-| 薰衣草 | 紫色系 (偏淡) |
-| 品红/洋红 | 粉紫系 |
-| 珊瑚红 | 红橙系 |
-| 玫瑰红 | 红粉系 |
-| 琥珀 | 橙黄系 |
-| 金色 | 黄色系 |
-| 翠绿 | 绿色系 |
-| 薄荷绿 | 绿色系 (偏亮) |
-| 墨绿 | 绿色系 (偏深) |
-| 青色 | 蓝绿系 |
-| 石墨 | 灰黑系 |
-
-用户也可以说"蓝色"、"绿色"这样的大类，由 AI 结合产品特性选定具体色调。
 
 ## Rules
 
-- Never block execution on optional fields — use defaults
+- Must actively present optional fields for user to review — never skip silently (especially referenceUrl)
+- Only use defaults after user explicitly confirms or skips
 - If user provides partial info (e.g., "init project ClipMagic"), extract what's available and ask for the rest
-- primaryColor 接受中文颜色名，不需要 hex 色号
-- 如果用户没指定颜色，根据 description 中的产品类型自动推荐（参考上方表格）
+- primaryColor accepts color names (Chinese or English), no hex required from user
+- If user doesn't specify color, auto-recommend based on description (see table above)
 - Trim whitespace from all string inputs
