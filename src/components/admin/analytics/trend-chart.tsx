@@ -63,8 +63,8 @@ export function TrendChart({ data }: TrendChartProps) {
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number, name: string) => {
-                const formattedValue = typeof value === "number" ? `${value.toFixed(1)}%` : value;
+              formatter={(value, name) => {
+                const formattedValue = typeof value === "number" ? `${value.toFixed(1)}%` : String(value);
                 const formattedName =
                   name === "firstVideoConversionRate" ? "首视频转化率" : "首个视频成功率";
                 return [formattedValue, formattedName];

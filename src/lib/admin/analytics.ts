@@ -12,7 +12,7 @@ export interface Stats {
   firstVideoConversionRate: number;
   paymentConversionRate: number;
   videoSuccessRate: number;
-  userFeedback: number;
+  usersWithoutVideos: number;
 }
 
 export interface FunnelData {

@@ -23,22 +23,19 @@ const features = [
     icon: Video,
     titleKey: "textToVideo.title",
     descKey: "textToVideo.description",
-    gradient: "from-blue-500 to-cyan-500",
-    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&q=80",
+    hueOffset: 0,
   },
   {
     icon: Image,
     titleKey: "imageToVideo.title",
     descKey: "imageToVideo.description",
-    gradient: "from-purple-500 to-pink-500",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80",
+    hueOffset: 30,
   },
   {
     icon: Wand2,
     titleKey: "enhancement.title",
     descKey: "enhancement.description",
-    gradient: "from-orange-500 to-red-500",
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80",
+    hueOffset: 60,
   },
 ];
 
@@ -89,7 +86,7 @@ export function FeaturesSection() {
               className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
             >
               {t("title")}
-              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
+              <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mt-2">
                 {t("subtitle")}
               </span>
             </motion.h2>
@@ -112,6 +109,10 @@ export function FeaturesSection() {
             const Icon = feature.icon;
             const isEven = index % 2 === 0;
 
+            const featureStyle = {
+              "--feature-color": `oklch(from var(--primary) l c calc(h + ${feature.hueOffset}))`,
+            } as React.CSSProperties;
+
             return (
               <BlurFade key={feature.titleKey} delay={index * 0.1} inView>
                 <motion.div
@@ -119,11 +120,12 @@ export function FeaturesSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
+                  style={featureStyle}
                   className={`grid md:grid-cols-2 gap-8 md:gap-16 items-center ${
                     isEven ? "" : "md:flex md:flex-row-reverse"
                   }`}
                 >
-                  {/* 左侧/右侧 - 图片 */}
+                  {/* 左侧/右侧 - 图标展示 */}
                   <motion.div
                     initial={{ opacity: 0, x: isEven ? -30 : 30 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -131,24 +133,12 @@ export function FeaturesSection() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="relative"
                   >
-                    {/* 装饰光晕 */}
                     <div
-                      className={cn(
-                        "absolute -inset-4 rounded-3xl blur-2xl -z-10 opacity-40",
-                        "bg-gradient-to-br",
-                        feature.gradient
-                      )}
+                      className="absolute -inset-4 rounded-3xl blur-2xl -z-10 opacity-40"
+                      style={{ background: "var(--feature-color)" }}
                     />
-
-                    {/* 图片卡片 */}
-                    <div className="relative rounded-2xl overflow-hidden border border-border bg-background shadow-xl">
-                      <img
-                        src={feature.image}
-                        alt={t(feature.titleKey)}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
-                      {/* 渐变遮罩 */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                    <div className="relative rounded-2xl overflow-hidden border border-border bg-background shadow-xl aspect-[4/3] flex items-center justify-center">
+                      <Icon className="h-24 w-24" style={{ color: "var(--feature-color)" }} />
                     </div>
                   </motion.div>
 
@@ -160,34 +150,24 @@ export function FeaturesSection() {
                     transition={{ duration: 0.6, delay: 0.3 }}
                     className="space-y-6"
                   >
-                    {/* 图标 */}
                     <div
-                      className={cn(
-                        "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg",
-                        "bg-gradient-to-br",
-                        feature.gradient
-                      )}
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+                      style={{ background: "var(--feature-color)" }}
                     >
                       <Icon className="h-8 w-8 text-white" />
                     </div>
 
-                    {/* 标题 */}
                     <h3 className="text-2xl md:text-3xl font-bold">
                       {t(feature.titleKey)}
                     </h3>
 
-                    {/* 描述 */}
                     <p className="text-muted-foreground text-lg leading-relaxed">
                       {t(feature.descKey)}
                     </p>
 
-                    {/* 装饰线 */}
                     <div
-                      className={cn(
-                        "w-16 h-1 rounded-full",
-                        "bg-gradient-to-r",
-                        feature.gradient
-                      )}
+                      className="w-16 h-1 rounded-full"
+                      style={{ background: "var(--feature-color)" }}
                     />
                   </motion.div>
                 </motion.div>
@@ -227,7 +207,7 @@ export function FeaturesSection() {
                   </div>
 
                   {/* 标题 */}
-                  <h4 className="text-lg font-semibold mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-blue-600 group-hover:to-purple-600 transition-all">
+                  <h4 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
                     {t(benefit.titleKey)}
                   </h4>
 
@@ -257,8 +237,8 @@ export function FeaturesSection() {
               shimmerSize="0.05em"
               shimmerDuration="3s"
               borderRadius="100px"
-              background="linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
-              className="px-8 py-3 text-base font-medium shadow-lg shadow-blue-500/25"
+              background="oklch(from var(--primary) l c h)"
+              className="px-8 py-3 text-base font-medium shadow-lg shadow-primary/25"
             >
               {t("bottomCTA.button")}
             </ShimmerButton>

@@ -69,7 +69,7 @@ function generatePriceData() {
   }
 
   // 定义计划特性
-  const planFeatures: Record<string, { benefits: string[]; limitations: string[]; description: Record<string, string> }> = {
+  const planFeatures: Record<string, { benefits: Record<string, string[]>; limitations: Record<string, string[]>; description: Record<string, string> }> = {
     basic: {
       description: {
         zh: "适合初学者和个人用户",

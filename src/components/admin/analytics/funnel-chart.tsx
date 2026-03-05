@@ -54,14 +54,13 @@ export function FunnelChart({ data }: FunnelChartProps) {
               dataKey="value"
               nameKey="name"
               stroke="none"
-              fill={(entry) => entry.payload.color}
               isAnimationActive
             >
               <LabelList
                 dataKey="value"
                 position="center"
                 content={({ x, y, width, value }) => {
-                  const centerX = x + width / 2;
+                  const centerX = Number(x ?? 0) + Number(width ?? 0) / 2;
                   const centerY = y;
                   return (
                     <text
@@ -80,7 +79,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
               />
             </Funnel>
             <Tooltip
-              formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+              formatter={(value) => [Number(value).toLocaleString(), ""]}
               contentStyle={{
                 backgroundColor: "hsl(var(--background))",
                 border: "1px solid hsl(var(--border))",

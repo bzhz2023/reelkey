@@ -14,12 +14,12 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
   params: Promise<{
-    locale: Locale;
+    locale: string;
   }>;
 }) {
   const { locale } = await params;
   const user = await getCurrentUser();
-  const dict = await getDictionary(locale);
+  const dict = await getDictionary(locale as Locale);
 
   return (
     <div className="flex min-h-screen flex-col">

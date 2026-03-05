@@ -59,15 +59,16 @@ export function HeroSection() {
 
   const generatorConfig = useMemo(() => {
     const availableIds = new Set(getAvailableModels().map((model) => model.id));
-    const filteredVideoModels = DEFAULT_CONFIG.videoModels.filter((model) => availableIds.has(model.id));
+    const videoModels = DEFAULT_CONFIG.videoModels ?? [];
+    const filteredVideoModels = videoModels.filter((model) => availableIds.has(model.id));
     return {
       ...DEFAULT_CONFIG,
-      videoModels: filteredVideoModels.length > 0 ? filteredVideoModels : DEFAULT_CONFIG.videoModels,
+      videoModels: filteredVideoModels.length > 0 ? filteredVideoModels : videoModels,
     };
   }, []);
 
   const generatorDefaults = useMemo(() => {
-    const preferredModel = generatorConfig.videoModels[0]?.id ?? DEFAULT_DEFAULTS.videoModel;
+    const preferredModel = (generatorConfig.videoModels ?? [])[0]?.id ?? DEFAULT_DEFAULTS.videoModel;
     return {
       ...DEFAULT_DEFAULTS,
       videoModel: preferredModel,
@@ -287,10 +288,8 @@ export function HeroSection() {
     <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
       {/* 背景渐变效果 */}
       <div className="absolute inset-0 -z-20">
-        {/* 顶部径向渐变 - 天蓝色 */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/15 via-background to-background" />
-        {/* 底部径向渐变 - 紫色 */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-500/10 via-background to-background" />
+        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(ellipse at top, oklch(from var(--primary) l c h / 0.15), var(--background) 70%)" }} />
+        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(ellipse at bottom, oklch(from var(--primary) l c h / 0.10), var(--background) 70%)" }} />
       </div>
 
       {/* 动画流星效果 */}
@@ -307,6 +306,16 @@ export function HeroSection() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center space-y-6 max-w-3xl mx-auto"
           >
+            {/* Badge */}
+            <BlurFade delay={0.05} inView>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {t("badge")}
+                </span>
+              </div>
+            </BlurFade>
+
             {/* 主标题 */}
             <BlurFade delay={0.1} inView>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
@@ -325,8 +334,8 @@ export function HeroSection() {
             <BlurFade delay={0.3} inView className="flex flex-wrap justify-center gap-3">
               {[
                 { icon: Zap, label: t("features.fast"), color: "text-yellow-500" },
-                { icon: Play, label: t("features.easy"), color: "text-blue-500" },
-                { icon: Sparkles, label: t("features.ai"), color: "text-purple-500" },
+                { icon: Play, label: t("features.easy"), color: "text-primary" },
+                { icon: Sparkles, label: t("features.ai"), color: "text-primary" },
               ].map((feature, idx) => {
                 const Icon = feature.icon;
                 return (
@@ -335,7 +344,7 @@ export function HeroSection() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 + idx * 0.1 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/60 dark:bg-black/30 backdrop-blur-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black/30 backdrop-blur-sm"
                   >
                     <Icon className={cn("h-4 w-4", feature.color)} />
                     <span className="text-sm font-medium">{feature.label}</span>
@@ -353,7 +362,7 @@ export function HeroSection() {
             className="w-full max-w-4xl mx-auto relative"
           >
             {/* 装饰性光晕效果 */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-3xl blur-3xl -z-10" />
+            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h / 0.3), oklch(from var(--primary) l c calc(h + 30) / 0.3))" }} />
 
             {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
             <VideoGeneratorInput

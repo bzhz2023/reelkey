@@ -23,8 +23,7 @@ const steps = [
     icon: Type,
     titleKey: "steps.prompt.title",
     descKey: "steps.prompt.description",
-    gradient: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-500",
+    hueOffset: 0,
     stat: { value: 30, suffix: "s", labelKey: "steps.prompt.stat" },
   },
   {
@@ -32,8 +31,7 @@ const steps = [
     icon: Upload,
     titleKey: "steps.upload.title",
     descKey: "steps.upload.description",
-    gradient: "from-purple-500 to-pink-500",
-    bgColor: "bg-purple-500",
+    hueOffset: 20,
     stat: null,
   },
   {
@@ -41,8 +39,7 @@ const steps = [
     icon: Video,
     titleKey: "steps.generate.title",
     descKey: "steps.generate.description",
-    gradient: "from-orange-500 to-red-500",
-    bgColor: "bg-orange-500",
+    hueOffset: 40,
     stat: { value: 2, suffix: "min", labelKey: "steps.generate.stat" },
   },
   {
@@ -50,8 +47,7 @@ const steps = [
     icon: Download,
     titleKey: "steps.download.title",
     descKey: "steps.download.description",
-    gradient: "from-green-500 to-emerald-500",
-    bgColor: "bg-green-500",
+    hueOffset: 60,
     stat: { value: 1080, suffix: "p", labelKey: "steps.download.stat" },
   },
 ];
@@ -76,10 +72,10 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
-              <Clock className="h-4 w-4 text-purple-500" />
-              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
                 {t("badge")}
               </span>
             </motion.div>
@@ -93,7 +89,7 @@ export function HowItWorks() {
               className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
             >
               {t("title")}
-              <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mt-2">
+              <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mt-2">
                 {t("subtitle")}
               </span>
             </motion.h2>
@@ -115,6 +111,8 @@ export function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {steps.map((step, index) => {
             const Icon = step.icon;
+            const stepColor = `oklch(from var(--primary) l c calc(h + ${step.hueOffset}))`;
+
             return (
               <BlurFade key={step.step} delay={index * 0.1} inView>
                 <motion.div
@@ -132,9 +130,7 @@ export function HowItWorks() {
                   {/* 步骤编号徽章 */}
                   <motion.div
                     className="absolute -top-3 -left-3 w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg z-10"
-                    style={{
-                      background: `linear-gradient(135deg, ${step.gradient.split(" ")[0].replace("from-", "#")}, ${step.gradient.split(" ")[1].replace("to-", "#")})`,
-                    }}
+                    style={{ background: stepColor }}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -146,11 +142,8 @@ export function HowItWorks() {
                     <div className="relative h-full p-6 rounded-2xl border border-border bg-background hover:shadow-xl transition-all duration-300 group-hover:border-border/50">
                       {/* 图标 */}
                       <motion.div
-                        className={cn(
-                          "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg",
-                          "bg-gradient-to-br",
-                          step.gradient
-                        )}
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
+                        style={{ background: stepColor }}
                         whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
                         transition={{ duration: 0.5 }}
                       >
@@ -158,7 +151,7 @@ export function HowItWorks() {
                       </motion.div>
 
                       {/* 标题 */}
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-blue-600 group-hover:to-purple-600 transition-all">
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                         {t(step.titleKey)}
                       </h3>
 
@@ -191,11 +184,8 @@ export function HowItWorks() {
 
                       {/* 悬停时的光晕效果 */}
                       <div
-                        className={cn(
-                          "absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl",
-                          "bg-gradient-to-br",
-                          step.gradient
-                        )}
+                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"
+                        style={{ background: stepColor }}
                       />
                     </div>
                   </div>
@@ -213,7 +203,7 @@ export function HowItWorks() {
             viewport={{ once: true }}
             className="mt-16 text-center"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-border">
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-border">
               <Zap className="h-5 w-5 text-yellow-500" />
               <span className="text-sm font-medium">{t("bottomHint")}</span>
             </div>

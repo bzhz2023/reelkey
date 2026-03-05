@@ -46,8 +46,26 @@ const faqData: FAQItem[] = [
 export function FAQSection() {
   const t = useTranslations("FAQ");
 
+  // Generate FAQPage JSON-LD for SEO/GEO (+40% AI search visibility)
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqData.map((item) => ({
+      "@type": "Question",
+      name: t(item.questionKey),
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: t(item.answerKey),
+      },
+    })),
+  };
+
   return (
     <section className="py-24 md:py-32 bg-muted/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           {/* 标题 */}
@@ -119,7 +137,7 @@ export function FAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 }}
-              className="text-center mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-primary/20"
+              className="text-center mt-12 p-6 rounded-2xl bg-primary/10 border border-primary/20"
             >
               <p className="text-muted-foreground">
                 {t("contact")}
