@@ -61,7 +61,7 @@ export function FAQSection() {
   };
 
   return (
-    <section className="py-24 md:py-32 bg-muted/30">
+    <section className="py-24 md:py-32 bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -70,7 +70,7 @@ export function FAQSection() {
         <div className="max-w-3xl mx-auto">
           {/* 标题 */}
           <BlurFade inView>
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -99,7 +99,7 @@ export function FAQSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <Accordion type="single" collapsible className="space-y-4">
+              <Accordion type="single" collapsible className="space-y-3">
                 {faqData.map((item, index) => (
                   <motion.div
                     key={item.questionKey}
@@ -112,15 +112,15 @@ export function FAQSection() {
                       value={`faq-${index}`}
                       className="px-6 rounded-2xl border border-border bg-background/50 backdrop-blur-sm hover:border-primary/30 transition-colors"
                     >
-                      <AccordionTrigger className="text-left hover:no-underline cursor-pointer">
+                      <AccordionTrigger className="text-left hover:no-underline cursor-pointer py-4">
                         <span className="flex items-center gap-3">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium">
+                          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
                             {index + 1}
                           </span>
-                          <span>{t(item.questionKey)}</span>
+                          <span className="font-medium">{t(item.questionKey)}</span>
                         </span>
                       </AccordionTrigger>
-                      <AccordionContent className="pl-11 text-muted-foreground">
+                      <AccordionContent className="pl-10 text-muted-foreground leading-relaxed">
                         {t(item.answerKey)}
                       </AccordionContent>
                     </AccordionItem>

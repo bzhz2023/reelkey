@@ -43,7 +43,7 @@
       "users": "happy users",
       "rating": "user rating"
     },
-    "creditsHint": "Free credits to start • No credit card required"
+    "creditsHint": "{credits} free credits to start • No credit card required"
   },
   "Notifications": {
     "generationWillNotify": "Generation may take a while. We'll notify you when it's ready.",
@@ -101,15 +101,23 @@
     },
     "textToVideo": {
       "title": "Text to Video",
-      "description": "Transform your text prompts into stunning videos using advanced AI models"
+      "description": "Transform your text prompts into stunning videos using advanced AI models",
+      "stat": "Generation speed"
     },
     "imageToVideo": {
       "title": "Image to Video",
-      "description": "Animate your images and bring them to life with AI video generation"
+      "description": "Animate your images and bring them to life with AI video generation",
+      "stat": "Max resolution"
+    },
+    "referenceGen": {
+      "title": "Reference Generation",
+      "description": "Upload images or videos as references to guide AI generation. Extract camera paths, motion patterns, and styles for precise control",
+      "stat": "Reference inputs"
     },
     "enhancement": {
       "title": "Video Enhancement",
-      "description": "Upscale, enhance, and extend your existing videos with AI"
+      "description": "Upscale, enhance, and extend your existing videos with AI",
+      "stat": "AI models"
     },
     "fast": {
       "title": "Lightning Fast",
@@ -138,6 +146,7 @@
     "subtitle": "Create your video in 4 simple steps",
     "description": "Get started in minutes with our intuitive video creation workflow",
     "bottomHint": "No credit card required • 50 free credits to start",
+    "cta": "Start Creating Now",
     "steps": {
       "prompt": {
         "title": "Describe Your Video",
@@ -146,7 +155,8 @@
       },
       "upload": {
         "title": "Upload Reference",
-        "description": "Optionally add a reference image to guide the AI (optional)"
+        "description": "Optionally add a reference image to guide the AI (optional)",
+        "stat": "Formats supported"
       },
       "generate": {
         "title": "AI Generates",

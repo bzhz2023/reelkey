@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { Menu, Globe } from "lucide-react";
+import { Menu, Globe, Sun, Moon, Monitor } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useTheme } from "next-themes";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -57,6 +59,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -105,7 +108,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
       className={cn(
         "sticky top-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-muted/80 backdrop-blur-md border-b border-border/50"
+          ? "bg-background/40 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10 dark:border-white/5 shadow-[0_1px_6px_0_rgba(0,0,0,0.04)]"
           : "bg-transparent"
       )}
     >
@@ -117,7 +120,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
             href="/"
             className="flex items-center gap-2 text-xl font-semibold"
           >
-            🎬 VideoFly
+            <Image src="/logo.svg" alt="VideoFly" width={28} height={28} className="rounded-md" />
+            VideoFly
           </LocaleLink>
 
           {/* Center Menu - NavigationMenu for better hover */}
@@ -236,6 +240,36 @@ export function LandingHeader({ user }: { user?: User | null }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Theme Toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="min-w-[120px] border-border/50 bg-background/95 backdrop-blur-sm shadow-xl"
+              >
+                <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer hover:bg-accent">
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer hover:bg-accent">
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer hover:bg-accent">
+                  <Monitor className="mr-2 h-4 w-4" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Credits Display */}
             {user && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm border border-border/50">
@@ -279,7 +313,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="sm" onClick={signInModal.onOpen}>
+              <Button variant="default" size="sm" onClick={signInModal.onOpen}>
                 {t('Common.login')}
               </Button>
             )}
@@ -293,7 +327,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
             href="/"
             className="flex items-center gap-2 text-lg font-semibold"
           >
-            🎬 VideoFly
+            <Image src="/logo.svg" alt="VideoFly" width={28} height={28} className="rounded-md" />
+            VideoFly
           </LocaleLink>
 
           {/* Mobile Menu */}
@@ -322,7 +357,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
                       href="/"
                       className="flex items-center gap-2"
                     >
-                      🎬 VideoFly
+                      <Image src="/logo.svg" alt="VideoFly" width={28} height={28} className="rounded-md" />
+            VideoFly
                     </LocaleLink>
                   </SheetTitle>
                 </SheetHeader>
@@ -408,6 +444,27 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     >
                       {locale === "zh" ? "中文" : "中文"}
                     </button>
+                  </div>
+
+                  {/* Theme Toggle */}
+                  <div className="flex items-center gap-2 p-2">
+                    <Sun className="h-4 w-4 shrink-0" />
+                    <div className="flex items-center gap-1">
+                      {(["light", "dark", "system"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => setTheme(mode)}
+                          className={cn(
+                            "text-sm px-2 py-1 rounded-md transition-colors",
+                            theme === mode
+                              ? "bg-accent text-accent-foreground font-medium"
+                              : "hover:text-foreground text-muted-foreground"
+                          )}
+                        >
+                          {mode === "light" ? "Light" : mode === "dark" ? "Dark" : "System"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

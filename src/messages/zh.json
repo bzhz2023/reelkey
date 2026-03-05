@@ -43,7 +43,7 @@
       "users": "位满意用户",
       "rating": "用户评分"
     },
-    "creditsHint": "免费积分开始 • 无需信用卡"
+    "creditsHint": "{credits} 个免费积分开始 • 无需信用卡"
   },
   "Notifications": {
     "generationWillNotify": "生成时间较长，我们会在生成完成后通知你。",
@@ -101,15 +101,23 @@
     },
     "textToVideo": {
       "title": "文本转视频",
-      "description": "使用先进的 AI 模型将文本提示转化为精彩视频"
+      "description": "使用先进的 AI 模型将文本提示转化为精彩视频",
+      "stat": "生成速度"
     },
     "imageToVideo": {
       "title": "图片转视频",
-      "description": "用 AI 让您的图片动起来，赋予生命"
+      "description": "用 AI 让您的图片动起来，赋予生命",
+      "stat": "最高分辨率"
+    },
+    "referenceGen": {
+      "title": "参考生成",
+      "description": "上传图片或视频作为参考，引导 AI 生成。提取镜头轨迹、运动模式和风格，实现精准控制",
+      "stat": "参考输入"
     },
     "enhancement": {
       "title": "视频增强",
-      "description": "使用 AI 放大、增强和扩展现有视频"
+      "description": "使用 AI 放大、增强和扩展现有视频",
+      "stat": "AI 模型"
     },
     "fast": {
       "title": "闪电般快速",
@@ -138,6 +146,7 @@
     "subtitle": "4 步创建您的视频",
     "description": "使用直观的视频创作工作流程，几分钟内即可开始",
     "bottomHint": "无需信用卡 • 50 个免费积分开始",
+    "cta": "立即开始创作",
     "steps": {
       "prompt": {
         "title": "描述您的视频",
@@ -146,7 +155,8 @@
       },
       "upload": {
         "title": "上传参考",
-        "description": "可选择添加参考图片来引导 AI（可选）"
+        "description": "可选择添加参考图片来引导 AI（可选）",
+        "stat": "支持格式"
       },
       "generate": {
         "title": "AI 生成",
@@ -166,6 +176,7 @@
     "subtitle": "4 步创建您的视频",
     "description": "使用直观的视频创作工作流程，几分钟内即可开始",
     "bottomHint": "无需信用卡 • 50 个免费积分开始",
+    "cta": "立即开始创作",
     "steps": {
       "prompt": {
         "title": "描述您的视频",
@@ -174,7 +185,8 @@
       },
       "upload": {
         "title": "上传参考",
-        "description": "可选择添加参考图片来引导 AI（可选）"
+        "description": "可选择添加参考图片来引导 AI（可选）",
+        "stat": "支持格式"
       },
       "generate": {
         "title": "AI 生成",

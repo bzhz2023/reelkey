@@ -51,6 +51,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { cn } from "@/components/ui";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -843,7 +844,7 @@ export function VideoGeneratorInput({
     <div className={cn("w-full max-w-4xl mx-auto", className)}>
       {/* Image Preview Dialog */}
       <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl p-2">
+        <DialogContent className="bg-card border-border max-w-2xl p-2">
           <DialogTitle className="sr-only">Image Preview</DialogTitle>
           {previewImage && (
             <img src={previewImage} alt="Preview" className="w-full h-auto rounded-lg" />
@@ -861,7 +862,8 @@ export function VideoGeneratorInput({
       />
 
       {/* Main Input Card */}
-      <div className="rounded-2xl bg-zinc-900 overflow-hidden">
+      <div className="relative rounded-2xl bg-card overflow-hidden border border-transparent dark:border-white/10">
+        <BorderBeam duration={8} size={100} colorFrom="oklch(from var(--primary) l c h)" colorTo="oklch(from var(--primary) l c h / 0.2)" />
         {/* Input Area */}
         <div className="p-4 min-h-[140px] flex flex-col">
           <div className="flex gap-3 flex-1">
@@ -877,12 +879,12 @@ export function VideoGeneratorInput({
                           {/* Delete button - outside the frame */}
                           <button
                             onClick={() => handleRemoveImage(slot.id)}
-                            className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-zinc-700 hover:bg-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-muted hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <X className="w-3 h-3 text-white" />
+                            <X className="w-3 h-3 text-foreground" />
                           </button>
                           {/* Image frame */}
-                          <div className="w-14 h-[75px] rounded-lg p-1 bg-zinc-700/50 border border-zinc-600">
+                          <div className="w-14 h-[75px] rounded-lg p-1 bg-muted/50 border border-border">
                             <div className="relative w-full h-full rounded overflow-hidden">
                               <img
                                 src={image.preview}
@@ -894,7 +896,7 @@ export function VideoGeneratorInput({
                                 onClick={() => setPreviewImage(image.preview)}
                                 className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <ZoomIn className="w-4 h-4 text-white" />
+                                <ZoomIn className="w-4 h-4 text-foreground" />
                               </button>
                             </div>
                           </div>
@@ -902,12 +904,12 @@ export function VideoGeneratorInput({
                       ) : (
                         <button
                           onClick={() => handleUploadClick(slot.id)}
-                          className="w-14 h-[75px] rounded-lg border-2 border-dashed border-zinc-700 hover:border-zinc-500 transition-colors flex items-center justify-center text-zinc-500 hover:text-zinc-400"
+                          className="w-14 h-[75px] rounded-lg border-2 border-dashed border-border hover:border-muted-foreground transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
                         >
                           <Plus className="w-5 h-5" />
                         </button>
                       )}
-                      <div className="text-[10px] text-zinc-500 text-center w-14">
+                      <div className="text-[10px] text-muted-foreground text-center w-14">
                         <div>{slot.label}</div>
                         {slot.subLabel && <div>{slot.subLabel}</div>}
                       </div>
@@ -921,12 +923,12 @@ export function VideoGeneratorInput({
                       {/* Delete button - outside the frame */}
                       <button
                         onClick={() => handleRemoveImage("default")}
-                        className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-zinc-700 hover:bg-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-muted hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="w-3 h-3 text-white" />
+                        <X className="w-3 h-3 text-foreground" />
                       </button>
                       {/* Image frame */}
-                      <div className="w-14 h-[75px] rounded-lg p-1 bg-zinc-700/50 border border-zinc-600">
+                      <div className="w-14 h-[75px] rounded-lg p-1 bg-muted/50 border border-border">
                         <div className="relative w-full h-full rounded overflow-hidden">
                           <img
                             src={getImageForSlot("default")!.preview}
@@ -938,7 +940,7 @@ export function VideoGeneratorInput({
                             onClick={() => setPreviewImage(getImageForSlot("default")!.preview)}
                             className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <ZoomIn className="w-4 h-4 text-white" />
+                            <ZoomIn className="w-4 h-4 text-foreground" />
                           </button>
                         </div>
                       </div>
@@ -946,7 +948,7 @@ export function VideoGeneratorInput({
                   ) : (
                     <button
                       onClick={() => handleUploadClick("default")}
-                      className="w-14 h-[75px] rounded-lg border-2 border-dashed border-zinc-700 hover:border-zinc-500 transition-colors flex items-center justify-center text-zinc-500 hover:text-zinc-400"
+                      className="w-14 h-[75px] rounded-lg border-2 border-dashed border-border hover:border-muted-foreground transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -969,8 +971,8 @@ export function VideoGeneratorInput({
                 }
                 disabled={disabled || isLoading}
                 className={cn(
-                  "w-full h-full min-h-[60px] max-h-[200px] bg-transparent placeholder:text-zinc-500 resize-none focus:outline-none text-sm leading-relaxed",
-                  promptError ? "text-red-400" : "text-white",
+                  "w-full h-full min-h-[60px] max-h-[200px] bg-transparent placeholder:text-muted-foreground resize-none focus:outline-none text-sm leading-relaxed",
+                  promptError ? "text-red-400" : "text-foreground",
                   (disabled || isLoading) && "opacity-50 cursor-not-allowed"
                 )}
                 rows={3}
@@ -980,7 +982,7 @@ export function VideoGeneratorInput({
                 <div
                   className={cn(
                     "text-xs mt-1 text-right",
-                    promptError ? "text-red-400" : "text-zinc-500"
+                    promptError ? "text-red-400" : "text-muted-foreground"
                   )}
                 >
                   {prompt.length}/{maxPromptLength}
@@ -1002,7 +1004,7 @@ export function VideoGeneratorInput({
               {showGenerationTypeSwitch && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm">
                       {generationType === "video" ? (
                         <>
                           <Video className="w-4 h-4 text-red-500" />
@@ -1014,13 +1016,13 @@ export function VideoGeneratorInput({
                           <span className="text-blue-500 font-medium">{texts.aiImage}</span>
                         </>
                       )}
-                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
+                  <DropdownMenuContent className="bg-popover border-border">
                     <DropdownMenuItem
                       onClick={() => handleGenerationTypeChange("video")}
-                      className="text-white hover:bg-zinc-800"
+                      className="text-foreground hover:bg-accent"
                     >
                       <Video className="w-4 h-4 mr-2 text-red-500" />
                       {texts.aiVideo}
@@ -1030,7 +1032,7 @@ export function VideoGeneratorInput({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleGenerationTypeChange("image")}
-                      className="text-white hover:bg-zinc-800"
+                      className="text-foreground hover:bg-accent"
                     >
                       <ImageIcon className="w-4 h-4 mr-2 text-blue-500" />
                       {texts.aiImage}
@@ -1046,18 +1048,18 @@ export function VideoGeneratorInput({
               {currentModes.length > 0 && currentMode && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
-                      <span className="text-zinc-400">{getModeIcon(currentMode.icon)}</span>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-foreground">
+                      <span className="text-muted-foreground">{getModeIcon(currentMode.icon)}</span>
                       <span>{currentMode.name}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
+                  <DropdownMenuContent className="bg-popover border-border">
                     {currentModes.map((mode) => (
                       <DropdownMenuItem
                         key={mode.id}
                         onClick={() => handleModeChange(mode)}
-                        className="text-white hover:bg-zinc-800"
+                        className="text-foreground hover:bg-accent"
                       >
                         <span className="mr-2">{getModeIcon(mode.icon)}</span>
                         {mode.name}
@@ -1074,26 +1076,26 @@ export function VideoGeneratorInput({
               {currentModel && (
                 <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-foreground">
                       {renderModelIcon(currentModel, "sm")}
                       <span>{currentModel.name}</span>
                       {currentModel.isPro && (
                         <span className="text-[10px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400">PRO</span>
                       )}
-                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-zinc-900 border-zinc-800 w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
-                    <DropdownMenuLabel className="text-zinc-400 text-xs">
+                  <DropdownMenuContent className="bg-popover border-border w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
+                    <DropdownMenuLabel className="text-muted-foreground text-xs">
                       {generationType === "video" ? texts.videoModels : texts.imageModels}
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-zinc-800" />
+                    <DropdownMenuSeparator className="bg-border" />
                     {availableModels.map((model) => (
                       <DropdownMenuItem
                         key={model.id}
                         data-model-id={model.id}
                         onClick={() => handleModelChangeInternal(model)}
-                        className="text-white hover:bg-zinc-800 flex flex-col items-start py-3"
+                        className="text-foreground hover:bg-accent flex flex-col items-start py-3"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-2">
@@ -1105,9 +1107,9 @@ export function VideoGeneratorInput({
                           )}
                         </div>
                         {model.description && (
-                          <div className="text-xs text-zinc-500 mt-1 ml-8">{model.description}</div>
+                          <div className="text-xs text-muted-foreground mt-1 ml-8">{model.description}</div>
                         )}
-                        <div className="text-xs text-zinc-400 mt-1 ml-8 flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground mt-1 ml-8 flex items-center gap-2">
                           {"maxDuration" in model && (model as VideoModel).maxDuration && (
                             <>
                               <span className="flex items-center gap-1">
@@ -1129,15 +1131,15 @@ export function VideoGeneratorInput({
               {generationType === "image" && imageStyles.length > 0 && selectedStyle && (
                 <Dialog open={isStyleDialogOpen} onOpenChange={setIsStyleDialogOpen}>
                   <DialogTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-foreground">
                       <Sparkles className="w-4 h-4 text-purple-400" />
                       <span>{selectedStyle.name}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl">
+                  <DialogContent className="bg-popover border-border max-w-2xl">
                     <DialogHeader>
-                      <DialogTitle className="text-white">{texts.selectStyle}</DialogTitle>
+                      <DialogTitle className="text-foreground">{texts.selectStyle}</DialogTitle>
                     </DialogHeader>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
                       {imageStyles.map((style) => (
@@ -1152,10 +1154,10 @@ export function VideoGeneratorInput({
                             "p-3 rounded-xl border-2 transition-all text-center",
                             selectedStyle.id === style.id
                               ? "border-purple-500 bg-purple-500/10"
-                              : "border-zinc-700 hover:border-zinc-600 bg-zinc-800/50"
+                              : "border-border hover:border-muted-foreground bg-secondary/50"
                           )}
                         >
-                          <div className="w-full aspect-square rounded-lg bg-zinc-700 mb-2 flex items-center justify-center overflow-hidden">
+                          <div className="w-full aspect-square rounded-lg bg-muted mb-2 flex items-center justify-center overflow-hidden">
                             {style.preview ? (
                               <img
                                 src={style.preview}
@@ -1163,10 +1165,10 @@ export function VideoGeneratorInput({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <Sparkles className="w-8 h-8 text-zinc-500" />
+                              <Sparkles className="w-8 h-8 text-muted-foreground" />
                             )}
                           </div>
-                          <span className="text-sm text-white">{style.name}</span>
+                          <span className="text-sm text-foreground">{style.name}</span>
                         </button>
                       ))}
                     </div>
@@ -1177,7 +1179,7 @@ export function VideoGeneratorInput({
               {/* Quick Settings */}
               <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-zinc-400 hover:text-white">
+                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-muted-foreground hover:text-foreground">
                     <div
                       className={cn(
                         "border border-current rounded-sm",
@@ -1194,23 +1196,23 @@ export function VideoGeneratorInput({
                     <span>{currentAspectRatio}</span>
                     {generationType === "video" && showDurationControl && (
                       <>
-                        <span className="text-zinc-600 mx-1">|</span>
+                        <span className="text-muted-foreground/60 mx-1">|</span>
                         <Clock className="w-3.5 h-3.5" />
                         <span>{duration}</span>
                       </>
                     )}
                     {generationType === "video" && showResolutionControl && (
                       <>
-                        <span className="text-zinc-600 mx-1">|</span>
+                        <span className="text-muted-foreground/60 mx-1">|</span>
                         <span>{resolution}</span>
                       </>
                     )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit bg-zinc-900 border-zinc-800 p-4" align="start">
+                <PopoverContent className="w-fit bg-popover border-border p-4" align="start">
                   {/* Aspect Ratio */}
                   <div className="mb-4">
-                    <label className="text-xs text-zinc-400 mb-2 block">{texts.aspectRatio}</label>
+                    <label className="text-xs text-muted-foreground mb-2 block">{texts.aspectRatio}</label>
                     <div className="flex gap-2">
                       {currentAspectRatios.map((ratio) => (
                         <button
@@ -1219,8 +1221,8 @@ export function VideoGeneratorInput({
                           className={cn(
                             "flex-1 min-w-[52px] px-6 py-2 rounded-lg text-xs flex flex-col items-center gap-1.5 transition-colors",
                             currentAspectRatio === ratio
-                              ? "bg-zinc-700 text-white border border-zinc-500"
-                              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-transparent"
+                              ? "bg-muted text-foreground border border-primary"
+                              : "bg-secondary text-muted-foreground hover:bg-muted border border-transparent"
                           )}
                         >
                           {/* Fixed height container for icon alignment */}
@@ -1248,7 +1250,7 @@ export function VideoGeneratorInput({
                   {/* Video Length */}
                   {showDurationControl && (
                     <div className="mb-4">
-                      <label className="text-xs text-zinc-400 mb-2 block">{texts.videoLength}</label>
+                      <label className="text-xs text-muted-foreground mb-2 block">{texts.videoLength}</label>
                       <div className="flex gap-2">
                         {effectiveDurations.map((d) => (
                           <button
@@ -1260,8 +1262,8 @@ export function VideoGeneratorInput({
                             className={cn(
                               "flex-1 min-w-[44px] px-6 py-2 rounded-lg text-sm transition-colors",
                               duration === d
-                                ? "bg-zinc-700 text-white"
-                                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                                ? "bg-muted text-foreground"
+                                : "bg-secondary text-muted-foreground hover:bg-muted"
                             )}
                           >
                             {d}
@@ -1274,7 +1276,7 @@ export function VideoGeneratorInput({
                   {/* Resolution */}
                   {showResolutionControl && (
                     <div>
-                      <label className="text-xs text-zinc-400 mb-2 block">{texts.resolution}</label>
+                      <label className="text-xs text-muted-foreground mb-2 block">{texts.resolution}</label>
                       <div className="flex gap-2">
                         {effectiveResolutions.map((r) => (
                           <button
@@ -1286,8 +1288,8 @@ export function VideoGeneratorInput({
                             className={cn(
                               "flex-1 min-w-[60px] px-6 py-2 rounded-lg text-sm transition-colors",
                               resolution === r
-                                ? "bg-zinc-700 text-white"
-                                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                                ? "bg-muted text-foreground"
+                                : "bg-secondary text-muted-foreground hover:bg-muted"
                             )}
                           >
                             {r}
@@ -1302,15 +1304,15 @@ export function VideoGeneratorInput({
               {/* Advanced Settings (Output Number, Generate Audio) */}
               <Popover open={isAdvancedSettingsOpen} onOpenChange={setIsAdvancedSettingsOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-white">
+                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 bg-zinc-900 border-zinc-800 p-4" align="end">
+                <PopoverContent className="w-80 bg-popover border-border p-4" align="end">
                   {/* Output Number */}
                   {currentOutputNumbers.length > 0 && (
                     <div className={modelSupportsAudio ? "mb-4" : ""}>
-                      <label className="text-xs text-zinc-400 mb-2 block">
+                      <label className="text-xs text-muted-foreground mb-2 block">
                         {generationType === "video" ? texts.outputNumber : texts.numberOfImages}
                       </label>
                       <div className="flex gap-2">
@@ -1321,8 +1323,8 @@ export function VideoGeneratorInput({
                             className={cn(
                               "flex-1 py-2 rounded-lg text-sm transition-colors relative",
                               currentOutputNumber === option.value
-                                ? "bg-zinc-700 text-white"
-                                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700",
+                                ? "bg-muted text-foreground"
+                                : "bg-secondary text-muted-foreground hover:bg-muted",
                               option.isPro && !isPro && "opacity-70"
                             )}
                           >
@@ -1343,10 +1345,10 @@ export function VideoGeneratorInput({
                     <div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Volume2 className="w-4 h-4 text-zinc-400" />
+                          <Volume2 className="w-4 h-4 text-muted-foreground" />
                           <div>
-                            <div className="text-sm text-white">Generate Audio</div>
-                            <div className="text-xs text-zinc-500">
+                            <div className="text-sm text-foreground">Generate Audio</div>
+                            <div className="text-xs text-muted-foreground">
                               Add natural-sounding audio
                             </div>
                           </div>
@@ -1355,7 +1357,7 @@ export function VideoGeneratorInput({
                           onClick={() => setGenerateAudio(!generateAudio)}
                           className={cn(
                             "relative w-11 h-6 rounded-full transition-colors",
-                            generateAudio ? "bg-red-500" : "bg-zinc-700"
+                            generateAudio ? "bg-red-500" : "bg-muted"
                           )}
                         >
                           <span
@@ -1374,7 +1376,7 @@ export function VideoGeneratorInput({
 
             {/* Credits & Submit */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-zinc-400">
+              <span className="text-sm text-muted-foreground">
                 {calculatedCredits} {texts.credits}
               </span>
               <button
@@ -1383,8 +1385,8 @@ export function VideoGeneratorInput({
                 className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center transition-all",
                   canSubmit
-                    ? "bg-white text-black hover:bg-zinc-200"
-                    : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "bg-secondary text-muted-foreground/60 cursor-not-allowed"
                 )}
               >
                 {isLoading ? (
@@ -1403,7 +1405,7 @@ export function VideoGeneratorInput({
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <button
             onClick={refreshSuggestions}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-sm text-zinc-400 hover:text-white"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-muted/50 transition-colors text-sm text-muted-foreground hover:text-foreground"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -1411,7 +1413,7 @@ export function VideoGeneratorInput({
             <button
               key={template.id}
               onClick={() => handlePromptSuggestion(template)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-sm text-zinc-300 hover:text-white"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-muted/50 transition-colors text-sm text-foreground/80 hover:text-foreground"
             >
               {template.image && (
                 <img src={template.image} alt="" className="w-5 h-5 rounded object-cover" />

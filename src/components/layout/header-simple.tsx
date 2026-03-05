@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useLocalePathname, useLocaleRouter } from "@/i18n/navigation";
-import { Gem, Globe, Menu } from "lucide-react";
+import { Gem, Globe, Menu, Sun, Moon, Monitor } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 
 import { authClient, type User } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function HeaderSimple({
 }: HeaderSimpleProps) {
   const { balance } = useCredits();
   const signInModal = useSigninModal();
+  const { setTheme } = useTheme();
   const router = useLocaleRouter();
   const pathname = useLocalePathname();
   const tCommon = useTranslations("Common");
@@ -101,6 +103,35 @@ export function HeaderSimple({
                   <span>{localeMap[locale]}</span>
                 </DropdownMenuItem>
               ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 px-0 text-muted-foreground hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[120px]">
+              <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
+                <Sun className="mr-2 h-4 w-4" />
+                Light
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer">
+                <Moon className="mr-2 h-4 w-4" />
+                Dark
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer">
+                <Monitor className="mr-2 h-4 w-4" />
+                System
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

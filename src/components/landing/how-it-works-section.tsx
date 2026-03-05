@@ -1,18 +1,22 @@
 "use client";
 
-import { Type, Upload, Video, Download, Sparkles, Clock, Zap } from "lucide-react";
+import { Type, Upload, Video, Download, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { MagicCard } from "@/components/magicui/magic-card";
+import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { NumberTicker } from "@/components/magicui/number-ticker";
 import { cn } from "@/components/ui";
+import { LocaleLink } from "@/i18n/navigation";
 
 /**
  * How It Works Section - 工作流程展示
  *
- * 设计模式: Step-by-Step with Timeline
- * - 清晰的步骤展示
+ * 设计模式: Step-by-Step with MagicCard + Connected Timeline
+ * - MagicCard 鼠标跟随光效
+ * - 渐变连接线 + 箭头
  * - 动画数字计数器
  */
 
@@ -23,7 +27,7 @@ const steps = [
     icon: Type,
     titleKey: "steps.prompt.title",
     descKey: "steps.prompt.description",
-    hueOffset: 0,
+    gradient: { from: "#9E7AFF", to: "#C084FC" },
     stat: { value: 30, suffix: "s", labelKey: "steps.prompt.stat" },
   },
   {
@@ -31,15 +35,15 @@ const steps = [
     icon: Upload,
     titleKey: "steps.upload.title",
     descKey: "steps.upload.description",
-    hueOffset: 20,
-    stat: null,
+    gradient: { from: "#6366F1", to: "#818CF8" },
+    stat: { value: 20, suffix: "+", labelKey: "steps.upload.stat" },
   },
   {
     step: "03",
     icon: Video,
     titleKey: "steps.generate.title",
     descKey: "steps.generate.description",
-    hueOffset: 40,
+    gradient: { from: "#EC4899", to: "#F472B6" },
     stat: { value: 2, suffix: "min", labelKey: "steps.generate.stat" },
   },
   {
@@ -47,7 +51,7 @@ const steps = [
     icon: Download,
     titleKey: "steps.download.title",
     descKey: "steps.download.description",
-    hueOffset: 60,
+    gradient: { from: "#F59E0B", to: "#FBBF24" },
     stat: { value: 1080, suffix: "p", labelKey: "steps.download.stat" },
   },
 ];
@@ -59,7 +63,8 @@ export function HowItWorks() {
     <section className="relative py-24 md:py-32 overflow-hidden">
       {/* 背景装饰 */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
+        <div className="absolute inset-0 bg-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent" />
       </div>
 
       <div className="container mx-auto px-4">
@@ -108,10 +113,9 @@ export function HowItWorks() {
         </BlurFade>
 
         {/* 步骤卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
           {steps.map((step, index) => {
             const Icon = step.icon;
-            const stepColor = `oklch(from var(--primary) l c calc(h + ${step.hueOffset}))`;
 
             return (
               <BlurFade key={step.step} delay={index * 0.1} inView>
@@ -122,91 +126,90 @@ export function HowItWorks() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="relative group"
                 >
-                  {/* 连接线 (桌面端) */}
-                  {index < steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-border via-border/50 to-transparent -translate-x-1/2" />
-                  )}
-
-                  {/* 步骤编号徽章 */}
-                  <motion.div
-                    className="absolute -top-3 -left-3 w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg z-10"
-                    style={{ background: stepColor }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
+                  {/* MagicCard 包裹 */}
+                  <MagicCard
+                    className="h-full rounded-2xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl"
+                    gradientFrom={step.gradient.from}
+                    gradientTo={step.gradient.to}
+                    gradientSize={200}
+                    gradientOpacity={0.12}
                   >
-                    {step.step}
-                  </motion.div>
-
-                  {/* 卡片主体 */}
-                  <div className="relative pt-8 h-full">
-                    <div className="relative h-full p-6 rounded-2xl border border-border bg-background hover:shadow-xl transition-all duration-300 group-hover:border-border/50">
-                      {/* 图标 */}
-                      <motion.div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
-                        style={{ background: stepColor }}
-                        whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <Icon className="h-8 w-8 text-white" />
-                      </motion.div>
+                    <div className="relative p-6 h-full flex flex-col">
+                      {/* 步骤编号 + 图标 */}
+                      <div className="flex items-center gap-3 mb-5">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                          style={{
+                            background: `linear-gradient(135deg, ${step.gradient.from}, ${step.gradient.to})`,
+                          }}
+                        >
+                          {step.step}
+                        </div>
+                        <motion.div
+                          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                          transition={{ duration: 0.4 }}
+                          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md"
+                          style={{
+                            background: `linear-gradient(135deg, ${step.gradient.from}20, ${step.gradient.to}20)`,
+                          }}
+                        >
+                          <Icon className="h-6 w-6" style={{ color: step.gradient.from }} />
+                        </motion.div>
+                      </div>
 
                       {/* 标题 */}
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="text-lg font-semibold mb-2 line-clamp-1">
                         {t(step.titleKey)}
                       </h3>
 
                       {/* 描述 */}
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
                         {t(step.descKey)}
                       </p>
 
-                      {/* 统计数据 (如果有) */}
+                      {/* 统计数据 */}
                       {step.stat && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          whileInView={{ opacity: 1, height: "auto" }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.3, duration: 0.5 }}
-                          className="pt-4 border-t border-border/50"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-muted-foreground">
-                              {t(step.stat.labelKey)}:
-                            </span>
-                            <span className="text-lg font-bold text-foreground">
-                              <NumberTicker value={step.stat.value} />
+                        <div className="mt-auto pt-3 border-t border-border/50 flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {t(step.stat.labelKey)}
+                          </span>
+                          <span className="text-lg font-bold tabular-nums">
+                            <NumberTicker value={step.stat.value} />
+                            <span className="text-muted-foreground text-sm ml-0.5">
                               {step.stat.suffix}
                             </span>
-                          </div>
-                        </motion.div>
+                          </span>
+                        </div>
                       )}
-
-                      {/* 悬停时的光晕效果 */}
-                      <div
-                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"
-                        style={{ background: stepColor }}
-                      />
                     </div>
-                  </div>
+                  </MagicCard>
                 </motion.div>
               </BlurFade>
             );
           })}
         </div>
 
-        {/* 底部提示 */}
+        {/* 底部 CTA */}
         <BlurFade delay={0.5} inView>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-16 text-center"
+            className="mt-16 flex justify-center"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-border">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm font-medium">{t("bottomHint")}</span>
-            </div>
+            <LocaleLink href="/#generator">
+              <ShimmerButton
+                shimmerColor="#ffffff"
+                shimmerSize="0.05em"
+                shimmerDuration="3s"
+                borderRadius="100px"
+                background="oklch(from var(--primary) l c h)"
+                className="px-8 py-3 text-base font-medium shadow-lg shadow-primary/25"
+              >
+                {t("cta")}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </ShimmerButton>
+            </LocaleLink>
           </motion.div>
         </BlurFade>
       </div>

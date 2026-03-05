@@ -18,6 +18,7 @@ import { Meteors } from "@/components/magicui/meteors";
 import { cn } from "@/components/ui";
 import { authClient } from "@/lib/auth/client";
 import { calculateModelCredits, getAvailableModels } from "@/config/credits";
+import { NEW_USER_GIFT } from "@/config/pricing-user";
 import { uploadImage } from "@/lib/video-api";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { videoTaskStorage } from "@/lib/video-task-storage";
@@ -286,10 +287,16 @@ export function HeroSection() {
 
   return (
     <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
-      {/* 背景渐变效果 */}
-      <div className="absolute inset-0 -z-20">
-        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(ellipse at top, oklch(from var(--primary) l c h / 0.15), var(--background) 70%)" }} />
-        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(ellipse at bottom, oklch(from var(--primary) l c h / 0.10), var(--background) 70%)" }} />
+      {/* 背景渐变效果 - fixed 固定不随滚动 */}
+      <div className="fixed inset-0 -z-20">
+        <div className="absolute inset-0 dark:bg-[#0a0f0d] bg-background" />
+        <div
+          className="absolute inset-0 hidden dark:block"
+          style={{
+            background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16, 185, 129, 0.25), transparent 70%)",
+          }}
+        />
+        <div className="absolute inset-0 dark:hidden" style={{ backgroundImage: "radial-gradient(ellipse at top, oklch(from var(--primary) l c h / 0.15), var(--background) 70%)" }} />
       </div>
 
       {/* 动画流星效果 */}
@@ -344,7 +351,7 @@ export function HeroSection() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 + idx * 0.1 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black/30 backdrop-blur-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/60 dark:bg-white/10 backdrop-blur-sm border border-border/50"
                   >
                     <Icon className={cn("h-4 w-4", feature.color)} />
                     <span className="text-sm font-medium">{feature.label}</span>
@@ -362,7 +369,7 @@ export function HeroSection() {
             className="w-full max-w-4xl mx-auto relative"
           >
             {/* 装饰性光晕效果 */}
-            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h / 0.3), oklch(from var(--primary) l c calc(h + 30) / 0.3))" }} />
+            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-50" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
 
             {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
             <VideoGeneratorInput
@@ -374,15 +381,16 @@ export function HeroSection() {
               onSubmit={handleSubmit}
             />
 
-            {/* 底部提示 */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-center text-xs text-muted-foreground mt-4"
-            >
-              {t("creditsHint")}
-            </motion.p>
+            {NEW_USER_GIFT.enabled && NEW_USER_GIFT.credits > 0 && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-center text-xs text-muted-foreground mt-4"
+              >
+                {t("creditsHint", { credits: NEW_USER_GIFT.credits })}
+              </motion.p>
+            )}
           </motion.div>
         </div>
       </div>

@@ -69,8 +69,10 @@ export const metadata = {
     description: siteConfig.description,
   },
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/favicon-16x16.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
     apple: "/apple-touch-icon.png",
   },
   metadataBase: new URL(siteConfig.url),
@@ -122,8 +124,9 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>

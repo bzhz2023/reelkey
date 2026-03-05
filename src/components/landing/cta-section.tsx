@@ -34,6 +34,7 @@ export function CTASection() {
     <section className="relative py-24 md:py-32 overflow-hidden">
       {/* 背景装饰 */}
       <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-background" />
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h / 0.05), oklch(from var(--primary) l c calc(h + 30) / 0.05))" }} />
       </div>
 
@@ -45,7 +46,7 @@ export function CTASection() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl overflow-hidden shadow-2xl"
+              className="relative rounded-3xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl overflow-hidden shadow-2xl"
             >
               {/* 边框光效 */}
               <BorderBeam
@@ -125,14 +126,6 @@ export function CTASection() {
                       </ShimmerButton>
                     </LocaleLink>
 
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <LocaleLink
-                        href="/#generator"
-                        className="inline-flex px-6 py-3 text-base font-medium rounded-full border-2 border-border bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all"
-                      >
-                        {t("learnMore")}
-                      </LocaleLink>
-                    </motion.div>
                   </div>
 
                   {/* 社交证明 - 头像 (Hidden for audit) */}
@@ -174,7 +167,7 @@ export function CTASection() {
                   <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-2xl -z-10" style={{ background: "oklch(from var(--primary) l c calc(h + 30) / 0.2)" }} />
 
                   {/* 视频预览卡片 */}
-                  <div className="relative rounded-2xl border border-white/10 bg-black/30 backdrop-blur-sm overflow-hidden">
+                  <div className="relative rounded-2xl border border-border dark:border-white/10 bg-muted dark:bg-black/30 backdrop-blur-sm overflow-hidden">
                     {/* 静态图片预览 (Video preview replaced with image for audit) */}
                     <div className="aspect-video bg-muted/80 flex items-center justify-center overflow-hidden">
                       <motion.img
