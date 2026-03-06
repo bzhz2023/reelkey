@@ -3,10 +3,8 @@ import postgres from "postgres";
 
 import * as schema from "./schema";
 
-const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-if (!databaseUrl) {
-  throw new Error("Missing DATABASE_URL/POSTGRES_URL env var");
-}
+const databaseUrl =
+  process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
 
 const parseSslConfig = (url: string) => {
   const mode = (
@@ -29,11 +27,28 @@ const parseSslConfig = (url: string) => {
   return isLocalhost ? undefined : ("require" as const);
 };
 
-const sql = postgres(databaseUrl, {
-  max: 10,
-  ssl: parseSslConfig(databaseUrl),
-});
+function createDb() {
+  if (!databaseUrl || !databaseUrl.startsWith("postgres")) {
+    throw new Error(
+      "Missing or invalid DATABASE_URL. Set a valid PostgreSQL connection string in your .env file.\n" +
+        "Example: DATABASE_URL='postgresql://user:password@host:port/database'"
+    );
+  }
+  const sql = postgres(databaseUrl, {
+    max: 10,
+    ssl: parseSslConfig(databaseUrl),
+  });
+  return drizzle(sql, { schema });
+}
 
-export const db = drizzle(sql, { schema });
+let _db: ReturnType<typeof createDb> | undefined;
+export const db = new Proxy({} as ReturnType<typeof createDb>, {
+  get(_target, prop, receiver) {
+    if (!_db) {
+      _db = createDb();
+    }
+    return Reflect.get(_db, prop, receiver);
+  },
+});
 
 export * from "./schema";
