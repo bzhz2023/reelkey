@@ -9,6 +9,7 @@ import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { LocaleLink } from "@/i18n/navigation";
 import { cn } from "@/components/ui";
+import { NEW_USER_GIFT } from "@/config/pricing-user";
 
 /**
  * CTA Section - 行动号召区域
@@ -104,7 +105,7 @@ export function CTASection() {
                           className="flex items-center gap-3 text-muted-foreground"
                         >
                           <Icon className={cn("h-5 w-5 shrink-0", benefit.color)} />
-                          <span>{t(benefit.labelKey)}</span>
+                          <span>{t(benefit.labelKey, { credits: NEW_USER_GIFT.credits })}</span>
                         </motion.li>
                       );
                     })}

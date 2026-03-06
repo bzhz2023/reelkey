@@ -145,37 +145,7 @@
     "title": "使用方法",
     "subtitle": "4 步创建您的视频",
     "description": "使用直观的视频创作工作流程，几分钟内即可开始",
-    "bottomHint": "无需信用卡 • 50 个免费积分开始",
-    "cta": "立即开始创作",
-    "steps": {
-      "prompt": {
-        "title": "描述您的视频",
-        "description": "输入详细的文本提示，描述您想创建的视频",
-        "stat": "平均时间"
-      },
-      "upload": {
-        "title": "上传参考",
-        "description": "可选择添加参考图片来引导 AI（可选）",
-        "stat": "支持格式"
-      },
-      "generate": {
-        "title": "AI 生成",
-        "description": "我们的 AI 处理您的请求并创建独特视频",
-        "stat": "生成时间"
-      },
-      "download": {
-        "title": "下载分享",
-        "description": "获取高清视频，随时随地分享",
-        "stat": "最高质量"
-      }
-    }
-  },
-  "CTA": {
-    "badge": "简单流程",
-    "title": "使用方法",
-    "subtitle": "4 步创建您的视频",
-    "description": "使用直观的视频创作工作流程，几分钟内即可开始",
-    "bottomHint": "无需信用卡 • 50 个免费积分开始",
+    "bottomHint": "无需信用卡 • {credits} 个免费积分开始",
     "cta": "立即开始创作",
     "steps": {
       "prompt": {
@@ -208,7 +178,7 @@
     "getStarted": "免费开始",
     "learnMore": "了解更多",
     "benefits": {
-      "free": "50 个免费积分开始",
+      "free": "{credits} 个免费积分开始",
       "noCard": "无需信用卡",
       "cancel": "随时取消",
       "support": "7x24 客户支持"
@@ -368,6 +338,23 @@
   "NavBar": {
     "login": "登录",
     "signup": "注册"
+  },
+  "Login": {
+    "back": "返回",
+    "welcome_back": "欢迎回来",
+    "signin_title": "输入您的电子邮件以登录您的账户",
+    "singup_title": "还没有账户？立即注册。",
+    "signin_email": "用电子邮件登录",
+    "signin_others": "或者继续使用",
+    "signup": "注册",
+    "privacy": "只有您的电子邮件和头像会被存储。",
+    "signup_github": "使用 Github 注册",
+    "create_account": "创建账户",
+    "create_account_desc": "输入您的邮箱创建账户",
+    "agree_prefix": "点击继续即表示您同意我们的",
+    "terms_of_service": "服务条款",
+    "and": "和",
+    "privacy_policy": "隐私政策"
   },
   "SignInModal": {
     "signin_title": "登录您的账户",

@@ -180,7 +180,7 @@ export function DarkPricing({
   }, [currentProducts]);
 
   return (
-    <section className="container mx-auto flex flex-col items-center text-center py-6 md:py-6">
+    <section className="flex flex-col items-center text-center py-6 md:py-6">
       {/* Tab 切换 */}
       <div className="mb-6 mx-auto flex justify-center">
         <div className="inline-flex rounded-lg bg-muted p-1">
@@ -202,7 +202,7 @@ export function DarkPricing({
             showBadge
           >
             {t("yearly")}
-            <span className="ml-1.5 rounded-md bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">
+            <span className="ml-1.5 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
               20% OFF
             </span>
           </TabButton>
@@ -211,9 +211,9 @@ export function DarkPricing({
 
       {/* 价格卡片 */}
       {currentProducts.length > 0 ? (
-        <div className="mx-auto grid max-w-screen-lg gap-5 bg-inherit py-5 md:grid-cols-3 lg:grid-cols-3">
+        <div className="mx-auto grid gap-5 bg-inherit py-5 md:grid-cols-[repeat(3,minmax(0,360px))] justify-center">
           {currentProducts.map((product, index) => {
-            const isRecommended = index === 1 && currentProducts.length > 1;
+            const isRecommended = product.popular === true;
             const isCurrent = activeProductId === product.id && hasAccess;
 
             // 为每个产品生成对齐后的功能列表
@@ -324,12 +324,12 @@ function PricingCard({
       className={cn(
         "relative flex flex-col overflow-hidden rounded-xl border transition-all duration-200",
         isRecommended
-          ? "border-primary shadow-lg scale-105 z-10 bg-secondary/5"
-          : "border-border bg-card hover:bg-muted/10 opacity-80 hover:opacity-100"
+          ? "border-primary shadow-lg z-10 bg-secondary/5"
+          : "border-border bg-card hover:bg-muted/10"
       )}
     >
       {isRecommended && (
-        <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-primary" />
+        <div className="absolute top-0 right-0 left-0 h-1 bg-primary" />
       )}
       <div className={cn(
         "min-h-[150px] items-start space-y-4 p-6",
@@ -389,7 +389,7 @@ function PricingCard({
                 "hover:opacity-90",
                 isRecommended
                   ? "bg-primary text-primary-foreground"
-                  : "bg-primary text-primary-foreground"
+                  : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
               )}
             >
               {dictPrice.manage_subscription}
@@ -408,7 +408,7 @@ function PricingCard({
                         "hover:opacity-90",
                         isRecommended
                           ? "bg-primary text-primary-foreground"
-                          : "bg-primary text-primary-foreground"
+                          : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
                       {isPending ? (
@@ -442,7 +442,7 @@ function PricingCard({
               "hover:opacity-90",
               isRecommended
                 ? "bg-primary text-primary-foreground"
-                : "bg-primary text-primary-foreground"
+                : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
             )}
           >
             {dictPrice.signup}

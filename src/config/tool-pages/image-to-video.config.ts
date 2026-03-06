@@ -1,4 +1,5 @@
 import { ToolPageConfig } from "./types";
+import { NEW_USER_GIFT } from "@/config/pricing-user";
 
 /**
  * Image to Video 工具页面配置
@@ -63,7 +64,7 @@ export const imageToVideoConfig: ToolPageConfig = {
       title: "Transform Your Images into Stunning Videos",
       description: "Upload any photo and watch AI bring it to life with smooth, realistic motion. Perfect for social media, marketing, and creative projects.",
       ctaText: "Get Started Free",
-      ctaSubtext: "50 free credits to try",
+      ctaSubtext: `${NEW_USER_GIFT.credits} free credits to try`,
     },
 
     examples: [

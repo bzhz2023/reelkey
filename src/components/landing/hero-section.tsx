@@ -287,18 +287,6 @@ export function HeroSection() {
 
   return (
     <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
-      {/* 背景渐变效果 - fixed 固定不随滚动 */}
-      <div className="fixed inset-0 -z-20">
-        <div className="absolute inset-0 dark:bg-[#0a0f0d] bg-background" />
-        <div
-          className="absolute inset-0 hidden dark:block"
-          style={{
-            background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16, 185, 129, 0.25), transparent 70%)",
-          }}
-        />
-        <div className="absolute inset-0 dark:hidden" style={{ backgroundImage: "radial-gradient(ellipse at top, oklch(from var(--primary) l c h / 0.15), var(--background) 70%)" }} />
-      </div>
-
       {/* 动画流星效果 */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <Meteors number={15} minDelay={0.5} maxDelay={2} minDuration={3} maxDuration={8} />
@@ -369,7 +357,7 @@ export function HeroSection() {
             className="w-full max-w-4xl mx-auto relative"
           >
             {/* 装饰性光晕效果 */}
-            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-50" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
+            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
 
             {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
             <VideoGeneratorInput

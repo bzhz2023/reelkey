@@ -205,7 +205,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     name: "Starter Pack",
     priceUsd: 14.9,
     credits: 280, // 和 Basic 月付积分相同
-    popular: false,
+    popular: true, // 推荐
     enabled: true,
     allowFreeUser: true, // 所有用户可购买
     features: ["hd_videos", "fast_generation"],
@@ -215,7 +215,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
     name: "Standard Pack",
     priceUsd: 39.9, // 比月付 Pro 贵 33%
     credits: 960, // 和 Pro 月付积分相同
-    popular: true, // 推荐
+    popular: false,
     enabled: true,
     allowFreeUser: false, // 仅订阅用户
     features: ["hd_videos", "fast_generation", "no_watermark"],

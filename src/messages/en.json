@@ -145,7 +145,7 @@
     "title": "How It Works",
     "subtitle": "Create your video in 4 simple steps",
     "description": "Get started in minutes with our intuitive video creation workflow",
-    "bottomHint": "No credit card required • 50 free credits to start",
+    "bottomHint": "No credit card required • {credits} free credits to start",
     "cta": "Start Creating Now",
     "steps": {
       "prompt": {
@@ -178,7 +178,7 @@
     "getStarted": "Get Started Free",
     "learnMore": "Learn More",
     "benefits": {
-      "free": "50 free credits to start",
+      "free": "{credits} free credits to start",
       "noCard": "No credit card required",
       "cancel": "Cancel anytime",
       "support": "24/7 customer support"
@@ -338,6 +338,23 @@
   "NavBar": {
     "login": "Login",
     "signup": "Sign Up"
+  },
+  "Login": {
+    "back": "Back",
+    "welcome_back": "Welcome back",
+    "signin_title": "Enter your email to log into your account",
+    "singup_title": "Don't have an account? Sign up now.",
+    "signin_email": "Log in with Email",
+    "signin_others": "Or continue with",
+    "signup": "Sign up",
+    "privacy": "only your email and profile picture will be stored.",
+    "signup_github": "Sign Up with Github",
+    "create_account": "Create an account",
+    "create_account_desc": "Enter your email below to create your account",
+    "agree_prefix": "By clicking continue, you agree to our",
+    "terms_of_service": "Terms of Service",
+    "and": "and",
+    "privacy_policy": "Privacy Policy"
   },
   "SignInModal": {
     "signin_title": "Sign in to your account",

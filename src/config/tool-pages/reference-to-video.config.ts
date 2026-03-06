@@ -1,4 +1,5 @@
 import { ToolPageConfig } from "./types";
+import { NEW_USER_GIFT } from "@/config/pricing-user";
 
 /**
  * Reference to Video 工具页面配置
@@ -61,7 +62,7 @@ export const referenceToVideoConfig: ToolPageConfig = {
       title: "Transform Your Videos with AI Magic",
       description: "Upload a reference video and let AI create stunning variations, style transfers, or seamless edits while preserving the core content.",
       ctaText: "Try It Now",
-      ctaSubtext: "50 free credits to start",
+      ctaSubtext: `${NEW_USER_GIFT.credits} free credits to start`,
     },
 
     examples: [
