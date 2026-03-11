@@ -12,7 +12,7 @@
 // Type Definitions
 // ============================================================================
 
-export type ProviderType = "evolink" | "kie";
+export type ProviderType = "evolink" | "kie" | "apimart";
 
 export interface ProviderModelConfig {
   /** Provider-specific model ID */
@@ -39,6 +39,7 @@ export interface ModelMapping {
   providers: {
     evolink?: ProviderModelConfig;
     kie?: ProviderModelConfig;
+    apimart?: ProviderModelConfig;
   };
 }
 
@@ -108,7 +109,7 @@ function normalizeQuality(
     return value;
   }
 
-  // KIE default: resolution string
+  // KIE/APImart default: resolution string
   if (normalized === "standard") return "720p";
   if (normalized === "high") return "1080p";
   if (normalized === "480p") return "480p";
@@ -252,6 +253,53 @@ function kieParamsTransformer(
   };
 }
 
+/**
+ * APImart parameter transformer
+ *
+ * APImart uses the same endpoint for all models: POST /v1/videos/generations
+ * Currently supports Seedance models (1.0 Pro Fast/Quality, 1.5 Pro).
+ * To add new models, add model-specific logic below.
+ */
+function apimartParamsTransformer(
+  internalModelId: string,
+  params: Record<string, any>
+): Record<string, any> {
+  const imageUrls = Array.isArray(params.imageUrls)
+    ? params.imageUrls
+    : params.imageUrl
+      ? [params.imageUrl]
+      : undefined;
+
+  const result: Record<string, any> = {
+    prompt: params.prompt,
+    aspect_ratio: params.aspectRatio || "16:9",
+    duration: params.duration || 5,
+    callback_url: params.callbackUrl,
+  };
+
+  if (imageUrls && imageUrls.length > 0) {
+    result.image_urls = imageUrls;
+  }
+
+  // Seedance 1.5 Pro
+  if (internalModelId === "seedance-1.5-pro") {
+    result.resolution =
+      normalizeQuality(params.quality, "apimart", internalModelId) || "720p";
+    result.audio = params.generateAudio ?? false;
+  }
+
+  // Seedance 1.0 Pro (Fast / Quality)
+  if (
+    internalModelId === "seedance-1.0-pro-fast" ||
+    internalModelId === "seedance-1.0-pro-quality"
+  ) {
+    result.resolution =
+      normalizeQuality(params.quality, "apimart", internalModelId) || "1080p";
+  }
+
+  return result;
+}
+
 // ============================================================================
 // Model Mappings
 // ============================================================================
@@ -387,6 +435,41 @@ export const MODEL_MAPPINGS: Record<string, ModelMapping> = {
         providerModelId: "bytedance/seedance-1.5-pro",
         supported: true,
         transformParams: kieParamsTransformer,
+      },
+      apimart: {
+        providerModelId: "doubao-seedance-1-5-pro",
+        supported: true,
+        transformParams: apimartParamsTransformer,
+      },
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // Seedance 1.0 Pro Fast (APImart only)
+  // -------------------------------------------------------------------------
+  "seedance-1.0-pro-fast": {
+    internalId: "seedance-1.0-pro-fast",
+    displayName: "Seedance 1.0 Pro Fast",
+    providers: {
+      apimart: {
+        providerModelId: "doubao-seedance-1-0-pro-fast",
+        supported: true,
+        transformParams: apimartParamsTransformer,
+      },
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // Seedance 1.0 Pro Quality (APImart only)
+  // -------------------------------------------------------------------------
+  "seedance-1.0-pro-quality": {
+    internalId: "seedance-1.0-pro-quality",
+    displayName: "Seedance 1.0 Pro Quality",
+    providers: {
+      apimart: {
+        providerModelId: "doubao-seedance-1-0-pro-quality",
+        supported: true,
+        transformParams: apimartParamsTransformer,
       },
     },
   },

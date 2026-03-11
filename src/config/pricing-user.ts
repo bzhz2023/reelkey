@@ -285,6 +285,22 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     qualityMultiplier: 2, // 1080p = 720p × 2 (7.932 / 3.557 ≈ 2.23, 向上取整为 2)
     enabled: true,
   },
+
+  /** Seedance 1.0 Pro Fast - 快速生成（APImart） */
+  "seedance-1.0-pro-fast": {
+    baseCredits: 0,
+    perSecond: 3, // 按秒计费
+    qualityMultiplier: 2,
+    enabled: false, // 使用 APImart 时改为 true
+  },
+
+  /** Seedance 1.0 Pro Quality - 高质量生成（APImart） */
+  "seedance-1.0-pro-quality": {
+    baseCredits: 0,
+    perSecond: 5, // 高质量，每秒积分更高
+    qualityMultiplier: 2,
+    enabled: false, // 使用 APImart 时改为 true
+  },
 };
 
 // ============================================

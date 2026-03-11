@@ -19,7 +19,7 @@ export interface VideoGenerationParams {
 // Unified task response
 export interface VideoTaskResponse {
   taskId: string;
-  provider: "evolink" | "kie";
+  provider: "evolink" | "kie" | "apimart";
   status: "pending" | "processing" | "completed" | "failed";
   progress?: number;
   estimatedTime?: number;
