@@ -1,8 +1,6 @@
-import type { AIVideoProvider } from "./types";
+import type { AIVideoProvider, ProviderType } from "./types";
 import { EvolinkProvider } from "./providers/evolink";
 import { KieProvider } from "./providers/kie";
-
-export type ProviderType = "evolink" | "kie";
 
 const providers: Map<ProviderType, AIVideoProvider> = new Map();
 

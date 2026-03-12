@@ -3,7 +3,7 @@
 // ============================================
 
 export type ProductType = "subscription" | "one-time";
-export type ProviderType = "evolink" | "kie";
+import type { ProviderType } from "@/ai/types";
 
 export interface CreditPackagePrice {
   amount: number;            // 价格（美分）

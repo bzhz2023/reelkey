@@ -1,5 +1,7 @@
 // AI Video Provider Types
 
+export type ProviderType = "evolink" | "kie";
+
 // Unified video generation parameters
 export interface VideoGenerationParams {
   model?: string;
@@ -19,7 +21,7 @@ export interface VideoGenerationParams {
 // Unified task response
 export interface VideoTaskResponse {
   taskId: string;
-  provider: "evolink" | "kie";
+  provider: ProviderType;
   status: "pending" | "processing" | "completed" | "failed";
   progress?: number;
   estimatedTime?: number;
