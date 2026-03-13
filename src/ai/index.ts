@@ -1,8 +1,9 @@
 import type { AIVideoProvider } from "./types";
 import { EvolinkProvider } from "./providers/evolink";
 import { KieProvider } from "./providers/kie";
+import { ApimartProvider } from "./providers/apimart";
 
-export type ProviderType = "evolink" | "kie";
+export type ProviderType = "evolink" | "kie" | "apimart";
 
 const providers: Map<ProviderType, AIVideoProvider> = new Map();
 
@@ -16,6 +17,9 @@ export function getProvider(type: ProviderType): AIVideoProvider {
       break;
     case "kie":
       provider = new KieProvider(process.env.KIE_API_KEY!);
+      break;
+    case "apimart":
+      provider = new ApimartProvider(process.env.APIMART_API_KEY!);
       break;
     default:
       throw new Error(`Unknown provider: ${type}`);

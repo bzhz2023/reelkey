@@ -3,7 +3,7 @@
 // ============================================
 
 export type ProductType = "subscription" | "one-time";
-export type ProviderType = "evolink" | "kie";
+export type ProviderType = "evolink" | "kie" | "apimart";
 
 export interface CreditPackagePrice {
   amount: number;            // 价格（美分）
@@ -191,6 +191,28 @@ export const CREDITS_CONFIG = {
             aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
             qualities: ["480P", "720P", "1080P"],
           },
+          "seedance-1.0-pro-fast": {
+            id: "seedance-1.0-pro-fast",
+            name: "Seedance 1.0 Pro Fast",
+            provider: "apimart" as const,
+            description: "models.seedance10fast.description",
+            supportImageToVideo: true,
+            maxDuration: 12,
+            durations: [2, 4, 5, 6, 8, 10, 12],
+            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+            qualities: ["480P", "720P", "1080P"],
+          },
+          "seedance-1.0-pro-quality": {
+            id: "seedance-1.0-pro-quality",
+            name: "Seedance 1.0 Pro Quality",
+            provider: "apimart" as const,
+            description: "models.seedance10quality.description",
+            supportImageToVideo: true,
+            maxDuration: 12,
+            durations: [2, 4, 5, 6, 8, 10, 12],
+            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+            qualities: ["480P", "720P", "1080P"],
+          },
         };
 
         const baseConfig = baseConfigs[modelId];
@@ -332,6 +354,26 @@ export function calculateModelCredits(
         perSecond = 8; // 1080p 有音频
       }
       credits = params.duration * perSecond;
+      break;
+    }
+
+    case "seedance-1.0-pro-fast": {
+      // Seedance 1.0 Fast: 按秒计费
+      let perSecondFast = 3;
+      if (isHighQuality) {
+        perSecondFast = 6;
+      }
+      credits = params.duration * perSecondFast;
+      break;
+    }
+
+    case "seedance-1.0-pro-quality": {
+      // Seedance 1.0 Quality: 按秒计费，高质量
+      let perSecondQuality = 5;
+      if (isHighQuality) {
+        perSecondQuality = 10;
+      }
+      credits = params.duration * perSecondQuality;
       break;
     }
 
