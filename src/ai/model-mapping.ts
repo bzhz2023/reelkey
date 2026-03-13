@@ -12,7 +12,7 @@
 // Type Definitions
 // ============================================================================
 
-export type ProviderType = "evolink" | "kie" | "apimart";
+import type { ProviderType } from "./types";
 
 export interface ProviderModelConfig {
   /** Provider-specific model ID */
