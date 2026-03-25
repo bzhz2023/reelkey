@@ -1,4 +1,3 @@
-import { getDictionary } from "@/lib/get-dictionary";
 import type { Locale } from "@/config/i18n-config";
 
 export const metadata = {
@@ -12,7 +11,6 @@ export default async function TermsPage({
     params: Promise<{ locale: Locale }>;
 }) {
     const { locale } = await params;
-    const dict = await getDictionary(locale);
 
     return (
         <div className="container mx-auto max-w-4xl py-12 md:py-24">

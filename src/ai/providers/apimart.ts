@@ -37,7 +37,7 @@ export class ApimartProvider implements AIVideoProvider {
   }
 
   async createTask(params: VideoGenerationParams): Promise<VideoTaskResponse> {
-    const internalModelId = params.model || "doubao-seedance-1-5-pro";
+    const internalModelId = params.model || "seedance-1.5-pro";
     const providerModelId = getProviderModelId(
       internalModelId,
       "apimart",
@@ -76,7 +76,7 @@ export class ApimartProvider implements AIVideoProvider {
 
     // APImart response: { code: 200, data: [{ status: "submitted", task_id: "task_xxx" }] }
     const taskData = Array.isArray(data.data) ? data.data[0] : data.data;
-    const taskId = taskData?.task_id || data.id;
+    const taskId = taskData?.task_id || taskData?.id || data.task_id || data.id;
 
     return {
       taskId,
@@ -126,8 +126,8 @@ export class ApimartProvider implements AIVideoProvider {
     // APImart status response:
     // { code: 200, data: { id, status, progress, estimated_time, result: { videos: [{ url: [...] }] } } }
     const data = raw.data || raw;
-    const videoUrl = data.result?.videos?.[0]?.url?.[0]
-      || data.result?.videos?.[0]?.url;
+    const rawUrl = data.result?.videos?.[0]?.url;
+    const videoUrl = Array.isArray(rawUrl) ? rawUrl[0] : rawUrl;
     const thumbnailUrl = data.result?.thumbnail_url;
 
     return {
@@ -147,8 +147,8 @@ export class ApimartProvider implements AIVideoProvider {
   parseCallback(payload: any): VideoTaskResponse {
     // APImart callback: may have { code, data: { ... } } or flat format
     const data = payload.data || payload;
-    const videoUrl = data.result?.videos?.[0]?.url?.[0]
-      || data.result?.videos?.[0]?.url;
+    const rawUrl = data.result?.videos?.[0]?.url;
+    const videoUrl = Array.isArray(rawUrl) ? rawUrl[0] : rawUrl;
     const thumbnailUrl = data.result?.thumbnail_url;
 
     return {

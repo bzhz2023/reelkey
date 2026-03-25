@@ -1,8 +1,9 @@
-import { getToolPageConfig } from "@/config/tool-pages";
+import { getToolPageConfig, getToolPageConfigForProvider } from "@/config/tool-pages";
 import { ToolPageLayout } from "@/components/tool/tool-page-layout";
 import type { Locale } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
 import { siteConfig } from "@/config/site";
+import { getConfiguredAIProvider } from "@/ai";
 
 interface TextToVideoPageProps {
   params: Promise<{
@@ -44,7 +45,10 @@ export async function generateMetadata({
 }
 
 export default async function TextToVideoPage({ params }: TextToVideoPageProps) {
-  const config = getToolPageConfig("text-to-video");
+  const config = getToolPageConfigForProvider(
+    "text-to-video",
+    getConfiguredAIProvider()
+  );
   const { locale } = await params;
   return (
     <ToolPageLayout

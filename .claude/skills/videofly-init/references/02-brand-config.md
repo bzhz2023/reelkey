@@ -62,7 +62,6 @@ Process files in this order. Read each file before editing.
 
 ### P7 — Navigation & Misc
 - `src/config/navigation.ts` — remove docs link entry
-- `src/config/dictionaries/en.json` — legacy Saasfly references
 - `next.config.mjs` — remove unused image remote patterns
 
 ### P8 — LocalStorage Keys

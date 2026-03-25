@@ -8,18 +8,16 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLocale } from "next-intl";
 
 export const ModalProvider = ({
-  dict,
-  locale,
   children,
 }: {
-  dict: Record<string, unknown>;
-  locale: string;
   children: React.ReactNode;
 }) => {
   const mounted = useMounted();
   const signInModal = useSigninModal();
+  const locale = useLocale();
 
   return (
     <>
@@ -37,7 +35,7 @@ export const ModalProvider = ({
             <DialogTitle className="sr-only">
               Sign In
             </DialogTitle>
-            <SignInModalContent lang={locale} dict={dict as Record<string, string>} />
+            <SignInModalContent lang={locale} />
           </DialogContent>
         </Dialog>
       )}

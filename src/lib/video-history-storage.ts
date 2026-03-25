@@ -142,8 +142,8 @@ class VideoHistoryStorage {
       duration: v.duration || undefined,
       aspectRatio: v.aspectRatio || undefined,
       creditsUsed: v.creditsUsed,
-      createdAt: v.createdAt.toISOString(),
-      updatedAt: v.updatedAt.toISOString(),
+      createdAt: v.createdAt instanceof Date ? v.createdAt.toISOString() : String(v.createdAt),
+      updatedAt: v.updatedAt instanceof Date ? v.updatedAt.toISOString() : String(v.updatedAt),
     }));
 
     // 合并本地和服务器数据

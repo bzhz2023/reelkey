@@ -4,6 +4,11 @@
 
 export type ProductType = "subscription" | "one-time";
 import type { ProviderType } from "@/ai/types";
+import {
+  isModelModeSupported,
+  isModelSupported,
+  type GenerationMode,
+} from "@/ai/model-mapping";
 
 export interface CreditPackagePrice {
   amount: number;            // 价格（美分）
@@ -183,7 +188,7 @@ export const CREDITS_CONFIG = {
           "seedance-1.5-pro": {
             id: "seedance-1.5-pro",
             name: "Seedance 1.5 Pro",
-            provider: "evolink" as const,
+            provider: "apimart" as const,
             description: "models.seedance.description",
             supportImageToVideo: true,
             maxDuration: 12,
@@ -283,12 +288,25 @@ export function getProductExpiryDays(product: CreditPackageConfig): number {
 }
 
 /** 获取所有模型（按显示顺序排序） */
-export function getAvailableModels(): ModelConfig[] {
+export function getAvailableModels(options?: {
+  provider?: ProviderType;
+  mode?: GenerationMode;
+  enabledOnly?: boolean;
+}): ModelConfig[] {
+  const { provider, mode, enabledOnly = true } = options || {};
   // Define display order (newest/most important first)
   // Models not in this list are sorted to the end
   const displayOrder = Object.keys(VIDEO_MODEL_PRICING);
   const orderMap = new Map(displayOrder.map((id, index) => [id, index]));
-  return Object.values(CREDITS_CONFIG.models).sort((a, b) => {
+  return Object.values(CREDITS_CONFIG.models)
+    .filter((model) => !enabledOnly || model.enabled !== false)
+    .filter((model) => {
+      const effectiveProvider = provider || model.provider;
+      if (!isModelSupported(model.id, effectiveProvider)) return false;
+      if (!mode) return true;
+      return isModelModeSupported(model.id, effectiveProvider, mode);
+    })
+    .sort((a, b) => {
     const aOrder = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
     const bOrder = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
     return aOrder - bOrder;

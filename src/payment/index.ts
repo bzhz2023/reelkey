@@ -8,8 +8,25 @@ export * from "./webhooks";
 
 export type { Stripe };
 
-export const stripe = new Stripe(env.STRIPE_API_KEY, {
-  typescript: true,
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!env.STRIPE_API_KEY) {
+      throw new Error("STRIPE_API_KEY is not configured");
+    }
+    _stripe = new Stripe(env.STRIPE_API_KEY, {
+      typescript: true,
+    });
+  }
+  return _stripe;
+}
+
+/** @deprecated Use getStripe() instead */
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    return (getStripe() as Record<string | symbol, unknown>)[prop];
+  },
 });
 
 /**

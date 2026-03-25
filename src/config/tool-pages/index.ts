@@ -9,6 +9,8 @@ import { imageToVideoConfig } from "./image-to-video.config";
 import { textToVideoConfig } from "./text-to-video.config";
 import { referenceToVideoConfig } from "./reference-to-video.config";
 import { adaptToolPageConfigToGeneratorConfig } from "./adapter";
+import { getAvailableModels } from "@/config/credits";
+import type { ProviderType } from "@/ai";
 
 // Export types
 export type { ToolPageConfig, ToolLandingConfig, GeneratorConfig, PageSEOConfig } from "./types";
@@ -51,6 +53,37 @@ export function getToolPageConfig(route: ToolPageRoute): ToolPageConfig {
     throw new Error(`Unknown tool route: ${route}`);
   }
   return config;
+}
+
+export function getToolPageConfigForProvider(
+  route: ToolPageRoute,
+  provider?: ProviderType
+): ToolPageConfig {
+  const config = getToolPageConfig(route);
+  const providerModels = new Set(
+    getAvailableModels({
+      provider,
+      mode: route,
+    }).map((model) => model.id)
+  );
+  const available = config.generator.models.available.filter((modelId) =>
+    providerModels.has(modelId)
+  );
+  const defaultModel = available.includes(config.generator.models.default || "")
+    ? config.generator.models.default
+    : available[0];
+
+  return {
+    ...config,
+    generator: {
+      ...config.generator,
+      models: {
+        ...config.generator.models,
+        available,
+        default: defaultModel,
+      },
+    },
+  };
 }
 
 /**

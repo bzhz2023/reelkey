@@ -8,14 +8,14 @@ export const textToVideoConfig: ToolPageConfig = {
   // SEO 配置
   seo: {
     title: "Text to Video - Create Videos from Text with AI",
-    description: "Transform your text descriptions into stunning videos using AI. Simply describe what you want, and watch Sora 2, Veo 3.1, and other AI models bring your vision to life.",
+    description: "Transform your text descriptions into stunning videos using AI. Simply describe what you want, and watch Seedance AI models bring your vision to life.",
     keywords: [
       "text to video",
       "ai video generator",
       "video from text",
       "ai video creation",
-      "sora 2",
-      "veo 3.1",
+      "seedance",
+      "seedance 1.5",
       "text to video ai",
     ],
     ogImage: "/og-text-to-video.jpg",
@@ -27,15 +27,15 @@ export const textToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "sora-2",
-      duration: 10,
+      model: "seedance-1.5-pro",
+      duration: 5,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["sora-2", "veo-3.1", "wan2.6", "seedance-1.5-pro"],
-      default: "sora-2",
+      available: ["seedance-1.5-pro", "seedance-1.0-pro-fast", "seedance-1.0-pro-quality"],
+      default: "seedance-1.5-pro",
     },
 
     features: {
@@ -53,7 +53,7 @@ export const textToVideoConfig: ToolPageConfig = {
       showOutputNumber: false,
       showAudioGeneration: true,
 
-      durations: [5, 10, 15],
+      durations: [2, 4, 5, 6, 8, 10, 12],
       aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     },
   },
@@ -87,18 +87,16 @@ export const textToVideoConfig: ToolPageConfig = {
 
     features: [
       "Simply describe what you want to see",
-      "Access to cutting-edge AI models (Sora 2, Veo 3.1, etc.)",
+      "Access to Seedance AI models (1.5 Pro, 1.0 Fast, 1.0 Quality)",
       "Cinematic quality up to 1080p",
       "Generate audio and sound effects automatically",
       "Multiple aspect ratios for any platform",
     ],
 
     supportedModels: [
-      { name: "Sora 2", provider: "OpenAI", color: "#000000" },
-      { name: "Veo 3.1", provider: "Google", color: "#4285f4" },
-      { name: "Wan 2.6", provider: "Alibaba", color: "#8b5cf6" },
-      { name: "Seedance 1.5", provider: "ByteDance", color: "#ec4899" },
-      { name: "Kling 2", provider: "Kuaishou", color: "#f59e0b" },
+      { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
+      { name: "Seedance 1.0 Fast", provider: "ByteDance", color: "#34d399" },
+      { name: "Seedance 1.0 Quality", provider: "ByteDance", color: "#059669" },
     ],
 
     stats: {

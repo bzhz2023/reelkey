@@ -14,6 +14,12 @@
 
 import type { ProviderType } from "./types";
 
+export type GenerationMode =
+  | "text-to-video"
+  | "image-to-video"
+  | "reference-to-video"
+  | "frames-to-video";
+
 export interface ProviderModelConfig {
   /** Provider-specific model ID */
   providerModelId: string | ((params: Record<string, any>) => string);
@@ -142,21 +148,21 @@ function evolinkParamsTransformer(
   };
 
   // Remove internal field names
-  delete result.aspectRatio;
-  delete result.removeWatermark;
-  delete result.callbackUrl;
-  delete result.imageUrl;
-  delete result.imageUrls;
-  delete result.mode;
-  delete result.outputNumber;
-  delete result.generateAudio;
+  result.aspectRatio = undefined;
+  result.removeWatermark = undefined;
+  result.callbackUrl = undefined;
+  result.imageUrl = undefined;
+  result.imageUrls = undefined;
+  result.mode = undefined;
+  result.outputNumber = undefined;
+  result.generateAudio = undefined;
 
   // Model-specific adjustments
   if (internalModelId === "wan2.6") {
     // Wan 2.6 uses quality instead of remove_watermark
     if (params.quality) {
       result.quality = quality;
-      delete result.remove_watermark;
+      result.remove_watermark = undefined;
     }
   }
 
@@ -218,7 +224,7 @@ function kieParamsTransformer(
     // KIE's Sora 2 uses n_frames instead of duration
     if (params.duration) {
       baseInput.n_frames = String(params.duration);
-      delete baseInput.duration;
+      baseInput.duration = undefined;
     }
     const size = normalizeQuality(params.quality, "kie", internalModelId);
     if (size) {
@@ -237,7 +243,7 @@ function kieParamsTransformer(
   if (internalModelId === "veo-3.1") {
     baseInput.aspect_ratio = params.aspectRatio || "16:9";
     // Veo 3.1 doesn't use duration
-    delete baseInput.duration;
+    baseInput.duration = undefined;
   }
 
   // Seedance 1.5 Pro specific parameters
@@ -475,6 +481,40 @@ export const MODEL_MAPPINGS: Record<string, ModelMapping> = {
   },
 };
 
+const MODEL_MODE_SUPPORT: Record<
+  string,
+  Partial<Record<ProviderType, GenerationMode[]>>
+> = {
+  "sora-2": {
+    evolink: ["text-to-video", "image-to-video"],
+    kie: ["text-to-video", "image-to-video"],
+  },
+  "wan2.6": {
+    evolink: ["text-to-video", "image-to-video", "reference-to-video"],
+    kie: ["text-to-video", "image-to-video", "reference-to-video"],
+  },
+  "veo-3.1": {
+    evolink: ["text-to-video", "image-to-video"],
+    kie: [
+      "text-to-video",
+      "image-to-video",
+      "reference-to-video",
+      "frames-to-video",
+    ],
+  },
+  "seedance-1.5-pro": {
+    evolink: ["text-to-video", "image-to-video"],
+    kie: ["text-to-video", "image-to-video"],
+    apimart: ["text-to-video", "image-to-video"],
+  },
+  "seedance-1.0-pro-fast": {
+    apimart: ["text-to-video", "image-to-video"],
+  },
+  "seedance-1.0-pro-quality": {
+    apimart: ["text-to-video", "image-to-video"],
+  },
+};
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -532,6 +572,45 @@ export function isModelSupported(
 
   const providerConfig = mapping.providers[provider];
   return providerConfig?.supported || false;
+}
+
+export function normalizeGenerationMode(
+  mode?: string,
+  hasImageInput = false
+): GenerationMode {
+  switch (mode) {
+    case "image-to-video":
+    case "reference-to-video":
+    case "frames-to-video":
+      return mode;
+    case "text-image-to-video":
+    case "t2v":
+    case "text-to-video":
+      return hasImageInput ? "image-to-video" : "text-to-video";
+    case "i2v":
+      return "image-to-video";
+    case "r2v":
+      return "reference-to-video";
+    default:
+      return hasImageInput ? "image-to-video" : "text-to-video";
+  }
+}
+
+export function isModelModeSupported(
+  internalModelId: string,
+  provider: ProviderType,
+  mode: GenerationMode
+): boolean {
+  if (!isModelSupported(internalModelId, provider)) {
+    return false;
+  }
+
+  const supportedModes = MODEL_MODE_SUPPORT[internalModelId]?.[provider];
+  if (!supportedModes) {
+    return false;
+  }
+
+  return supportedModes.includes(mode);
 }
 
 /**

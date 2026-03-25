@@ -8,15 +8,15 @@ export const imageToVideoConfig: ToolPageConfig = {
   // SEO 配置
   seo: {
     title: "Image to Video - Transform Photos into AI Videos",
-    description: "Convert your images into stunning videos using AI. Upload any photo and watch it come to life with smooth, realistic motion powered by Sora 2, Veo 3.1, and more.",
+    description: "Convert your images into stunning videos using AI. Upload any photo and watch it come to life with smooth, realistic motion powered by Seedance AI models.",
     keywords: [
       "image to video",
       "photo animation",
       "ai video generator",
       "picture to video",
       "image animation",
-      "sora 2",
-      "veo 3.1",
+      "seedance",
+      "seedance 1.5",
     ],
     ogImage: "/og-image-to-video.jpg",
   },
@@ -27,15 +27,15 @@ export const imageToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "wan2.6",
-      duration: 10,
+      model: "seedance-1.5-pro",
+      duration: 5,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["wan2.6", "seedance-1.5-pro", "sora-2", "veo-3.1"],
-      default: "wan2.6",
+      available: ["seedance-1.5-pro", "seedance-1.0-pro-fast", "seedance-1.0-pro-quality"],
+      default: "seedance-1.5-pro",
     },
 
     features: {
@@ -53,7 +53,7 @@ export const imageToVideoConfig: ToolPageConfig = {
       showOutputNumber: false,
       showAudioGeneration: false,
 
-      durations: [5, 10, 15],
+      durations: [2, 4, 5, 6, 8, 10, 12],
       aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     },
   },
@@ -94,11 +94,9 @@ export const imageToVideoConfig: ToolPageConfig = {
     ],
 
     supportedModels: [
-      { name: "Wan 2.6", provider: "Alibaba", color: "#8b5cf6" },
-      { name: "Seedance 1.5", provider: "ByteDance", color: "#ec4899" },
-      { name: "Sora 2", provider: "OpenAI", color: "#000000" },
-      { name: "Veo 3.1", provider: "Google", color: "#4285f4" },
-      { name: "Kling 2", provider: "Kuaishou", color: "#f59e0b" },
+      { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
+      { name: "Seedance 1.0 Fast", provider: "ByteDance", color: "#34d399" },
+      { name: "Seedance 1.0 Quality", provider: "ByteDance", color: "#059669" },
     ],
 
     stats: {

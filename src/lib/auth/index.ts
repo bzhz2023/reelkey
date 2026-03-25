@@ -12,7 +12,9 @@ export { auth, type Session, type User } from "./auth";
  * @see https://www.better-auth.com/docs/integrations/next
  */
 export async function getCurrentUser(): Promise<User | null> {
-  // Dynamic import to avoid issues with pages directory
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    return null;
+  }
   const { headers } = await import("next/headers");
   const { auth } = await import("./auth");
   const session = await auth.api.getSession({
@@ -26,6 +28,9 @@ export async function getCurrentUser(): Promise<User | null> {
  * Must be called from App Router (uses next/headers)
  */
 export async function getServerSession() {
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    return null;
+  }
   const { headers } = await import("next/headers");
   const { auth } = await import("./auth");
   const session = await auth.api.getSession({

@@ -2,6 +2,10 @@ import type { AIVideoProvider, ProviderType } from "./types";
 import { EvolinkProvider } from "./providers/evolink";
 import { KieProvider } from "./providers/kie";
 import { ApimartProvider } from "./providers/apimart";
+import {
+  getConfiguredAIProvider,
+  requireProviderApiKey,
+} from "./provider-config";
 
 const providers: Map<ProviderType, AIVideoProvider> = new Map();
 
@@ -11,13 +15,13 @@ export function getProvider(type: ProviderType): AIVideoProvider {
   let provider: AIVideoProvider;
   switch (type) {
     case "evolink":
-      provider = new EvolinkProvider(process.env.EVOLINK_API_KEY!);
+      provider = new EvolinkProvider(requireProviderApiKey("evolink"));
       break;
     case "kie":
-      provider = new KieProvider(process.env.KIE_API_KEY!);
+      provider = new KieProvider(requireProviderApiKey("kie"));
       break;
     case "apimart":
-      provider = new ApimartProvider(process.env.APIMART_API_KEY!);
+      provider = new ApimartProvider(requireProviderApiKey("apimart"));
       break;
     default:
       throw new Error(`Unknown provider: ${type}`);
@@ -28,8 +32,9 @@ export function getProvider(type: ProviderType): AIVideoProvider {
 }
 
 export function getDefaultProvider(): AIVideoProvider {
-  const type = (process.env.DEFAULT_AI_PROVIDER as ProviderType) || "evolink";
+  const type = getConfiguredAIProvider() || "evolink";
   return getProvider(type);
 }
 
 export * from "./types";
+export * from "./provider-config";

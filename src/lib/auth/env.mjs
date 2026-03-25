@@ -11,9 +11,9 @@ export const env = createEnv({
     // Google OAuth
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
-    // Stripe
-    STRIPE_API_KEY: z.string().min(1),
-    STRIPE_WEBHOOK_SECRET: z.string().min(1),
+    // Stripe (optional - only required if using Stripe as billing provider)
+    STRIPE_API_KEY: z.string().min(1).optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
     // Creem
     CREEM_API_KEY: z.string().min(1).optional(),
     CREEM_WEBHOOK_SECRET: z.string().optional(),

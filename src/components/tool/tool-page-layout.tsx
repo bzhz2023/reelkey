@@ -312,7 +312,7 @@ export function ToolPageLayout({
     if (!videoIdFromQuery) return;
 
     // 立即添加到历史记录（即使是正在生成中）
-    const existingItem = historyItems.find(item => item.uuid === videoIdFromQuery);
+    const existingItem = videoHistoryStorage.getHistory(user.id).find(item => item.uuid === videoIdFromQuery);
     const existingStatus = existingItem?.status?.toLowerCase();
     const isTerminalStatus = existingStatus === "completed" || existingStatus === "failed";
     if (!existingItem) {
@@ -341,17 +341,8 @@ export function ToolPageLayout({
       removeGeneratingId(videoIdFromQuery);
       stopPolling(videoIdFromQuery);
     }
-  }, [
-    videoIdFromQuery,
-    user?.id,
-    isPolling,
-    startPolling,
-    stopPolling,
-    addGeneratingId,
-    removeGeneratingId,
-    prefillData,
-    historyItems,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoIdFromQuery, user?.id]);
 
   // SSE: listen for backend completion events
   useEffect(() => {
@@ -429,7 +420,7 @@ export function ToolPageLayout({
           localStorage.setItem(NOTIFICATION_ASKED_KEY, "1");
           toast.info(tNotify("generationWillNotify"), {
             description: tNotify("notificationDescription"),
-            duration: Infinity, // 保持显示直到用户操作
+            duration: Number.POSITIVE_INFINITY, // 保持显示直到用户操作
             closeButton: true,  // 显示关闭按钮
             action: {
               label: tNotify("enableNotifications"),
@@ -462,8 +453,8 @@ export function ToolPageLayout({
           duration: data.duration,
           aspectRatio: data.aspectRatio,
           quality: data.quality,
-          outputNumber: 1,
-          generateAudio: false,
+          outputNumber: data.outputNumber ?? 1,
+          generateAudio: data.generateAudio,
           imageUrls,
           imageUrl,
         }),
@@ -471,7 +462,7 @@ export function ToolPageLayout({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to generate video");
+        throw new Error(error?.error?.message || error?.message || "Failed to generate video");
       }
 
       const result = await response.json();

@@ -11,7 +11,7 @@ const handler = async (req: NextRequest) => {
     const event = stripe.webhooks.constructEvent(
       payload,
       signature,
-      env.STRIPE_WEBHOOK_SECRET,
+      env.STRIPE_WEBHOOK_SECRET!,
     ) as Stripe.DiscriminatedEvent;
     await handleEvent(event);
 

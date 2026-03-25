@@ -1,5 +1,3 @@
-import { getRequestConfig } from "next-intl/server";
-
 /**
  * Load translation messages for a given locale
  */
@@ -8,9 +6,9 @@ async function getMessagesForLocale(locale: string) {
     const messages = (await import(`@/messages/${locale}.json`)).default;
     return messages;
   } catch (error) {
-    // Fallback to default locale if translation not found
-    console.warn(`Translation for locale "${locale}" not found, falling back to default`);
-    const defaultMessages = (await import(`@/messages/${locale}.json`)).default;
+    // Fallback to default locale (en) if translation not found
+    console.warn(`Translation for locale "${locale}" not found, falling back to "en"`);
+    const defaultMessages = (await import(`@/messages/en.json`)).default;
     return defaultMessages;
   }
 }

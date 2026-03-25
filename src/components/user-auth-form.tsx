@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useTranslations } from "next-intl";
 
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/components/ui";
@@ -14,11 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-type Dictionary = Record<string, string>;
-
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   lang: string;
-  dict: Dictionary;
   disabled?: boolean;
 }
 
@@ -31,10 +29,10 @@ type FormData = z.infer<typeof userAuthSchema>;
 export function UserAuthForm({
   className,
   lang,
-  dict,
   disabled,
   ...props
 }: UserAuthFormProps) {
+  const t = useTranslations("Login");
   const {
     register,
     handleSubmit,
@@ -100,7 +98,7 @@ export function UserAuthForm({
             {isLoading && (
               <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {dict.signin_email}
+            {t("signin_email")}
           </button>
         </div>
       </form>
@@ -110,7 +108,7 @@ export function UserAuthForm({
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            {dict.signin_others}
+            {t("signin_others")}
           </span>
         </div>
       </div>
@@ -141,4 +139,3 @@ export function UserAuthForm({
     </div>
   );
 }
-

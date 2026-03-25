@@ -256,33 +256,11 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
  * - qualityMultiplier: 画质乘数（1080p vs 720p）
  */
 export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
-  /** Veo 3.1 Fast Lite - Google (基准价格) */
-  "veo-3.1": {
-    baseCredits: 10, // 固定 10积分/视频
-    perSecond: 0,
-    enabled: true,
-  },
-
-  /** Sora 2 Lite - OpenAI */
-  "sora-2": {
-    baseCredits: 2, // 10秒 = 2积分 (1.6 Credits 向上取整)
-    perSecond: 0, // 固定价格
-    enabled: true,
-  },
-
-  /** Wan 2.6 */
-  "wan2.6": {
-    baseCredits: 25, // 5秒 720p = 25积分
-    perSecond: 5, // 每秒 = 5积分 (10秒 = 25 + 5×5 = 50积分)
-    qualityMultiplier: 1.67, // 1080p = 720p × 1.67 (41.75 / 25 ≈ 1.67)
-    enabled: true,
-  },
-
   /** Seedance 1.5 Pro - 按秒计费（默认有音频） */
   "seedance-1.5-pro": {
-    baseCredits: 0, // 不使用 baseCredits
+    baseCredits: 0,
     perSecond: 4, // 720p 有音频: 3.557 Credits/秒 → 4 积分/秒
-    qualityMultiplier: 2, // 1080p = 720p × 2 (7.932 / 3.557 ≈ 2.23, 向上取整为 2)
+    qualityMultiplier: 2, // 1080p = 720p × 2
     enabled: true,
   },
 
@@ -291,7 +269,7 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     baseCredits: 0,
     perSecond: 3, // 按秒计费
     qualityMultiplier: 2,
-    enabled: false, // 使用 APImart 时改为 true
+    enabled: true,
   },
 
   /** Seedance 1.0 Pro Quality - 高质量生成（APImart） */
@@ -299,7 +277,29 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     baseCredits: 0,
     perSecond: 5, // 高质量，每秒积分更高
     qualityMultiplier: 2,
-    enabled: false, // 使用 APImart 时改为 true
+    enabled: true,
+  },
+
+  /** Veo 3.1 Fast Lite - Google (暂时隐藏) */
+  "veo-3.1": {
+    baseCredits: 10,
+    perSecond: 0,
+    enabled: false,
+  },
+
+  /** Sora 2 Lite - OpenAI (暂时隐藏) */
+  "sora-2": {
+    baseCredits: 2,
+    perSecond: 0,
+    enabled: false,
+  },
+
+  /** Wan 2.6 (暂时隐藏) */
+  "wan2.6": {
+    baseCredits: 25,
+    perSecond: 5,
+    qualityMultiplier: 1.67,
+    enabled: false,
   },
 };
 

@@ -4,10 +4,16 @@ import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
 import { getProvider, type ProviderType, type VideoTaskResponse } from "../ai";
+import {
+  isModelModeSupported,
+  isModelSupported,
+  normalizeGenerationMode,
+} from "../ai/model-mapping";
 import { creditService } from "./credit";
 import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
 import { emitVideoEvent } from "@/lib/video-events";
 import { ApiError } from "@/lib/api/error";
+import { getConfiguredAIProvider } from "@/ai/provider-config";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -87,6 +93,24 @@ export class VideoService {
 
     const hasImageInput =
       (params.imageUrls && params.imageUrls.length > 0) || Boolean(params.imageUrl);
+    const resolvedMode = normalizeGenerationMode(params.mode, hasImageInput);
+
+    if (
+      (resolvedMode === "image-to-video" ||
+        resolvedMode === "reference-to-video" ||
+        resolvedMode === "frames-to-video") &&
+      !hasImageInput
+    ) {
+      throw new ApiError(
+        `Mode ${resolvedMode} requires uploaded input media`,
+        400,
+        {
+          code: "MISSING_INPUT_MEDIA",
+          mode: resolvedMode,
+          model: params.model,
+        }
+      );
+    }
 
     if (hasImageInput && !modelConfig.supportImageToVideo) {
       throw new ApiError(
@@ -95,6 +119,33 @@ export class VideoService {
         {
           code: "IMAGE_TO_VIDEO_NOT_SUPPORTED",
           model: params.model,
+        }
+      );
+    }
+
+    const configuredProvider = getConfiguredAIProvider();
+    if (configuredProvider && !isModelSupported(params.model, configuredProvider)) {
+      throw new ApiError(
+        `Model ${params.model} is not available for provider ${configuredProvider}`,
+        400,
+        {
+          code: "MODEL_NOT_AVAILABLE_FOR_PROVIDER",
+          model: params.model,
+          provider: configuredProvider,
+        }
+      );
+    }
+
+    const actualProvider = configuredProvider || modelConfig.provider;
+    if (!isModelModeSupported(params.model, actualProvider, resolvedMode)) {
+      throw new ApiError(
+        `Mode ${resolvedMode} is not supported for model ${params.model} on provider ${actualProvider}`,
+        400,
+        {
+          code: "MODE_NOT_SUPPORTED",
+          model: params.model,
+          mode: resolvedMode,
+          provider: actualProvider,
         }
       );
     }
@@ -113,7 +164,7 @@ export class VideoService {
           aspectRatio: params.aspectRatio,
           quality: params.quality,
           outputNumber,
-          mode: params.mode,
+          mode: resolvedMode,
           imageUrl: params.imageUrl,
           imageUrls: params.imageUrls,
           generateAudio: params.generateAudio,
@@ -123,7 +174,7 @@ export class VideoService {
         creditsUsed: creditsRequired,
         duration: effectiveDuration,
         aspectRatio: params.aspectRatio || null,
-        provider: modelConfig.provider,
+        provider: actualProvider,
         updatedAt: new Date(),
       })
       .returning({ uuid: videos.uuid, id: videos.id });
@@ -174,14 +225,11 @@ export class VideoService {
       });
     }
 
-    // ✅ 支持通过环境变量选择 provider
-    // 优先级: 环境变量 > 模型配置
-    const defaultProvider = (process.env.DEFAULT_AI_PROVIDER as ProviderType) || modelConfig.provider;
-    const provider = getProvider(defaultProvider);
+    const provider = getProvider(actualProvider);
 
     const callbackUrl = this.callbackBaseUrl
       ? generateSignedCallbackUrl(
-        `${this.callbackBaseUrl}/${defaultProvider}`,  // ✅ 使用实际选择的 provider
+        `${this.callbackBaseUrl}/${actualProvider}`,
         videoResult.uuid
       )
       : undefined;
@@ -195,7 +243,7 @@ export class VideoService {
         quality: params.quality,
         imageUrl: params.imageUrl,
         imageUrls: params.imageUrls,
-        mode: params.mode,
+        mode: resolvedMode,
         outputNumber,
         generateAudio: params.generateAudio,
         callbackUrl,
@@ -206,6 +254,7 @@ export class VideoService {
         .set({
           status: VideoStatus.GENERATING,
           externalTaskId: result.taskId,
+          provider: actualProvider,
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
@@ -213,7 +262,7 @@ export class VideoService {
       return {
         videoUuid: videoResult.uuid,
         taskId: result.taskId,
-        provider: defaultProvider,  // ✅ 返回实际使用的 provider
+        provider: actualProvider,
         status: "GENERATING",
         estimatedTime: result.estimatedTime,
         creditsUsed: creditsRequired,

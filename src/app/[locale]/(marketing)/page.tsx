@@ -10,6 +10,7 @@ import type { Locale } from "@/config/i18n-config";
 import { siteConfig } from "@/config/site";
 import { i18n } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
+import { getConfiguredAIProvider } from "@/ai";
 
 interface HomePageProps {
   params: Promise<{
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: PageMetadataProps) {
 export default async function HomePage({ params }: HomePageProps) {
   return (
     <>
-      <HeroSection />
+      <HeroSection currentProvider={getConfiguredAIProvider()} />
       {/* <ShowcaseSection /> */}
       <FeaturesSection />
       <HowItWorks />

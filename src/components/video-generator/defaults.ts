@@ -42,102 +42,7 @@ import type {
 
 export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
-  // Sora Series - OpenAI
-  // ============================================================================
-  {
-    id: "sora-2",
-    name: "Sora 2",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/test/cm3pol28q0000ojuuyeo77e36/image/1759998830447-10c6484e-786d-4d05-a2c4-f0c929b1042b.svg",
-    color: "#000000",
-    description: "OpenAI's advanced video generation model",
-    maxDuration: "15 sec",
-    creditCost: 2, // 10s 无水印 = 2 积分 (1.6 Credits 向上取整)
-    // API: duration supports 10, 15 sec
-    durations: ["10s", "15s"],
-    // API: aspect_ratio supports 16:9, 9:16
-    aspectRatios: ["16:9", "9:16"],
-    // API: max 1 image, optional (Text/Image to Video)
-    maxImages: 1,
-  },
-  // ============================================================================
-  // Wan Series
-  // ============================================================================
-  {
-    id: "wan2.6",
-    name: "Wan 2.6",
-    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
-    color: "#ff6a00",
-    description: "Text/Image/Reference video to video with audio support",
-    maxDuration: "10 sec",
-    creditCost: 25, // 5s 720p = 25 积分
-    // Text/Image to Video mode: duration supports 5, 10 sec (❌ 不支持 15s)
-    // Reference Video mode: duration supports 5, 10 sec
-    durations: ["5s", "10s"],
-    // API: aspect_ratio supports 16:9, 9:16, 1:1, 4:3, 3:4
-    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
-    // API: 720p/1080p
-    resolutions: ["720P", "1080P"],
-    // Text/Image to Video: optional image input (text-only or with image)
-    // Reference Video mode: accepts video input (1-3 videos)
-    maxImages: 1,
-    // Image constraints (when image is provided)
-    imageConstraints: {
-      minWidth: 360,
-      maxWidth: 2000,
-      minHeight: 360,
-      maxHeight: 2000,
-      maxSizeMB: 10,
-      formats: ["jpg", "jpeg", "png", "webp", "bmp"],
-    },
-    // Supports audio generation
-    supportsAudio: true,
-    audioConstraints: {
-      minDuration: 3,
-      maxDuration: 30,
-      maxSizeMB: 15,
-      formats: ["mp3"],
-    },
-    // Reference Video constraints (for reference-to-video mode)
-    videoInputConstraints: {
-      minVideos: 1,
-      maxVideos: 3,
-      minDuration: 2,
-      maxDuration: 30,
-      maxSizeMB: 100,
-      formats: ["mp4", "mov"],
-    },
-    // This model accepts both images and videos depending on mode
-    hint: "Reference Video mode: 1-3 videos, 2-30s each",
-  },
-
-  // ============================================================================
-  // Veo Series - Google (generate-preview API)
-  // ============================================================================
-  {
-    id: "veo-3.1",
-    name: "Veo 3.1",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1753259785486-de7c53b0-9576-4d3e-a76a-a94fcac57bf1.svg",
-    color: "#4285f4",
-    description: "Google's video generation with reference support",
-    maxDuration: "8 sec",
-    creditCost: 10, // 固定 10 积分 (9.6 Credits 向上取整)
-    // API: duration 只支持 8 sec
-    durations: ["8s"],
-    // API: aspect_ratio supports 16:9, 9:16
-    aspectRatios: ["16:9", "9:16"],
-    // API: supports TEXT and FIRST&LAST modes, max 2 images
-    maxImages: 2,
-    // API: n=1~4
-    outputNumbers: [
-      { value: 1 },
-      { value: 2, isPro: true },
-      { value: 3, isPro: true },
-      { value: 4, isPro: true },
-    ],
-  },
-
-  // ============================================================================
-  // Seedance Series
+  // Seedance Series (Primary - APImart)
   // ============================================================================
   {
     id: "seedance-1.5-pro",
@@ -147,21 +52,97 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
     description: "Text/Image/Frames to video with audio",
     maxDuration: "12 sec",
     creditCost: 16, // 最小 4s 720p 有音频 = 16 积分 (4秒 × 4积分/秒)
-    // API: duration supports 4-12 sec (any integer)
     durations: ["4s", "5s", "6s", "7s", "8s", "9s", "10s", "11s", "12s"],
-    // API: aspect_ratio supports 16:9, 9:16, 1:1, 4:3, 3:4, 21:9
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-    // API: quality 480p, 720p (default), 1080p
     resolutions: ["480P", "720P", "1080P"],
-    // API: 0 images = T2V, 1 image = I2V, 2 images = first-last-frame
     maxImages: 2,
-    // Image constraints
     imageConstraints: {
       maxSizeMB: 10,
       formats: ["jpg", "jpeg", "png", "webp"],
     },
-    // Supports audio generation (默认开启)
     supportsAudio: true,
+  },
+  {
+    id: "seedance-1.0-pro-fast",
+    name: "Seedance 1.0 Fast",
+    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
+    color: "#34d399",
+    description: "Fast video generation, lower cost",
+    maxDuration: "12 sec",
+    creditCost: 15, // 5s 720p = 5×3 = 15
+    durations: ["2s", "4s", "5s", "6s", "8s", "10s", "12s"],
+    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    resolutions: ["480P", "720P", "1080P"],
+    maxImages: 1,
+    imageConstraints: {
+      maxSizeMB: 10,
+      formats: ["jpg", "jpeg", "png", "webp"],
+    },
+  },
+  {
+    id: "seedance-1.0-pro-quality",
+    name: "Seedance 1.0 Quality",
+    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
+    color: "#059669",
+    description: "Highest quality video generation",
+    maxDuration: "12 sec",
+    creditCost: 25, // 5s 720p = 5×5 = 25
+    durations: ["2s", "4s", "5s", "6s", "8s", "10s", "12s"],
+    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    resolutions: ["480P", "720P", "1080P"],
+    maxImages: 1,
+    imageConstraints: {
+      maxSizeMB: 10,
+      formats: ["jpg", "jpeg", "png", "webp"],
+    },
+  },
+
+  // ============================================================================
+  // Hidden Models (kept for reference, filtered out by enabled: false in pricing)
+  // ============================================================================
+  {
+    id: "sora-2",
+    name: "Sora 2",
+    icon: "https://videocdn.pollo.ai/web-cdn/pollo/test/cm3pol28q0000ojuuyeo77e36/image/1759998830447-10c6484e-786d-4d05-a2c4-f0c929b1042b.svg",
+    color: "#000000",
+    description: "OpenAI's advanced video generation model",
+    maxDuration: "15 sec",
+    creditCost: 2,
+    durations: ["10s", "15s"],
+    aspectRatios: ["16:9", "9:16"],
+    maxImages: 1,
+  },
+  {
+    id: "wan2.6",
+    name: "Wan 2.6",
+    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
+    color: "#ff6a00",
+    description: "Text/Image/Reference video to video with audio support",
+    maxDuration: "10 sec",
+    creditCost: 25,
+    durations: ["5s", "10s"],
+    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+    resolutions: ["720P", "1080P"],
+    maxImages: 1,
+    supportsAudio: true,
+  },
+  {
+    id: "veo-3.1",
+    name: "Veo 3.1",
+    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1753259785486-de7c53b0-9576-4d3e-a76a-a94fcac57bf1.svg",
+    color: "#4285f4",
+    description: "Google's video generation with reference support",
+    maxDuration: "8 sec",
+    creditCost: 10,
+    durations: ["8s"],
+    aspectRatios: ["16:9", "9:16"],
+    maxImages: 2,
+    outputNumbers: [
+      { value: 1 },
+      { value: 2, isPro: true },
+      { value: 3, isPro: true },
+      { value: 4, isPro: true },
+    ],
   },
 ];
 
@@ -185,10 +166,12 @@ export const DEFAULT_VIDEO_MODES: GeneratorMode[] = [
     // Supports T2V and I2V (upload image for I2V mode)
     // Sora, Wan, Veo, Seedance
     supportedModels: [
+      "seedance-1.5-pro",
+      "seedance-1.0-pro-fast",
+      "seedance-1.0-pro-quality",
       "sora-2",
       "wan2.6",
       "veo-3.1",
-      "seedance-1.5-pro",
     ],
   },
   {
@@ -197,8 +180,8 @@ export const DEFAULT_VIDEO_MODES: GeneratorMode[] = [
     icon: "frames",
     uploadType: "start-end",
     description: "Generate video from start and end frame images",
-    // Veo FIRST&LAST mode, Seedance first-last-frame
-    supportedModels: ["veo-3.1", "seedance-1.5-pro"],
+    // Seedance first-last-frame mode
+    supportedModels: ["seedance-1.5-pro"],
     aspectRatios: ["16:9", "9:16"],
   },
   {
@@ -207,8 +190,8 @@ export const DEFAULT_VIDEO_MODES: GeneratorMode[] = [
     icon: "reference",
     uploadType: "characters",
     description: "Generate video using character reference images or videos",
-    // Veo REFERENCE mode + Wan reference video
-    supportedModels: ["veo-3.1", "wan2.6"],
+    // Seedance reference mode
+    supportedModels: ["seedance-1.5-pro"],
     // REFERENCE mode only supports 16:9 (Veo), Wan has more options but switches dynamically
     aspectRatios: ["16:9"],
     // REFERENCE mode fixed 8s (Veo)
@@ -344,13 +327,13 @@ export const DEFAULT_CONFIG: GeneratorConfig = {
  */
 export const DEFAULT_DEFAULTS: GeneratorDefaults = {
   generationType: "video",
-  videoModel: "sora-2",
+  videoModel: "seedance-1.5-pro",
   imageModel: "flux-pro",
   videoMode: "text-image-to-video",
   imageMode: "text-to-image",
   videoAspectRatio: "16:9",
   imageAspectRatio: "1:1",
-  duration: "10s",       // sora-2 default
+  duration: "5s",        // seedance default
   resolution: "720P",    // default for models with resolution support
   videoOutputNumber: 1,
   imageOutputNumber: 1,

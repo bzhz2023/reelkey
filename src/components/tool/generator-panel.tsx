@@ -37,10 +37,10 @@ interface SectionLabelProps {
 
 function SectionLabel({ children, required, className }: SectionLabelProps) {
   return (
-    <label className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
+    <div className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
       {children}
       {required && <span className="text-destructive ml-1">*</span>}
-    </label>
+    </div>
   );
 }
 
@@ -65,6 +65,8 @@ export interface GeneratorData {
   duration: number;
   aspectRatio: string;
   quality?: string;
+  outputNumber?: number;
+  generateAudio?: boolean;
   imageFile?: File;
   imageUrl?: string;
   estimatedCredits: number;
@@ -109,6 +111,7 @@ export function GeneratorPanel({
     () => availableModels.find((m) => m.id === selectedModel) || availableModels[0],
     [selectedModel, availableModels]
   );
+  const hasAvailableModels = availableModels.length > 0;
 
   const modelMetadata = useMemo(() => {
     return new Map(DEFAULT_VIDEO_MODELS.map((model) => [model.id, model]));
@@ -211,6 +214,7 @@ export function GeneratorPanel({
   }, [selectedModel, duration, quality, currentModel]);
 
   const handleSubmit = useCallback(() => {
+    if (!currentModel) return;
     const hasPrompt = prompt.trim().length > 0;
     const requiresImage = toolType !== "text-to-video";
     const hasImage = Boolean(imageFile || imageUrl);
@@ -224,6 +228,7 @@ export function GeneratorPanel({
       duration,
       aspectRatio,
       quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
+      outputNumber: 1,
       imageFile: imageFile || undefined,
       imageUrl: imageUrl || undefined,
       estimatedCredits,
@@ -258,7 +263,9 @@ export function GeneratorPanel({
     setImageUrl(null);
   };
 
-  const canSubmit = prompt.trim().length > 0 &&
+  const canSubmit = hasAvailableModels &&
+    Boolean(currentModel) &&
+    prompt.trim().length > 0 &&
     (!((toolType !== "text-to-video") && !imageFile && !imageUrl)) &&
     !isLoading;
 
@@ -284,15 +291,27 @@ export function GeneratorPanel({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
+          {!hasAvailableModels && (
+            <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+              No models are currently available for this tool under the active AI
+              provider configuration.
+            </div>
+          )}
+
+          {hasAvailableModels && (
+            <>
           {/* Model Selection */}
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
               MODEL
             </span>
             {currentModel && (
-              <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
+                <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
                 <DropdownMenuTrigger asChild disabled={isLoading}>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white"
+                  >
                     {renderModelIcon(currentModel.id, currentModel.name, "sm")}
                     <span>{currentModel.name}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
@@ -496,6 +515,8 @@ export function GeneratorPanel({
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Bottom Section - Credits + Generate Button */}

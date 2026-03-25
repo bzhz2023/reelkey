@@ -26,15 +26,15 @@ export const referenceToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "wan2.6",
-      duration: 10,
-      aspectRatio: "same-as-original",
+      model: "seedance-1.5-pro",
+      duration: 5,
+      aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["wan2.6"],
-      default: "wan2.6",
+      available: ["seedance-1.5-pro"],
+      default: "seedance-1.5-pro",
     },
 
     features: {
@@ -92,8 +92,7 @@ export const referenceToVideoConfig: ToolPageConfig = {
     ],
 
     supportedModels: [
-      { name: "Wan 2.6", provider: "Alibaba", color: "#8b5cf6" },
-      { name: "Seedance 1.5", provider: "ByteDance", color: "#ec4899" },
+      { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
     ],
 
     stats: {

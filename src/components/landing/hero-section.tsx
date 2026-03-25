@@ -22,6 +22,11 @@ import { NEW_USER_GIFT } from "@/config/pricing-user";
 import { uploadImage } from "@/lib/video-api";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { videoTaskStorage } from "@/lib/video-task-storage";
+import type { ProviderType } from "@/ai";
+import {
+  isModelModeSupported,
+  type GenerationMode,
+} from "@/ai/model-mapping";
 
 import {
   AlertDialog,
@@ -39,6 +44,23 @@ const PENDING_IMAGE_KEY = "videofly_pending_image";
 const NOTIFICATION_ASKED_KEY = "videofly_notification_asked";
 const TOOL_PREFILL_KEY = "videofly_tool_prefill";
 
+function normalizeGeneratorMode(mode?: string): GenerationMode {
+  if (mode === "image-to-video" || mode === "i2v") {
+    return "image-to-video";
+  }
+  if (mode === "reference-to-video" || mode === "r2v") {
+    return "reference-to-video";
+  }
+  if (mode === "frames-to-video") {
+    return "frames-to-video";
+  }
+  return "text-to-video";
+}
+
+interface HeroSectionProps {
+  currentProvider?: ProviderType;
+}
+
 /**
  * Hero Section - 视频生成器优先设计
  *
@@ -47,7 +69,7 @@ const TOOL_PREFILL_KEY = "videofly_tool_prefill";
  * - Glassmorphism 风格: 背景模糊、透明层、微妙边框
  * - Magic UI 动画组件增强交互体验
  */
-export function HeroSection() {
+export function HeroSection({ currentProvider }: HeroSectionProps) {
   const t = useTranslations("Hero");
   const tNotify = useTranslations("Notifications");
   const locale = useLocale();
@@ -59,14 +81,37 @@ export function HeroSection() {
   const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(null);
 
   const generatorConfig = useMemo(() => {
-    const availableIds = new Set(getAvailableModels().map((model) => model.id));
+    const availableModels = getAvailableModels({
+      provider: currentProvider,
+    });
+    const availableIds = new Set(availableModels.map((model) => model.id));
+    const providerByModel = new Map(
+      availableModels.map((model) => [model.id, currentProvider || model.provider])
+    );
     const videoModels = DEFAULT_CONFIG.videoModels ?? [];
     const filteredVideoModels = videoModels.filter((model) => availableIds.has(model.id));
+    const filteredVideoModes = (DEFAULT_CONFIG.videoModes ?? [])
+      .map((mode) => {
+        const normalizedMode = normalizeGeneratorMode(mode.id);
+        const supportedModels = (mode.supportedModels ?? []).filter((modelId) => {
+          if (!availableIds.has(modelId)) return false;
+          const provider = providerByModel.get(modelId);
+          if (!provider) return false;
+          return isModelModeSupported(modelId, provider, normalizedMode);
+        });
+        return {
+          ...mode,
+          supportedModels,
+        };
+      })
+      .filter((mode) => mode.supportedModels.length > 0);
+
     return {
       ...DEFAULT_CONFIG,
-      videoModels: filteredVideoModels.length > 0 ? filteredVideoModels : videoModels,
+      videoModels: filteredVideoModels,
+      videoModes: filteredVideoModes,
     };
-  }, []);
+  }, [currentProvider]);
 
   const generatorDefaults = useMemo(() => {
     const preferredModel = (generatorConfig.videoModels ?? [])[0]?.id ?? DEFAULT_DEFAULTS.videoModel;
@@ -82,22 +127,6 @@ export function HeroSection() {
     const parsed = Number.parseInt(String(rawDuration), 10);
     return Number.isNaN(parsed) ? 10 : parsed;
   }, [generatorDefaults.duration, generatorConfig.durations]);
-
-  const normalizeMode = (mode?: string) => {
-    if (!mode) return "text-to-video";
-    switch (mode) {
-      case "text-image-to-video":
-        return "text-to-video";
-      case "t2v":
-        return "text-to-video";
-      case "i2v":
-        return "image-to-video";
-      case "r2v":
-        return "reference-to-video";
-      default:
-        return mode;
-    }
-  };
 
   const parseDuration = (duration?: string | number) => {
     if (typeof duration === "number") return duration;
@@ -130,27 +159,22 @@ export function HeroSection() {
   };
 
   const getToolRouteByMode = (mode: string) => {
-    const normalized = normalizeMode(mode);
-    switch (normalized) {
-      case "image-to-video":
-      case "i2v":
-        return "image-to-video";
-      case "reference-to-video":
-      case "r2v":
-        return "reference-to-video";
-      case "text-to-video":
-      case "t2v":
-      default:
-        return "text-to-video";
+    const normalized = normalizeGeneratorMode(mode);
+    if (normalized === "image-to-video") {
+      return "image-to-video";
     }
+    if (normalized === "reference-to-video") {
+      return "reference-to-video";
+    }
+    return "text-to-video";
   };
 
   const processSubmission = async (data: SubmitData) => {
     setIsSubmitting(true);
     try {
-      const normalizedMode = normalizeMode(data.mode);
-      const shouldIncludeImages = normalizedMode !== "text-to-video";
-      const resolvedImageUrls = shouldIncludeImages ? await resolveImageUrls(data) : undefined;
+      const normalizedMode = normalizeGeneratorMode(data.mode);
+      const hasImages = (data.images && data.images.length > 0) || (data.imageUrls && data.imageUrls.length > 0);
+      const resolvedImageUrls = hasImages ? await resolveImageUrls(data) : undefined;
       const response = await fetch("/api/v1/video/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,15 +187,16 @@ export function HeroSection() {
           quality: data.quality ?? data.resolution,
           outputNumber: data.outputNumber,
           generateAudio: data.generateAudio,
-          imageUrls: shouldIncludeImages ? resolvedImageUrls : undefined,
-          // Keep compatibility for providers that only expect a single image
-          imageUrl: shouldIncludeImages ? resolvedImageUrls?.[0] : undefined,
+          imageUrls: resolvedImageUrls,
+          imageUrl: resolvedImageUrls?.[0],
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.error?.message || "Failed to generate video");
+        throw new Error(
+          error?.error?.message || error?.message || "Failed to generate video"
+        );
       }
 
       const result = await response.json();
@@ -188,7 +213,7 @@ export function HeroSection() {
               duration: parseDuration(data.duration),
               aspectRatio: data.aspectRatio,
               quality: data.quality ?? data.resolution,
-              imageUrl: shouldIncludeImages ? resolvedImageUrls?.[0] : undefined,
+              imageUrl: resolvedImageUrls?.[0],
             })
           );
         }
@@ -360,14 +385,20 @@ export function HeroSection() {
             <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
 
             {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
-            <VideoGeneratorInput
-              config={generatorConfig}
-              defaults={generatorDefaults}
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
-              calculateCredits={calculateCredits}
-              onSubmit={handleSubmit}
-            />
+            {generatorConfig.videoModels.length > 0 ? (
+              <VideoGeneratorInput
+                config={generatorConfig}
+                defaults={generatorDefaults}
+                isLoading={isSubmitting}
+                disabled={isSubmitting}
+                calculateCredits={calculateCredits}
+                onSubmit={handleSubmit}
+              />
+            ) : (
+              <div className="rounded-3xl border border-border bg-card/80 p-8 text-center text-sm text-muted-foreground">
+                No enabled models are available for the current AI provider configuration.
+              </div>
+            )}
 
             {NEW_USER_GIFT.enabled && NEW_USER_GIFT.credits > 0 && (
               <motion.p

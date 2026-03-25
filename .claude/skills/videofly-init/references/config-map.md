@@ -125,10 +125,6 @@ Same structure as en.json with Chinese content.
 ### `src/config/navigation.ts`
 - Remove docs link (users won't have a docs site)
 
-### `src/config/dictionaries/en.json`
-- "Saasfly" → projectName
-- Copyright text
-
 ### `next.config.mjs`
 - Review/remove unused image remote patterns
 
