@@ -53,14 +53,9 @@ export async function requireAdmin(redirectTo?: string) {
 
     console.log(`✅ Auto-set admin for: ${session.user.email}`);
 
-    // 重新获取 session 以获取更新后的 isAdmin 状态
-    const updatedSession = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (updatedSession?.user?.isAdmin) {
-      return updatedSession.user;
-    }
+    // 直接返回用户，不再调用 getSession()
+    // 因为 cookie cache 有 5 分钟 TTL，重新获取 session 仍会返回旧的 isAdmin: false
+    return { ...session.user, isAdmin: true };
   }
 
   if (!session.user.isAdmin) {
