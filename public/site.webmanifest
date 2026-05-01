@@ -1,11 +1,11 @@
 {
-  "name": "VideoFly",
-  "short_name": "VideoFly",
-  "description": "AI-powered video generation platform",
+  "name": "ReelKey",
+  "short_name": "ReelKey",
+  "description": "AI video generation with your own API key. No subscriptions, no expiring credits.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0f0d",
-  "theme_color": "#1a7a42",
+  "background_color": "#000000",
+  "theme_color": "#84cc16",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -16,6 +16,11 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }

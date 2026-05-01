@@ -32,10 +32,17 @@ export function CTASection() {
   const t = useTranslations("CTA");
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
+    <section
+      className="relative py-24 md:py-32 overflow-hidden"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 50% 50%, oklch(from var(--primary) l c h / 0.12) 0%, transparent 50%)
+        `.replace(/\s+/g, ' '),
+      }}
+    >
       {/* 背景装饰 */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-background" />
+        <div className="absolute inset-0 bg-background/90" />
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h / 0.05), oklch(from var(--primary) l c calc(h + 30) / 0.05))" }} />
       </div>
 

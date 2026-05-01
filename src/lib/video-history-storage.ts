@@ -41,7 +41,7 @@ interface VideoHistoryStorageData {
 // ============================================================================
 
 class VideoHistoryStorage {
-  private readonly STORAGE_KEY = "videofly_video_history";
+  private readonly STORAGE_KEY = "reel_key_video_history";
   private readonly MAX_ITEMS = 20;
 
   /**

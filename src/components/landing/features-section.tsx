@@ -84,10 +84,18 @@ export function FeaturesSection() {
   const t = useTranslations("Features");
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
+    <section
+      className="relative py-24 md:py-32 overflow-hidden"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, oklch(from var(--primary) l c h / 0.06) 1px, transparent 1px)
+        `.replace(/\s+/g, ' '),
+        backgroundSize: '24px 24px',
+      }}
+    >
       {/* 背景装饰 */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-background" />
+        <div className="absolute inset-0 bg-background/80" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent" />
       </div>
 

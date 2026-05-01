@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "VideoFly - AI 视频生成平台",
+    "title": "ReelKey - AI 视频生成平台",
     "description": "使用 Sora 2、Veo 3.1 等模型在几分钟内创建惊人的 AI 视频"
   },
   "Common": {
@@ -27,23 +27,23 @@
     "settings": "设置"
   },
   "Hero": {
-    "badge": "支持 Sora 2、Veo 3.1 等模型",
-    "title": "将您的想法转化为精彩视频",
-    "subtitle": "使用 AI",
-    "description": "在几分钟内创建专业的 AI 生成视频。支持文本转视频、图片转视频，或增强现有素材。",
-    "startCreating": "免费开始创作",
+    "badge": "自带 API Key • 无订阅制",
+    "title": "用自己的 API Key 生成 AI 视频",
+    "subtitle": "无订阅，积分永不过期",
+    "description": "使用 Sora、Kling 等 AI 视频模型，自带 API Key，直接向提供商付费，完全掌控。一次购买，终身使用。",
+    "startCreating": "免费开始",
     "viewExamples": "查看示例",
     "features": {
-      "fast": "闪电般快速",
-      "easy": "简单易用",
-      "ai": "AI 驱动"
+      "fast": "自带密钥",
+      "easy": "无订阅制",
+      "ai": "永不过期"
     },
     "stats": {
       "videos": "个视频已创建",
       "users": "位满意用户",
       "rating": "用户评分"
     },
-    "creditsHint": "{credits} 个免费积分开始 • 无需信用卡"
+    "creditsHint": "自带 API Key • 直接向提供商付费"
   },
   "Notifications": {
     "generationWillNotify": "生成时间较长，我们会在生成完成后通知你。",
@@ -83,105 +83,105 @@
   },
   "Showcase": {
     "badge": "亲眼见证",
-    "title": "使用 VideoFly 创作",
+    "title": "使用 ReelKey 创作",
     "subtitle": "AI 生成的精彩视频",
     "description": "探索我们社区使用 AI 视频生成创作的精彩作品。从电影级风景到产品动画，无所不能。",
     "ctaText": "准备好创作自己的杰作了吗？",
     "ctaButton": "立即开始创作"
   },
   "Features": {
-    "badge": "强大功能",
-    "title": "您需要的一切",
-    "subtitle": "强大的功能助您创建精彩视频",
-    "description": "探索让视频创作变得简单有趣的工具和功能",
+    "badge": "为什么选择 ReelKey",
+    "title": "完全掌控，零锁定",
+    "subtitle": "更聪明的 AI 视频生成方式",
+    "description": "不再为订阅和过期积分付费。使用自己的 API Key，直接向提供商付费。",
     "learnMore": "了解更多",
     "bottomCTA": {
-      "text": "准备好将您的想法转化为视频了吗？",
-      "button": "立即开始创作"
+      "text": "准备好掌控您的 AI 视频工作流了吗？",
+      "button": "立即开始"
     },
     "textToVideo": {
-      "title": "文本转视频",
-      "description": "使用先进的 AI 模型将文本提示转化为精彩视频",
-      "stat": "生成速度"
+      "title": "自带密钥",
+      "description": "使用您自己的 OpenAI、Kling、Luma 等 API Key。直接按提供商价格付费——无加价，无中间商。",
+      "stat": "您的 API，您的成本"
     },
     "imageToVideo": {
-      "title": "图片转视频",
-      "description": "用 AI 让您的图片动起来，赋予生命",
-      "stat": "最高分辨率"
+      "title": "无订阅制",
+      "description": "一次性购买许可证。无月费，无重复收费。付费一次，永久使用。",
+      "stat": "付费一次，永久拥有"
     },
     "referenceGen": {
-      "title": "参考生成",
-      "description": "上传图片或视频作为参考，引导 AI 生成。提取镜头轨迹、运动模式和风格，实现精准控制",
-      "stat": "参考输入"
+      "title": "积分永不过期",
+      "description": "与其他平台不同，您的使用额度永不过期。按自己的节奏使用 API 配额，无人为期限。",
+      "stat": "无过期时间"
     },
     "enhancement": {
-      "title": "视频增强",
-      "description": "使用 AI 放大、增强和扩展现有视频",
-      "stat": "AI 模型"
+      "title": "多提供商支持",
+      "description": "在 Sora、Kling、Runway、Luma 等提供商之间切换。不锁定单一供应商。",
+      "stat": "10+ 提供商"
     },
     "fast": {
-      "title": "闪电般快速",
-      "description": "仅需 2-5 分钟即可生成专业视频"
+      "title": "隐私优先",
+      "description": "您的 API Key 保存在本地设备。我们从不查看或存储您的凭证。"
     },
     "secure": {
-      "title": "安全私密",
-      "description": "您的数据已加密，视频安全存储"
+      "title": "完全透明",
+      "description": "清楚看到您向每个提供商支付的费用。无隐藏费用或意外收费。"
     },
     "realtime": {
-      "title": "实时更新",
-      "description": "实时跟踪视频生成进度"
+      "title": "离线可用",
+      "description": "桌面应用支持离线工作。数据保存在本地，按需同步。"
     },
     "formats": {
-      "title": "多种格式",
-      "description": "支持多种宽高比，适用于任何平台"
+      "title": "开源",
+      "description": "核心功能开源。审计代码、贡献或自托管。"
     },
     "ai": {
-      "title": "先进 AI",
-      "description": "由最新的 AI 视频生成模型驱动"
+      "title": "终身更新",
+      "description": "一次购买包含所有未来更新和新提供商集成。"
     }
   },
   "HowItWorks": {
-    "badge": "简单流程",
-    "title": "使用方法",
-    "subtitle": "4 步创建您的视频",
-    "description": "使用直观的视频创作工作流程，几分钟内即可开始",
-    "bottomHint": "无需信用卡 • {credits} 个免费积分开始",
-    "cta": "立即开始创作",
+    "badge": "简单设置",
+    "title": "几分钟内开始使用",
+    "subtitle": "3 步开始生成视频",
+    "description": "无复杂设置。只需添加您的 API Key 即可开始创作。",
+    "bottomHint": "一次性购买 • 终身访问",
+    "cta": "立即获取 ReelKey",
     "steps": {
       "prompt": {
-        "title": "描述您的视频",
-        "description": "输入详细的文本提示，描述您想创建的视频",
-        "stat": "平均时间"
+        "title": "获取许可证",
+        "description": "一次性购买。无订阅，无重复费用。终身访问所有功能和更新。",
+        "stat": "付费一次"
       },
       "upload": {
-        "title": "上传参考",
-        "description": "可选择添加参考图片来引导 AI（可选）",
-        "stat": "支持格式"
+        "title": "添加 API Key",
+        "description": "连接您自己的 OpenAI、Kling、Luma 或其他提供商的 API Key。密钥私密保存在您的设备上。",
+        "stat": "30 秒"
       },
       "generate": {
-        "title": "AI 生成",
-        "description": "我们的 AI 处理您的请求并创建独特视频",
-        "stat": "生成时间"
+        "title": "开始创作",
+        "description": "使用您自己的 API 配额生成视频。直接按提供商价格付费——无加价。",
+        "stat": "您的成本"
       },
       "download": {
         "title": "下载分享",
-        "description": "获取高清视频，随时随地分享",
-        "stat": "最高质量"
+        "description": "导出高清视频，随处分享。您的视频，您的所有权，无平台水印。",
+        "stat": "完全所有权"
       }
     }
   },
   "CTA": {
-    "badge": "限时优惠",
-    "title": "准备好创作精彩视频了吗？",
-    "subtitle": "加入数千名正在使用 VideoFly 的创作者",
-    "description": "立即开始使用我们的免费试用创建专业视频",
-    "getStarted": "免费开始",
-    "learnMore": "了解更多",
+    "badge": "一次性购买",
+    "title": "停止支付月度订阅",
+    "subtitle": "永久拥有您的 AI 视频工作流",
+    "description": "加入从昂贵订阅切换到 BYOK 模式的创作者",
+    "getStarted": "立即获取 ReelKey",
+    "learnMore": "比较方案",
     "benefits": {
-      "free": "{credits} 个免费积分开始",
-      "noCard": "无需信用卡",
-      "cancel": "随时取消",
-      "support": "7x24 客户支持"
+      "free": "一次性付款",
+      "noCard": "包含终身更新",
+      "cancel": "使用自己的 API Key",
+      "support": "积分永不过期"
     },
     "generating": "生成中...",
     "readyIn": "就绪时间",
@@ -195,38 +195,38 @@
   },
   "FAQ": {
     "title": "常见问题",
-    "subtitle": "关于 VideoFly 的一切",
+    "subtitle": "关于 ReelKey 的一切",
     "contact": "还有其他问题？请联系我们",
     "general": {
-      "question": "什么是 VideoFly？",
-      "answer": "VideoFly 是一个领先的 AI 视频生成平台，让您能在几分钟内将文本和图片转化为高质量视频。由 Sora 2 和 Veo 3.1 等先进模型驱动，无需昂贵的设备即可让您的创意变为现实。"
+      "question": "什么是 ReelKey？",
+      "answer": "ReelKey 是一个 BYOK（自带密钥）AI 视频生成平台。您无需向我们支付订阅或积分费用，而是使用自己的 OpenAI、Kling、Luma 等提供商的 API Key。您直接按提供商价格付费——我们只提供界面。一次性购买许可证，终身访问。"
     },
     "commercial": {
-      "question": "我可以将视频用于商业用途吗？",
-      "answer": "可以！使用我们的专业版和团队版计划生成的视频包含完整的商业许可，您可以将其用于营销、社交媒体和商业项目中。"
+      "question": "这与其他 AI 视频平台有何不同？",
+      "answer": "大多数平台收取月度订阅费并出售会过期的积分。ReelKey 使用 BYOK 模式：您自带 API Key，直接向提供商付费，永不失去访问权限。无加价，无过期积分，无重复费用。根据用户报告，与传统订阅模式相比，这可以节省 60-80% 的费用。"
     },
     "aiModels": {
-      "question": "你们使用哪些 AI 模型？",
-      "answer": "我们会集成业界最顶尖的视频生成模型，包括 Sora 2、Veo 3.1 等。我们会持续更新平台，确保为您提供最新、最强大的模型能力。"
+      "question": "支持哪些 AI 提供商？",
+      "answer": "ReelKey 支持 10+ 个提供商，包括 OpenAI (Sora)、Kling AI、Luma Labs (Dream Machine)、Runway ML 等。您可以随时在提供商之间切换——无供应商锁定。新提供商会定期添加，并提供免费更新。"
     },
     "credits": {
-      "question": "积分系统是如何工作的？",
-      "answer": "您使用积分来生成视频。不同的模型和视频时长会消耗不同数量的积分。您可以购买积分包或订阅月度计划，以优惠价格获取稳定的积分。"
+      "question": "我需要从 ReelKey 购买积分吗？",
+      "answer": "不需要。您使用自己的 API Key，直接按提供商公布的价格付费。ReelKey 收取一次性软件许可费，而非按生成次数收费。您的 API 配额永不过期，我们从不收取加价。"
     },
     "refund": {
-      "question": "提供退款吗？",
-      "answer": "我们提供满意度保证。如果因系统错误导致视频生成失败，我们将退还积分。对于订阅付款，如果您不满意，请在 7 天内联系我们的支持团队。"
+      "question": "你们的退款政策是什么？",
+      "answer": "我们提供 14 天退款保证。如果 ReelKey 无法与您的 API Key 配合使用，或您不满意，请在 14 天内联系 support@reelkey.app 获得全额退款。无需任何理由。"
     },
     "support": {
-      "question": "如何获取支持？",
-      "answer": "我们的专属支持团队 7x24 小时待命。您可以通过网站上的联系表格或发送邮件至 support@videofly.app 联系我们。"
+      "question": "我的 API Key 安全吗？",
+      "answer": "是的。您的 API Key 加密存储在本地设备上。ReelKey 从不将您的密钥发送到我们的服务器——所有 API 调用都直接从您的设备发送到提供商。您可以在我们的开源代码中验证这一点。"
     }
   },
   "Footer": {
     "product": "产品",
     "company": "公司",
     "legal": "法律",
-    "copyright": "© {year} VideoFly. 保留所有权利。",
+    "copyright": "© {year} ReelKey. 保留所有权利。",
     "privacy": "隐私政策",
     "terms": "服务条款",
     "cookie": "Cookie 政策"
@@ -358,7 +358,7 @@
   },
   "SignInModal": {
     "signin_title": "登录您的账户",
-    "signin_subtitle": "立即开始使用 VideoFly",
+    "signin_subtitle": "立即开始使用 ReelKey",
     "privacy": "继续即表示您同意我们的服务条款和隐私政策。",
     "continue_google": "使用 Google 继续",
     "continue_email": "使用邮箱继续",
@@ -367,10 +367,10 @@
     "terms_notice": "继续即表示您同意我们的服务条款和隐私政策。"
   },
   "MainNav": {
-    "introducing": "介绍 VideoFly"
+    "introducing": "介绍 ReelKey"
   },
   "SiteFooter": {
-    "copyright": "© {currentYear} VideoFly. 保留所有权利。"
+    "copyright": "© {currentYear} ReelKey. 保留所有权利。"
   },
   "Mail": {
     "common": {
@@ -378,11 +378,11 @@
       "copyright": "© {year} 保留所有权利。"
     },
     "welcome": {
-      "subject": "欢迎加入 VideoFly！",
+      "subject": "欢迎加入 ReelKey！",
       "greeting": "您好 {name}，",
-      "title": "欢迎来到 VideoFly！",
-      "body": "感谢您注册 VideoFly！我们很高兴您的加入。",
-      "features": "使用 VideoFly，您可以：",
+      "title": "欢迎来到 ReelKey！",
+      "body": "感谢您注册 ReelKey！我们很高兴您的加入。",
+      "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
         "models": "使用 Sora 2、Veo 3.1 等多种 AI 模型",
@@ -395,7 +395,7 @@
       "subject": "重置您的密码",
       "greeting": "您好 {name}，",
       "title": "重置您的密码",
-      "body": "我们收到了您重置 VideoFly 账户密码的请求。",
+      "body": "我们收到了您重置 ReelKey 账户密码的请求。",
       "instruction": "点击下方按钮重置您的密码：",
       "button": "重置密码",
       "validity": "此链接将在 30 分钟后过期，且只能使用一次。",
@@ -404,10 +404,10 @@
       "footer": "如果您没有请求此操作，请忽略此邮件。"
     },
     "magicLink": {
-      "subject": "登录 VideoFly",
+      "subject": "登录 ReelKey",
       "greeting": "您好 {name}，",
-      "title": "登录 VideoFly",
-      "body": "我们收到了您登录 VideoFly 账户的请求。",
+      "title": "登录 ReelKey",
+      "body": "我们收到了您登录 ReelKey 账户的请求。",
       "instruction": "点击下方按钮登录：",
       "button": "登录",
       "validity": "此链接将在 24 小时后过期。",
@@ -417,11 +417,11 @@
   },
   "Emails": {
     "welcome": {
-      "subject": "欢迎加入 VideoFly！",
+      "subject": "欢迎加入 ReelKey！",
       "greeting": "您好 {name}，",
-      "title": "欢迎来到 VideoFly！",
-      "body": "感谢您注册 VideoFly！我们很高兴您的加入。",
-      "features": "使用 VideoFly，您可以：",
+      "title": "欢迎来到 ReelKey！",
+      "body": "感谢您注册 ReelKey！我们很高兴您的加入。",
+      "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
         "models": "使用 Sora 2、Veo 3.1 等多种 AI 模型",
@@ -429,20 +429,20 @@
       },
       "cta": "开始创作视频",
       "footer": "如果您有任何问题，欢迎随时联系我们的支持团队。",
-      "copyright": "© {year} VideoFly. 保留所有权利。"
+      "copyright": "© {year} ReelKey. 保留所有权利。"
     },
     "resetPassword": {
       "subject": "重置您的密码",
       "greeting": "您好 {name}，",
       "title": "重置您的密码",
-      "body": "我们收到了您重置 VideoFly 账户密码的请求。",
+      "body": "我们收到了您重置 ReelKey 账户密码的请求。",
       "instruction": "点击下方按钮重置您的密码：",
       "button": "重置密码",
       "validity": "此链接将在 30 分钟后过期，且只能使用一次。",
       "ignore": "如果您没有请求重置密码，可以安全地忽略此邮件。",
       "security": "出于安全考虑，此链接将在 30 分钟后过期。",
       "footer": "如果您没有请求此操作，请忽略此邮件。",
-      "copyright": "© {year} VideoFly. 保留所有权利。"
+      "copyright": "© {year} ReelKey. 保留所有权利。"
     }
   },
   "dashboard": {

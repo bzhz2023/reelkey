@@ -39,10 +39,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const PENDING_PROMPT_KEY = "videofly_pending_prompt";
-const PENDING_IMAGE_KEY = "videofly_pending_image";
-const NOTIFICATION_ASKED_KEY = "videofly_notification_asked";
-const TOOL_PREFILL_KEY = "videofly_tool_prefill";
+const PENDING_PROMPT_KEY = "reel_key_pending_prompt";
+const PENDING_IMAGE_KEY = "reel_key_pending_image";
+const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
+const TOOL_PREFILL_KEY = "reel_key_tool_prefill";
 
 function normalizeGeneratorMode(mode?: string): GenerationMode {
   if (mode === "image-to-video" || mode === "i2v") {
@@ -311,7 +311,17 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   };
 
   return (
-    <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
+    <section
+      id="generator"
+      className="relative min-h-screen overflow-hidden pb-20"
+      style={{
+        backgroundImage: `
+          radial-gradient(ellipse 80% 50% at 50% -20%, oklch(from var(--primary) l c h / 0.15), transparent),
+          radial-gradient(ellipse 60% 40% at 30% 10%, oklch(from var(--primary) l c h / 0.08), transparent),
+          radial-gradient(ellipse 60% 40% at 70% 10%, oklch(from var(--primary) calc(l - 0.1) c calc(h + 40) / 0.08), transparent)
+        `.replace(/\s+/g, ' '),
+      }}
+    >
       {/* 动画流星效果 */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <Meteors number={15} minDelay={0.5} maxDelay={2} minDuration={3} maxDuration={8} />

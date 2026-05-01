@@ -43,11 +43,20 @@ export const metadata = {
   description: siteConfig.description,
   keywords: [
     "AI video generator",
+    "bring your own API key",
+    "BYOK video generation",
     "text to video",
     "image to video",
-    "AI video",
-    "video generation",
-    "AI tools",
+    "AI video creation",
+    "no subscription video AI",
+    "pay as you go AI video",
+    "Sora API",
+    "Kling API",
+    "video generation API",
+    "AI video tools",
+    "custom API key",
+    "self-hosted AI video",
+    "affordable AI video",
   ],
   authors: [
     {
@@ -62,11 +71,20 @@ export const metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: ["/og.png"],
   },
   icons: {
     icon: [

@@ -133,9 +133,9 @@ export function PricingCards({
           Email{" "}
           <a
             className="font-medium text-primary hover:underline"
-            href="mailto:support@videofly.app"
+            href="mailto:support@reelkey.app"
           >
-            support@videofly.app
+            support@reelkey.app
           </a>{" "}
           {t('contact')}
           <br />

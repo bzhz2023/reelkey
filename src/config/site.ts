@@ -23,9 +23,9 @@ export interface SiteConfig {
 }
 
 export const siteConfig: SiteConfig = {
-  name: "VideoFly",
-  description: "AI Video Generation Platform - Create stunning videos with Sora 2, Veo 3.1, and more",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://videofly.app",
+  name: "ReelKey",
+  description: "AI video generation with your own API key. No subscriptions, no expiring credits.",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://reelkey.app",
   ogImage: "/og.png",
   links: {},
   auth: {

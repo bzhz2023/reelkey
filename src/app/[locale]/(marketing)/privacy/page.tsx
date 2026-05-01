@@ -1,8 +1,8 @@
 import type { Locale } from "@/config/i18n-config";
 
 export const metadata = {
-    title: "Privacy Policy - VideoFly",
-    description: "Privacy Policy for VideoFly",
+    title: "Privacy Policy - ReelKey",
+    description: "Privacy Policy for ReelKey",
 };
 
 export default async function PrivacyPage({
@@ -22,7 +22,7 @@ export default async function PrivacyPage({
 
                         <h2>1. 引言</h2>
                         <p>
-                            VideoFly（"我们"）非常重视您的隐私。本隐私政策说明了当您使用我们的服务时，我们如何收集、使用、披露和保护您的信息。
+                            ReelKey（"我们"）非常重视您的隐私。本隐私政策说明了当您使用我们的服务时，我们如何收集、使用、披露和保护您的信息。
                         </p>
 
                         <h2>2. 我们收集的信息</h2>
@@ -32,16 +32,28 @@ export default async function PrivacyPage({
                             <li><strong>使用数据：</strong> 我们收集有关您如何与我们的服务互动的信息，例如您生成的视频类型、使用频率和访问时间。</li>
                             <li><strong>输入内容：</strong> 您上传的图片、文本或其他用于生成视频的输入内容。</li>
                             <li><strong>生成内容：</strong> 您使用我们的服务生成的视频内容。</li>
+                            <li><strong>API 密钥：</strong> 您提供的第三方 AI 服务 API 密钥，这些密钥经过加密存储，仅用于代表您调用相应的 AI 服务。</li>
                         </ul>
 
                         <h2>3. 我们如何使用您的信息</h2>
                         <p>我们使用收集的信息用于以下目的：</p>
                         <ul>
                             <li>提供、维护和改进我们的服务。</li>
-                            <li>处理您的交易和管理您的积分。</li>
+                            <li>使用您提供的 API 密钥代表您调用第三方 AI 视频生成服务。</li>
                             <li>向您发送相关通知，包括服务更新和安全警报。</li>
                             <li>监测和分析趋势、使用情况和活动，以改善用户体验。</li>
                             <li>检测、调查和防止欺诈及其他非法活动。</li>
+                        </ul>
+
+                        <h2>3.1. API 密钥安全</h2>
+                        <p>
+                            您的 API 密钥对我们至关重要。我们采取以下措施保护您的密钥：
+                        </p>
+                        <ul>
+                            <li>所有 API 密钥在存储前使用行业标准加密算法进行加密。</li>
+                            <li>密钥仅在需要调用相应 AI 服务时解密使用，使用后立即清除内存。</li>
+                            <li>我们的员工无法访问您的原始 API 密钥。</li>
+                            <li>您可以随时在账户设置中更新或删除您的 API 密钥。</li>
                         </ul>
 
                         <h2>4. 信息共享</h2>
@@ -76,7 +88,7 @@ export default async function PrivacyPage({
 
                         <h2>9. 联系我们</h2>
                         <p>
-                            如果您对本隐私政策有任何疑问，请联系我们：privacy@videofly.app
+                            如果您对本隐私政策有任何疑问，请联系我们：privacy@reelkey.app
                         </p>
                     </>
                 ) : (
@@ -86,7 +98,7 @@ export default async function PrivacyPage({
 
                         <h2>1. Introduction</h2>
                         <p>
-                            VideoFly ("we" or "us") values your privacy. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our services.
+                            ReelKey ("we" or "us") values your privacy. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our services.
                         </p>
 
                         <h2>2. Information We Collect</h2>
@@ -96,16 +108,28 @@ export default async function PrivacyPage({
                             <li><strong>Usage Data:</strong> We collect information about how you interact with our service, such as the types of videos you generate, frequency of use, and access times.</li>
                             <li><strong>Input Content:</strong> Images, text, or other inputs you upload to generate videos.</li>
                             <li><strong>Generated Content:</strong> Video content you generate using our service.</li>
+                            <li><strong>API Keys:</strong> Third-party AI service API keys you provide, which are encrypted and stored securely, used solely to call the respective AI services on your behalf.</li>
                         </ul>
 
                         <h2>3. How We Use Your Information</h2>
                         <p>We use the collected information for the following purposes:</p>
                         <ul>
                             <li>To provide, maintain, and improve our services.</li>
-                            <li>To process your transactions and manage your credits.</li>
+                            <li>To use your provided API keys to call third-party AI video generation services on your behalf.</li>
                             <li>To send you relevant notifications, including service updates and security alerts.</li>
                             <li>To monitor and analyze trends, usage, and activities to improve user experience.</li>
                             <li>To detect, investigate, and prevent fraud and other illegal activities.</li>
+                        </ul>
+
+                        <h2>3.1. API Key Security</h2>
+                        <p>
+                            Your API keys are critical to us. We take the following measures to protect your keys:
+                        </p>
+                        <ul>
+                            <li>All API keys are encrypted using industry-standard encryption algorithms before storage.</li>
+                            <li>Keys are only decrypted when needed to call the respective AI services and are immediately cleared from memory after use.</li>
+                            <li>Our staff cannot access your raw API keys.</li>
+                            <li>You can update or delete your API keys at any time in your account settings.</li>
                         </ul>
 
                         <h2>4. Information Sharing</h2>
@@ -140,7 +164,7 @@ export default async function PrivacyPage({
 
                         <h2>9. Contact Us</h2>
                         <p>
-                            If you have any questions about this Privacy Policy, please contact us at: privacy@videofly.app
+                            If you have any questions about this Privacy Policy, please contact us at: privacy@reelkey.app
                         </p>
                     </>
                 )}

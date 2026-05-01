@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                 <p>Last updated: {new Date().getFullYear()}</p>
 
                 <h2>1. Introduction</h2>
-                <p>Welcome to VideoFly. We respect your privacy and are committed to protecting your personal data.</p>
+                <p>Welcome to ReelKey. We respect your privacy and are committed to protecting your personal data.</p>
 
                 <h2>2. Data We Collect</h2>
                 <p>We collect information you provide directly to us when you create an account, generate videos, or contact support.</p>
@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
                 <p>We implement appropriate security measures to protect your personal information.</p>
 
                 <h2>5. Contact Us</h2>
-                <p>If you have questions about this policy, please contact us at support@videofly.app.</p>
+                <p>If you have questions about this policy, please contact us at support@reelkey.app.</p>
             </div>
         </div>
     );
