@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(open http://localhost:3000)"
+    ]
+  },
   "project": {
     "name": "VideoFly",
     "description": "AI Video Generation Platform",
@@ -18,7 +24,13 @@
     "semicolons": true,
     "trailingComma": "es5",
     "tabWidth": 2,
-    "importOrder": ["react", "next", "@videofly/*", "~/", "./"]
+    "importOrder": [
+      "react",
+      "next",
+      "@videofly/*",
+      "~/",
+      "./"
+    ]
   },
   "paths": {
     "api": "apps/nextjs/src/app/api/v1",
