@@ -154,6 +154,28 @@ export const CREDITS_CONFIG = {
       .map(([modelId, pricing]) => {
         // 模型基础配置（从 defaults.ts 获取）
         const baseConfigs: Record<string, Omit<ModelConfig, "creditCost">> = {
+          "kling-2.5-turbo": {
+            id: "kling-2.5-turbo",
+            name: "Kling 2.5 Turbo Pro",
+            provider: "falai" as const,
+            description: "Fast, cinematic video generation",
+            supportImageToVideo: true,
+            maxDuration: 10,
+            durations: [5, 10],
+            aspectRatios: ["16:9", "9:16", "1:1"],
+            qualities: ["720P", "1080P"],
+          },
+          "wan-2.5": {
+            id: "wan-2.5",
+            name: "Wan 2.5",
+            provider: "falai" as const,
+            description: "Cost-effective, great for B-roll",
+            supportImageToVideo: true,
+            maxDuration: 5,
+            durations: [5],
+            aspectRatios: ["16:9", "9:16", "1:1"],
+            qualities: ["480P", "720P", "1080P"],
+          },
           "sora-2": {
             id: "sora-2",
             name: "Sora 2",

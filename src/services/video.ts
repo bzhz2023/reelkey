@@ -3,7 +3,7 @@ import { and, desc, eq, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
-import { getProvider, type ProviderType, type VideoTaskResponse } from "../ai";
+import { getProvider, getProviderWithKey, type ProviderType, type VideoTaskResponse } from "../ai";
 import {
   isModelModeSupported,
   isModelSupported,
@@ -27,6 +27,7 @@ export interface GenerateVideoParams {
   mode?: string;
   outputNumber?: number;
   generateAudio?: boolean;
+  userApiKey?: string; // User's fal.ai API key (BYOK)
 }
 
 export interface VideoGenerationResult {
@@ -225,7 +226,9 @@ export class VideoService {
       });
     }
 
-    const provider = getProvider(actualProvider);
+    const provider = params.userApiKey
+      ? getProviderWithKey(actualProvider, params.userApiKey)
+      : getProvider(actualProvider);
 
     const callbackUrl = this.callbackBaseUrl
       ? generateSignedCallbackUrl(

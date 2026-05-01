@@ -19,11 +19,17 @@ const generateSchema = z.object({
   generateAudio: z.boolean().optional(),
 });
 
+// 增加超时时间到 60 秒
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request);
     const body = await request.json();
     const data = generateSchema.parse(body);
+
+    // Extract user's fal.ai API key from header (BYOK mode)
+    const userApiKey = request.headers.get("x-fal-key") || undefined;
 
     const result = await videoService.generate({
       userId: user.id,
@@ -37,6 +43,7 @@ export async function POST(request: NextRequest) {
       mode: data.mode,
       outputNumber: data.outputNumber,
       generateAudio: data.generateAudio,
+      userApiKey,
     });
 
     return apiSuccess(result);

@@ -12,6 +12,7 @@ import { AvatarFallback } from "@/components/user/avatar-fallback";
 import { BillingList } from "@/components/billing";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
+import { FalKeyManager } from "@/components/settings/fal-key-manager";
 
 interface SettingsPageProps {
   locale: string;
@@ -117,6 +118,9 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* API Key Management */}
+      <FalKeyManager />
 
       {/* Billing History */}
       <BillingList

@@ -311,6 +311,7 @@ pnpm db:generate   # Generate migrations
 pnpm db:migrate    # Run migrations
 pnpm db:push       # Push schema (dev only)
 pnpm db:studio     # Open Drizzle Studio
+pnpm db:test       # Verify database configuration (recommended after setup)
 
 # Type checking
 pnpm typecheck
@@ -326,6 +327,57 @@ pnpm script:add-credits   # Add credits to user
 pnpm script:check-credits # Check user credits
 pnpm script:reset-credits # Reset user credits
 ```
+
+## Database Setup & Verification
+
+### Initial Setup
+
+1. **Create Neon Database** (or use any PostgreSQL provider)
+   ```bash
+   # Install Neon CLI
+   npm install -g neonctl
+   
+   # Login
+   neonctl auth
+   
+   # Create project
+   neonctl projects create --name your-project --region aws-us-east-1
+   ```
+
+2. **Configure Environment**
+   - Copy connection string to `.env.local`
+   - Set `DATABASE_URL` variable
+
+3. **Push Schema**
+   ```bash
+   pnpm db:push
+   ```
+
+4. **Verify Configuration** ⭐
+   ```bash
+   pnpm db:test
+   ```
+
+### Database Testing
+
+The `db:test` command runs a comprehensive 10-point verification:
+- ✅ Database connection
+- ✅ Table structure (15 tables)
+- ✅ Enum types (5 enums)
+- ✅ CRUD operations (INSERT, SELECT, UPDATE, DELETE)
+- ✅ Relational integrity
+- ✅ Index configuration (44 indexes)
+
+**When to run:**
+- After initial database setup
+- After schema migrations
+- Before production deployment
+- When troubleshooting database issues
+- In CI/CD pipelines
+
+**Documentation:**
+- Quick guide: `docs/DATABASE-TESTING.md`
+- Technical details: `scripts/README-DB-TEST.md`
 
 ## Architecture Decisions
 

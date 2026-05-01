@@ -16,6 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:test": "node scripts/test-db-full.mjs",
+    "db:verify": "node scripts/test-db-full.mjs",
     "email": "email dev --dir src/mail/templates --port 3333",
     "script:add-credits": "dotenv -e .env.local -- tsx scripts/add-credits.ts",
     "script:check-credits": "dotenv -e .env.local -- tsx scripts/check-user-credits.ts",
@@ -25,6 +27,8 @@
   "dependencies": {
     "@creem_io/better-auth": "^0.0.12",
     "@dinero.js/currencies": "2.0.0-alpha.14",
+    "@fal-ai/client": "^1.10.0",
+    "@fal-ai/server-proxy": "^1.2.1",
     "@formatjs/intl-localematcher": "0.5.4",
     "@hookform/resolvers": "3.3.4",
     "@next-devtools/core": "0.3.0-beta.1",

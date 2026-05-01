@@ -1,4 +1,5 @@
 import type { SubmitData } from "@/components/video-generator";
+import { FalKeyStorage } from "@/lib/fal-key";
 
 /**
  * API request format
@@ -107,9 +108,19 @@ export async function transformSubmitData(
 export async function generateVideo(
   request: VideoGenerateRequest
 ): Promise<{ videoUuid: string; status: string; creditsUsed: number }> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add user's fal.ai API key if available (BYOK mode)
+  const falKey = FalKeyStorage.get();
+  if (falKey) {
+    headers["x-fal-key"] = falKey;
+  }
+
   const res = await fetch("/api/v1/video/generate", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(request),
   });
 

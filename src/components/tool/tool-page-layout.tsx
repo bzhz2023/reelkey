@@ -24,6 +24,8 @@ import { videoHistoryStorage, type VideoHistoryItem } from "@/lib/video-history-
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
 import { siteConfig } from "@/config/site";
+import { useFalKeyPrompt } from "@/hooks/use-fal-key-prompt";
+import { FalKeySetupDialog } from "@/components/fal-key-setup-dialog";
 import type { Video } from "@/db";
 import type { ToolPageConfig } from "@/config/tool-pages";
 import { GeneratorPanel, type GeneratorData } from "@/components/tool/generator-panel";
@@ -88,6 +90,7 @@ export function ToolPageLayout({
   const { balance, optimisticFreeze, optimisticRelease, invalidate } = useCredits();
   const { openModal } = useUpgradeModal();
   const { shouldNotify, markNotified, resetNotification } = useNotificationDeduplication();
+  const { showDialog, setShowDialog } = useFalKeyPrompt();
   const videoIdFromQuery = searchParams.get("id");
   const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
   const tNotify = useTranslations("Notifications");
@@ -443,9 +446,14 @@ export function ToolPageLayout({
         ? await uploadImage(data.imageFile)
         : data.imageUrl;
       const imageUrls = imageUrl ? [imageUrl] : undefined;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const falKey = typeof window !== "undefined" ? localStorage.getItem("fal_api_key") : null;
+      if (falKey) {
+        headers["x-fal-key"] = falKey;
+      }
       const response = await fetch("/api/v1/video/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           prompt: data.prompt,
           model: data.model,
@@ -734,6 +742,15 @@ export function ToolPageLayout({
 
         </div>
       </div>
+
+      {/* fal.ai Key 设置弹窗 */}
+      <FalKeySetupDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        onSuccess={() => {
+          toast.success("API key saved successfully!");
+        }}
+      />
 
       {/* 全局升级弹窗 */}
       <UpgradeModal />

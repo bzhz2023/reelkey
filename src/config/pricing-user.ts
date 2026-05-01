@@ -256,6 +256,22 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
  * - qualityMultiplier: 画质乘数（1080p vs 720p）
  */
 export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
+  /** Kling 2.5 Turbo Pro - fal.ai */
+  "kling-2.5-turbo": {
+    baseCredits: 35,   // $0.35（5s 720p）
+    perSecond: 7,      // $0.07/s
+    qualityMultiplier: 1, // 1080p 同价
+    enabled: true,
+  },
+
+  /** Wan 2.5 - fal.ai */
+  "wan-2.5": {
+    baseCredits: 25,   // $0.25（5s）
+    perSecond: 5,      // $0.05/s
+    qualityMultiplier: 1,
+    enabled: true,
+  },
+
   /** Seedance 1.5 Pro - 按秒计费（默认有音频） */
   "seedance-1.5-pro": {
     baseCredits: 0,
