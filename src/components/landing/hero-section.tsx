@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FalKeyDialog, useFalKey } from "@/components/fal-key-dialog";
 
 const PENDING_PROMPT_KEY = "reel_key_pending_prompt";
 const PENDING_IMAGE_KEY = "reel_key_pending_image";
@@ -79,6 +80,7 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifyDialog, setShowNotifyDialog] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(null);
+  const { showDialog: showKeyDialog, setShowDialog: setShowKeyDialog, checkAndPrompt, getKey } = useFalKey();
 
   const generatorConfig = useMemo(() => {
     const availableModels = getAvailableModels({
@@ -176,7 +178,7 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       const hasImages = (data.images && data.images.length > 0) || (data.imageUrls && data.imageUrls.length > 0);
       const resolvedImageUrls = hasImages ? await resolveImageUrls(data) : undefined;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const falKey = typeof window !== "undefined" ? localStorage.getItem("fal_api_key") : null;
+      const falKey = getKey();
       if (falKey) {
         headers["x-fal-key"] = falKey;
       }
@@ -275,6 +277,12 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   };
 
   const handleSubmit = async (data: SubmitData) => {
+    // 首先检查是否有 API Key
+    if (!checkAndPrompt()) {
+      setPendingSubmitData(data);
+      return;
+    }
+
     let activeUser = session?.user ?? null;
     if (!activeUser) {
       try {
@@ -443,6 +451,17 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* fal.ai API Key Dialog */}
+      <FalKeyDialog
+        open={showKeyDialog}
+        onOpenChange={setShowKeyDialog}
+        onKeySubmit={() => {
+          if (pendingSubmitData) {
+            handleSubmit(pendingSubmitData);
+          }
+        }}
+      />
     </section>
   );
 }
