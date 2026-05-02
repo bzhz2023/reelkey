@@ -3,24 +3,35 @@
  * 使用用户自己的 fal.ai API Key 生成视频
  */
 
-import * as fal from "@fal-ai/client";
+import { fal } from "@fal-ai/client";
 import type {
   AIVideoProvider,
   VideoGenerationParams,
   VideoTaskResponse,
 } from "../types";
+import { ApiError } from "@/lib/api/error";
 
 // fal.ai 模型的 endpoint 映射
 const FAL_ENDPOINTS: Record<string, { t2v: string; i2v?: string }> = {
   "kling-2.5-turbo": {
-    t2v: "fal-ai/kling-video/v2.1/standard/text-to-video",
-    i2v: "fal-ai/kling-video/v2.1/standard/image-to-video",
+    // Source: fal.ai model docs (Kling 2.5 Turbo Pro/Standard)
+    t2v: "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
+    i2v: "fal-ai/kling-video/v2.5-turbo/standard/image-to-video",
   },
   "wan-2.5": {
-    t2v: "fal-ai/wan/v2.2/text-to-video",
-    i2v: "fal-ai/wan/v2.2/image-to-video",
+    // Source: fal.ai model docs (Wan 2.5 preview)
+    t2v: "fal-ai/wan-25-preview/text-to-video",
+    i2v: "fal-ai/wan-25-preview/image-to-video",
   },
 };
+
+const FALLBACK_STATUS_ENDPOINTS = [
+  "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
+  "fal-ai/kling-video/v2.5-turbo/standard/image-to-video",
+  "fal-ai/kling-video/v2.5-turbo/pro/image-to-video",
+  "fal-ai/wan-25-preview/text-to-video",
+  "fal-ai/wan-25-preview/image-to-video",
+] as const;
 
 export class FalAiProvider implements AIVideoProvider {
   name = "falai";
@@ -43,7 +54,10 @@ export class FalAiProvider implements AIVideoProvider {
       throw new Error(`Unsupported model: ${modelKey}`);
     }
 
-    const isI2V = !!params.imageUrl;
+    const hasImage = Boolean(
+      params.imageUrl || (params.imageUrls && params.imageUrls.length > 0)
+    );
+    const isI2V = hasImage;
     const endpoint = isI2V ? endpoints.i2v : endpoints.t2v;
     if (!endpoint) {
       throw new Error(`Model ${modelKey} does not support image-to-video`);
@@ -55,8 +69,9 @@ export class FalAiProvider implements AIVideoProvider {
       aspect_ratio: params.aspectRatio || "16:9",
     };
 
-    if (isI2V && params.imageUrl) {
-      input.image_url = params.imageUrl;
+    const imageUrl = params.imageUrl || params.imageUrls?.[0];
+    if (isI2V && imageUrl) {
+      input.image_url = imageUrl;
     }
 
     try {
@@ -78,61 +93,137 @@ export class FalAiProvider implements AIVideoProvider {
         status: "pending",
       };
     } catch (error: any) {
-      // 如果是 Cloudflare 524 或超时错误，返回更友好的错误信息
-      const isTimeout = error.message?.includes("timeout") || error.message?.includes("524");
-      throw new Error(
-        isTimeout
-          ? "fal.ai API is taking too long to respond. Please try again in a moment."
-          : `Failed to submit task to fal.ai: ${error.message}`
-      );
+      const status = error?.status as number | undefined;
+      const message = String(error?.message || "");
+      const isTimeout = message.includes("timeout") || message.includes("524");
+
+      if (status === 401 || status === 403) {
+        throw new ApiError(
+          "Your fal.ai API key is invalid or expired. Please update your key and try again.",
+          401,
+          { code: "FAL_KEY_INVALID" }
+        );
+      }
+
+      if (status === 402) {
+        throw new ApiError(
+          "Insufficient fal.ai balance. Please top up your fal.ai account and try again.",
+          402,
+          { code: "FAL_INSUFFICIENT_BALANCE" }
+        );
+      }
+
+      if (isTimeout) {
+        throw new ApiError(
+          "fal.ai API is taking too long to respond. Please try again in a moment.",
+          504,
+          { code: "FAL_TIMEOUT" }
+        );
+      }
+
+      throw new Error(`Failed to submit task to fal.ai: ${message}`);
     }
   }
 
   async getTaskStatus(taskId: string): Promise<VideoTaskResponse> {
-    try {
-      // 简化：先轮询 Kling endpoint（实际应该记录模型信息）
-      const status = await fal.queue.status(
-        "fal-ai/kling-video/v2.1/standard/text-to-video",
-        { requestId: taskId, logs: false }
-      );
+    for (const endpoint of FALLBACK_STATUS_ENDPOINTS) {
+      try {
+        const status = await fal.queue.status(endpoint, {
+          requestId: taskId,
+          logs: false,
+        });
+        const normalizedStatus = String((status as any)?.status || "").toUpperCase();
 
-      if (status.status === "COMPLETED") {
-        const result = await fal.queue.result(
-          "fal-ai/kling-video/v2.1/standard/text-to-video",
-          { requestId: taskId }
-        );
+        if (normalizedStatus === "COMPLETED") {
+          const result = await fal.queue.result(endpoint, { requestId: taskId });
+          const output = (result as any)?.data;
+          const videoUrl =
+            output?.video?.url ||
+            output?.video_url ||
+            output?.output?.video?.url ||
+            output?.output?.url;
+          const thumbnailUrl =
+            output?.thumbnail?.url ||
+            output?.thumbnail_url ||
+            output?.output?.thumbnail?.url;
+
+          return {
+            taskId,
+            provider: "falai",
+            status: "completed",
+            videoUrl,
+            thumbnailUrl,
+            raw: result,
+          };
+        }
+
         return {
           taskId,
-          provider: "falai" as any,
-          status: "completed",
-          videoUrl: (result.data as any)?.video?.url,
+          provider: "falai",
+          status: normalizedStatus === "FAILED" ? "failed" : "processing",
+          raw: status,
         };
+      } catch (error: any) {
+        const status = error?.status as number | undefined;
+        if (status === 401 || status === 403) {
+          return {
+            taskId,
+            provider: "falai",
+            status: "failed",
+            error: {
+              code: "FAL_KEY_INVALID",
+              message:
+                "Your fal.ai API key is invalid or expired. Please update your key.",
+            },
+          };
+        }
+        // Try next endpoint when this endpoint doesn't own the request id.
+        if (status === 404 || status === 410) {
+          continue;
+        }
       }
-
-      return {
-        taskId,
-        provider: "falai" as any,
-        status: status.status === "FAILED" ? "failed" : "processing",
-      };
-    } catch (e) {
-      return {
-        taskId,
-        provider: "falai" as any,
-        status: "failed",
-      };
     }
+
+    return {
+      taskId,
+      provider: "falai",
+      status: "processing",
+    };
   }
 
   parseCallback(payload: any): VideoTaskResponse {
-    const isSuccess = payload.status === "OK";
-    return {
-      taskId: payload.request_id,
-      provider: "falai" as any,
-      status: isSuccess ? "completed" : "failed",
-      videoUrl: payload.payload?.video?.url,
-      error: !isSuccess
-        ? { code: "FAL_ERROR", message: payload.error || "Generation failed" }
-        : undefined,
-    };
+    return parseFalAiCallback(payload);
   }
+}
+
+export function parseFalAiCallback(payload: any): VideoTaskResponse {
+  const rawStatus = String(payload?.status || "").toUpperCase();
+  const isSuccess =
+    rawStatus === "OK" || rawStatus === "COMPLETED" || rawStatus === "SUCCESS";
+  return {
+    taskId: payload.request_id,
+    provider: "falai",
+    status: isSuccess ? "completed" : "failed",
+    videoUrl:
+      payload?.payload?.video?.url ||
+      payload?.video?.url ||
+      payload?.data?.video?.url ||
+      payload?.video_url,
+    thumbnailUrl:
+      payload?.payload?.thumbnail?.url ||
+      payload?.thumbnail?.url ||
+      payload?.data?.thumbnail?.url ||
+      payload?.thumbnail_url,
+    error: !isSuccess
+      ? {
+        code: "FAL_ERROR",
+        message:
+          payload?.error?.message ||
+          payload?.error ||
+          payload?.message ||
+          "Generation failed",
+      }
+      : undefined,
+    raw: payload,
+  };
 }

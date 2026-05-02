@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { videoService } from "@/services/video";
 import { requireAuth } from "@/lib/api/auth";
 import { apiSuccess, handleApiError } from "@/lib/api/response";
+import { ApiError } from "@/lib/api/error";
 import { z } from "zod";
 // Import proxy configuration for fetch requests
 import "@/lib/proxy-config";
@@ -30,6 +31,13 @@ export async function POST(request: NextRequest) {
 
     // Extract user's fal.ai API key from header (BYOK mode)
     const userApiKey = request.headers.get("x-fal-key") || undefined;
+    if (!userApiKey) {
+      throw new ApiError(
+        "Please set your fal.ai API key before generating videos.",
+        400,
+        { code: "FAL_KEY_MISSING" }
+      );
+    }
 
     const result = await videoService.generate({
       userId: user.id,

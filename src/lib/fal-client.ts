@@ -2,7 +2,7 @@
  * fal.ai 客户端配置和 Key 验证工具
  */
 
-import * as fal from "@fal-ai/client";
+import { fal } from "@fal-ai/client";
 import { falKeyStorage } from "./fal-key";
 
 /**
