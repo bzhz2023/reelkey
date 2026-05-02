@@ -46,6 +46,7 @@ export interface ModelMapping {
     evolink?: ProviderModelConfig;
     kie?: ProviderModelConfig;
     apimart?: ProviderModelConfig;
+    falai?: ProviderModelConfig;
   };
 }
 
@@ -479,6 +480,50 @@ export const MODEL_MAPPINGS: Record<string, ModelMapping> = {
       },
     },
   },
+
+  // -------------------------------------------------------------------------
+  // Kling 2.5 Turbo Pro (fal.ai)
+  // -------------------------------------------------------------------------
+  "kling-2.5-turbo": {
+    internalId: "kling-2.5-turbo",
+    displayName: "Kling 2.5 Turbo Pro",
+    providers: {
+      falai: {
+        providerModelId: "fal-ai/kling-video/v1.5/pro/text-to-video",
+        supported: true,
+        transformParams: (internalModelId, params) => {
+          const hasImage = (Array.isArray(params.imageUrls) && params.imageUrls.length > 0) || params.imageUrl;
+          return {
+            prompt: params.prompt,
+            duration: params.duration || 5,
+            aspect_ratio: params.aspectRatio || "16:9",
+            image_url: hasImage ? (params.imageUrl || params.imageUrls?.[0]) : undefined,
+          };
+        },
+      },
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // Wan 2.5 (fal.ai)
+  // -------------------------------------------------------------------------
+  "wan-2.5": {
+    internalId: "wan-2.5",
+    displayName: "Wan 2.5",
+    providers: {
+      falai: {
+        providerModelId: "fal-ai/wan/video",
+        supported: true,
+        transformParams: (internalModelId, params) => {
+          const hasImage = (Array.isArray(params.imageUrls) && params.imageUrls.length > 0) || params.imageUrl;
+          return {
+            prompt: params.prompt,
+            image_url: hasImage ? (params.imageUrl || params.imageUrls?.[0]) : undefined,
+          };
+        },
+      },
+    },
+  },
 };
 
 const MODEL_MODE_SUPPORT: Record<
@@ -512,6 +557,12 @@ const MODEL_MODE_SUPPORT: Record<
   },
   "seedance-1.0-pro-quality": {
     apimart: ["text-to-video", "image-to-video"],
+  },
+  "kling-2.5-turbo": {
+    falai: ["text-to-video", "image-to-video"],
+  },
+  "wan-2.5": {
+    falai: ["text-to-video", "image-to-video"],
   },
 };
 

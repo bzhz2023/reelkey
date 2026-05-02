@@ -42,7 +42,45 @@ import type {
 
 export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
-  // Seedance Series (Primary - APImart)
+  // fal.ai Models (Primary - BYOK)
+  // ============================================================================
+  {
+    id: "kling-2.5-turbo",
+    name: "Kling 2.5 Turbo Pro",
+    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
+    color: "#38bdf8",
+    description: "Fast, cinematic video generation (fal.ai)",
+    maxDuration: "10 sec",
+    creditCost: 35, // 5s 720p = 35 积分
+    durations: ["5s", "10s"],
+    aspectRatios: ["16:9", "9:16", "1:1"],
+    resolutions: ["720P", "1080P"],
+    maxImages: 1,
+    imageConstraints: {
+      maxSizeMB: 10,
+      formats: ["jpg", "jpeg", "png", "webp"],
+    },
+  },
+  {
+    id: "wan-2.5",
+    name: "Wan 2.5",
+    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
+    color: "#84cc16",
+    description: "Cost-effective, great for B-roll (fal.ai)",
+    maxDuration: "5 sec",
+    creditCost: 25, // 5s = 25 积分
+    durations: ["5s"],
+    aspectRatios: ["16:9", "9:16", "1:1"],
+    resolutions: ["480P", "720P", "1080P"],
+    maxImages: 1,
+    imageConstraints: {
+      maxSizeMB: 10,
+      formats: ["jpg", "jpeg", "png", "webp"],
+    },
+  },
+
+  // ============================================================================
+  // Seedance Series (Secondary - APImart)
   // ============================================================================
   {
     id: "seedance-1.5-pro",
