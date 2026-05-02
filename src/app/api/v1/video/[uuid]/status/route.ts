@@ -10,9 +10,10 @@ export async function GET(
   try {
     const user = await requireAuth(request);
     const { uuid } = await params;
+    const userApiKey = request.headers.get("x-fal-key") || undefined;
 
     // Refresh and get latest status
-    const result = await videoService.refreshStatus(uuid, user.id);
+    const result = await videoService.refreshStatus(uuid, user.id, userApiKey);
 
     return apiSuccess(result);
   } catch (error) {

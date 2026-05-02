@@ -3,7 +3,12 @@ import { and, desc, eq, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
-import { getProvider, getProviderWithKey, type ProviderType, type VideoTaskResponse } from "../ai";
+import {
+  getProvider,
+  getProviderWithKey,
+  type ProviderType,
+  type VideoTaskResponse,
+} from "../ai";
 import {
   isModelModeSupported,
   isModelSupported,
@@ -14,6 +19,7 @@ import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
 import { emitVideoEvent } from "@/lib/video-events";
 import { ApiError } from "@/lib/api/error";
 import { getConfiguredAIProvider } from "@/ai/provider-config";
+import { parseFalAiCallback } from "@/ai/providers/falai";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -125,19 +131,27 @@ export class VideoService {
     }
 
     const configuredProvider = getConfiguredAIProvider();
-    if (configuredProvider && !isModelSupported(params.model, configuredProvider)) {
+    const isByokFalFlow = Boolean(params.userApiKey);
+
+    // In BYOK flow, always route generation to falai and ignore DEFAULT_AI_PROVIDER.
+    const providerForValidation = isByokFalFlow
+      ? ("falai" as ProviderType)
+      : configuredProvider;
+    if (providerForValidation && !isModelSupported(params.model, providerForValidation)) {
       throw new ApiError(
-        `Model ${params.model} is not available for provider ${configuredProvider}`,
+        `Model ${params.model} is not available for provider ${providerForValidation}`,
         400,
         {
           code: "MODEL_NOT_AVAILABLE_FOR_PROVIDER",
           model: params.model,
-          provider: configuredProvider,
+          provider: providerForValidation,
         }
       );
     }
 
-    const actualProvider = configuredProvider || modelConfig.provider;
+    const actualProvider = isByokFalFlow
+      ? ("falai" as ProviderType)
+      : configuredProvider || modelConfig.provider;
     if (!isModelModeSupported(params.model, actualProvider, resolvedMode)) {
       throw new ApiError(
         `Mode ${resolvedMode} is not supported for model ${params.model} on provider ${actualProvider}`,
@@ -300,8 +314,10 @@ export class VideoService {
     payload: any,
     videoUuid: string
   ): Promise<void> {
-    const provider = getProvider(providerType);
-    const result = provider.parseCallback(payload);
+    const result =
+      providerType === "falai"
+        ? parseFalAiCallback(payload)
+        : getProvider(providerType).parseCallback(payload);
 
     const [video] = await db
       .select()
@@ -333,7 +349,8 @@ export class VideoService {
    */
   async refreshStatus(
     videoUuid: string,
-    userId: string
+    userId: string,
+    userApiKey?: string
   ): Promise<{
     status: string;
     videoUrl?: string;
@@ -359,7 +376,19 @@ export class VideoService {
 
     if (video.externalTaskId && video.provider) {
       try {
-        const provider = getProvider(video.provider as ProviderType);
+        const providerType = video.provider as ProviderType;
+
+        // BYOK 模式：必须提供 userApiKey 才能查询 fal.ai 状态
+        if (providerType === "falai" && !userApiKey) {
+          console.warn(`[refreshStatus] falai provider requires userApiKey for video ${videoUuid}`);
+          return { status: video.status };
+        }
+
+        const provider =
+          providerType === "falai" && userApiKey
+            ? getProviderWithKey(providerType, userApiKey)
+            : getProvider(providerType);
+
         const result = await provider.getTaskStatus(video.externalTaskId);
 
         if (result.status === "completed" && result.videoUrl) {
