@@ -26,15 +26,15 @@ export const referenceToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "seedance-1.5-pro",
+      model: "wan-2.5",
       duration: 5,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["seedance-1.5-pro"],
-      default: "seedance-1.5-pro",
+      available: ["wan-2.5"],
+      default: "wan-2.5",
     },
 
     features: {
@@ -85,14 +85,14 @@ export const referenceToVideoConfig: ToolPageConfig = {
 
     features: [
       "Upload reference videos (MP4, MOV, AVI up to 100MB)",
-      "AI-powered style transfer and transformation",
+      "AI-powered reference transformation",
       "Maintain original video timing and flow",
       "Create multiple variations from one reference",
       "Support for various artistic styles and effects",
     ],
 
     supportedModels: [
-      { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
+      { name: "Wan 2.5", provider: "fal.ai", color: "#06b6d4" },
     ],
 
     stats: {

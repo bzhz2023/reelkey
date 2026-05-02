@@ -8,14 +8,14 @@ export const textToVideoConfig: ToolPageConfig = {
   // SEO 配置
   seo: {
     title: "Text to Video - Create Videos from Text with AI",
-    description: "Transform your text descriptions into stunning videos using AI. Simply describe what you want, and watch Seedance AI models bring your vision to life.",
+    description: "Transform your text descriptions into stunning videos using AI. Simply describe what you want, and watch fal.ai models bring your vision to life.",
     keywords: [
       "text to video",
       "ai video generator",
       "video from text",
       "ai video creation",
-      "seedance",
-      "seedance 1.5",
+      "kling",
+      "wan",
       "text to video ai",
     ],
     ogImage: "/og-text-to-video.jpg",
@@ -27,15 +27,15 @@ export const textToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "seedance-1.5-pro",
+      model: "kling-2.5-turbo",
       duration: 5,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["seedance-1.5-pro", "seedance-1.0-pro-fast", "seedance-1.0-pro-quality"],
-      default: "seedance-1.5-pro",
+      available: ["kling-2.5-turbo", "wan-2.5"],
+      default: "kling-2.5-turbo",
     },
 
     features: {
@@ -53,8 +53,8 @@ export const textToVideoConfig: ToolPageConfig = {
       showOutputNumber: false,
       showAudioGeneration: true,
 
-      durations: [2, 4, 5, 6, 8, 10, 12],
-      aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+      durations: [5, 10],
+      aspectRatios: ["16:9", "9:16", "1:1"],
     },
   },
 
@@ -87,16 +87,15 @@ export const textToVideoConfig: ToolPageConfig = {
 
     features: [
       "Simply describe what you want to see",
-      "Access to Seedance AI models (1.5 Pro, 1.0 Fast, 1.0 Quality)",
+      "Access to fal.ai models (Kling 2.5 Turbo Pro, Wan 2.5)",
       "Cinematic quality up to 1080p",
       "Generate audio and sound effects automatically",
       "Multiple aspect ratios for any platform",
     ],
 
     supportedModels: [
-      { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
-      { name: "Seedance 1.0 Fast", provider: "ByteDance", color: "#34d399" },
-      { name: "Seedance 1.0 Quality", provider: "ByteDance", color: "#059669" },
+      { name: "Kling 2.5 Turbo Pro", provider: "fal.ai", color: "#0ea5e9" },
+      { name: "Wan 2.5", provider: "fal.ai", color: "#06b6d4" },
     ],
 
     stats: {
