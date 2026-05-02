@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import type { Video } from "@/db";
+import { falKeyStorage } from "@/lib/fal-key";
 
 interface UseVideoPollingOptions {
   pollInterval?: number;
@@ -59,7 +60,15 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
       const pollStatus = async () => {
         if (!pollingState.current.has(videoId)) return;
         try {
-          const response = await fetch(`/api/v1/video/${videoId}/status`);
+          const headers: Record<string, string> = {};
+          const falKey = falKeyStorage.get();
+          if (falKey) {
+            headers["x-fal-key"] = falKey;
+          }
+
+          const response = await fetch(`/api/v1/video/${videoId}/status`, {
+            headers,
+          });
           if (!response.ok) {
             throw new Error("Failed to fetch video status");
           }
