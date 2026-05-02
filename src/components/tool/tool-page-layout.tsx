@@ -397,11 +397,12 @@ export function ToolPageLayout({
       return;
     }
 
-    // 检查积分
+    // 检查积分（BYOK 模式下跳过）
+    const falKey = typeof window !== "undefined" ? localStorage.getItem("reelkey_fal_api_key") : null;
     const requiredCredits = data.estimatedCredits || 0;
     const availableCredits = balance?.availableCredits ?? 0;
 
-    if (availableCredits < requiredCredits) {
+    if (!falKey && availableCredits < requiredCredits) {
       // 打开升级弹窗
       openModal({
         reason: "insufficient_credits",
@@ -447,7 +448,6 @@ export function ToolPageLayout({
         : data.imageUrl;
       const imageUrls = imageUrl ? [imageUrl] : undefined;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const falKey = typeof window !== "undefined" ? localStorage.getItem("fal_api_key") : null;
       if (falKey) {
         headers["x-fal-key"] = falKey;
       }
