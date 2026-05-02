@@ -456,9 +456,46 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       <FalKeyDialog
         open={showKeyDialog}
         onOpenChange={setShowKeyDialog}
-        onKeySubmit={() => {
+        onKeySubmit={async () => {
           if (pendingSubmitData) {
-            handleSubmit(pendingSubmitData);
+            // Key 已保存，继续执行提交流程（跳过 Key 检查）
+            let activeUser = session?.user ?? null;
+            if (!activeUser) {
+              try {
+                const fresh = await authClient.getSession();
+                activeUser = fresh?.data?.user ?? null;
+              } catch (error) {
+                console.warn("Failed to refresh session:", error);
+              }
+            }
+
+            if (!activeUser) {
+              try {
+                sessionStorage.setItem(PENDING_PROMPT_KEY, pendingSubmitData.prompt);
+                if (pendingSubmitData.images?.[0]) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    sessionStorage.setItem(PENDING_IMAGE_KEY, reader.result as string);
+                  };
+                  reader.readAsDataURL(pendingSubmitData.images[0]);
+                }
+              } catch (error) {
+                console.warn("Failed to store pending input:", error);
+              }
+              signInModal.onOpen();
+              return;
+            }
+
+            // Check for notification permission
+            if (typeof window !== "undefined" && "Notification" in window) {
+              const asked = localStorage.getItem(NOTIFICATION_ASKED_KEY);
+              if (!asked && Notification.permission === "default") {
+                setShowNotifyDialog(true);
+                return;
+              }
+            }
+
+            processSubmission(pendingSubmitData);
           }
         }}
       />
