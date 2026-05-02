@@ -1,5 +1,5 @@
 import type { SubmitData } from "@/components/video-generator";
-import { FalKeyStorage } from "@/lib/fal-key";
+import { falKeyStorage } from "@/lib/fal-key";
 
 /**
  * API request format
@@ -113,7 +113,7 @@ export async function generateVideo(
   };
 
   // Add user's fal.ai API key if available (BYOK mode)
-  const falKey = FalKeyStorage.get();
+  const falKey = falKeyStorage.get();
   if (falKey) {
     headers["x-fal-key"] = falKey;
   }
@@ -127,6 +127,12 @@ export async function generateVideo(
   const data = await res.json();
 
   if (!data.success) {
+    const code = data.error?.details?.code;
+    if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("fal-key-missing"));
+      }
+    }
     throw new Error(data.error?.message || "Failed to generate video");
   }
 
@@ -139,7 +145,12 @@ export async function generateVideo(
 export async function getVideoStatus(
   videoUuid: string
 ): Promise<{ status: string; videoUrl?: string; error?: string }> {
-  const res = await fetch(`/api/v1/video/${videoUuid}/status`);
+  const headers: Record<string, string> = {};
+  const falKey = falKeyStorage.get();
+  if (falKey) {
+    headers["x-fal-key"] = falKey;
+  }
+  const res = await fetch(`/api/v1/video/${videoUuid}/status`, { headers });
   const data = await res.json();
 
   if (!data.success) {
