@@ -25,6 +25,38 @@ fal.ai 执行生成 → 返回视频 URL
 
 ---
 
+## 计划复核与修正（2026-05-02）
+
+原计划方向正确，但有几处会直接影响主流程可用性，后续请按以下修正执行：
+
+1. `@fal-ai/client` 导入方式必须是：
+   - `import { fal } from "@fal-ai/client"`
+   - 不要使用 `import * as fal`（TypeScript 下会导致 `fal.config / fal.queue` 类型报错）
+
+2. `BYOK` 主链路必须强制 `x-fal-key`：
+   - `/api/v1/video/generate` 缺 key 返回结构化错误：`code: "FAL_KEY_MISSING"`
+   - 前端收到 `FAL_KEY_MISSING / FAL_KEY_INVALID` 自动弹出 key 设置弹窗
+
+3. 状态轮询也必须带用户 key：
+   - 前端轮询 `/api/v1/video/[uuid]/status` 时附带 `x-fal-key`
+   - 服务端 `refreshStatus(uuid, userId, userApiKey)` 使用 `getProviderWithKey("falai", userApiKey)` 查询 fal 状态
+   - 不允许在轮询时依赖平台环境变量 key
+
+4. callback 路由必须支持 `falai`：
+   - `/api/v1/video/callback/[provider]` 的 provider 白名单包含 `falai`
+   - `falai` 回调解析不能走 `getProvider("falai")`（该路径要求环境变量 key），应使用纯解析函数
+
+5. fal 状态查询必须避免固定单 endpoint：
+   - 不能只查 kling endpoint
+   - 至少做 endpoint 兜底尝试，查不到时优先返回 `processing` 避免误判失败
+   - 401/403 映射 `FAL_KEY_INVALID`，402 映射余额不足
+
+6. 弹窗集成位置以当前项目结构为准：
+   - 优先在 `src/components/tool/tool-page-layout.tsx` 集成 key 缺失弹窗与 `fal-key-missing` 事件
+   - 不建议在服务端 layout 组件里直接做浏览器事件逻辑
+
+---
+
 ## 开发顺序（10 天计划）
 
 ### Phase 0: 环境配置（等用户完成）
@@ -372,12 +404,14 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request);
 
-    // 从 Header 取用户的 fal.ai Key
+    // 从 Header 取用户的 fal.ai Key（BYOK 必填）
     const falApiKey = request.headers.get("x-fal-key");
     if (!falApiKey) {
-      return apiError("Please set your fal.ai API key in Settings first.", 400, {
-        code: "FAL_KEY_MISSING",
-      });
+      throw new ApiError(
+        "Please set your fal.ai API key before generating videos.",
+        400,
+        { code: "FAL_KEY_MISSING" }
+      );
     }
 
     const body = await request.json();
@@ -418,6 +452,14 @@ async generate(params: GenerateVideoParams) {
 }
 ```
 
+**补充：轮询接口也要传 key**
+
+```ts
+// src/app/api/v1/video/[uuid]/status/route.ts
+const userApiKey = request.headers.get("x-fal-key") || undefined;
+const result = await videoService.refreshStatus(uuid, user.id, userApiKey);
+```
+
 #### 3.2 修改前端调用（30分钟）
 
 **修改：`src/lib/video-api.ts`**
@@ -442,7 +484,8 @@ export async function generateVideo(data: VideoGenerateRequest) {
 
   if (!response.ok) {
     const error = await response.json();
-    if (error?.data?.code === "FAL_KEY_MISSING") {
+    const code = error?.error?.details?.code;
+    if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
       // 触发重新输入 Key 的流程
       window.dispatchEvent(new Event("fal-key-missing"));
     }
@@ -465,7 +508,7 @@ export async function generateVideo(data: VideoGenerateRequest) {
 
 #### 4.2 在工具页布局中集成弹窗（30分钟）
 
-**修改：`src/app/[locale]/(tool)/layout.tsx`**
+**修改：`src/components/tool/tool-page-layout.tsx`**
 
 在工具页布局里检测 Key 状态，Key 缺失时显示弹窗：
 

@@ -8,6 +8,7 @@
 set -euo pipefail
 
 # ── 1. 配置区（必填） ────────────────────────────────────────
+# 从环境变量读取，或在此处填写
 CF_API_TOKEN="${CF_API_TOKEN:-}"
 CF_ACCOUNT_ID="${CF_ACCOUNT_ID:-}"
 TOKEN_NAME="R2 Admin Token $(date +%Y%m%d-%H%M%S)"
