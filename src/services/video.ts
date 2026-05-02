@@ -184,46 +184,49 @@ export class VideoService {
       throw new Error("Failed to create video record");
     }
 
-    let freezeResult: { success: boolean; holdId: number };
-    try {
-      freezeResult = await creditService.freeze({
-        userId: params.userId,
-        credits: creditsRequired,
-        videoUuid: videoResult.uuid,
-      });
-    } catch (error) {
-      await db
-        .update(videos)
-        .set({
-          status: VideoStatus.FAILED,
-          errorMessage: String(error),
-          updatedAt: new Date(),
-        })
-        .where(eq(videos.uuid, videoResult.uuid));
+    // BYOK mode: skip credit check if user provides their own API key
+    let freezeResult: { success: boolean; holdId: number } | null = null;
+    if (!params.userApiKey) {
+      try {
+        freezeResult = await creditService.freeze({
+          userId: params.userId,
+          credits: creditsRequired,
+          videoUuid: videoResult.uuid,
+        });
+      } catch (error) {
+        await db
+          .update(videos)
+          .set({
+            status: VideoStatus.FAILED,
+            errorMessage: String(error),
+            updatedAt: new Date(),
+          })
+          .where(eq(videos.uuid, videoResult.uuid));
 
-      const insufficientCreditsError = this.toInsufficientCreditsApiError(
-        error,
-        creditsRequired
-      );
-      if (insufficientCreditsError) {
-        throw insufficientCreditsError;
+        const insufficientCreditsError = this.toInsufficientCreditsApiError(
+          error,
+          creditsRequired
+        );
+        if (insufficientCreditsError) {
+          throw insufficientCreditsError;
+        }
+        throw error;
       }
-      throw error;
-    }
 
-    if (!freezeResult.success) {
-      await db
-        .update(videos)
-        .set({
-          status: VideoStatus.FAILED,
-          errorMessage: `Insufficient credits. Required: ${creditsRequired}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(videos.uuid, videoResult.uuid));
-      throw new ApiError("Insufficient credits", 402, {
-        code: "INSUFFICIENT_CREDITS",
-        requiredCredits: creditsRequired,
-      });
+      if (!freezeResult.success) {
+        await db
+          .update(videos)
+          .set({
+            status: VideoStatus.FAILED,
+            errorMessage: `Insufficient credits. Required: ${creditsRequired}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(videos.uuid, videoResult.uuid));
+        throw new ApiError("Insufficient credits", 402, {
+          code: "INSUFFICIENT_CREDITS",
+          requiredCredits: creditsRequired,
+        });
+      }
     }
 
     const provider = params.userApiKey
@@ -271,7 +274,10 @@ export class VideoService {
         creditsUsed: creditsRequired,
       };
     } catch (error) {
-      await creditService.release(videoResult.uuid);
+      // BYOK 模式下没有冻结积分，无需释放
+      if (freezeResult) {
+        await creditService.release(videoResult.uuid);
+      }
 
       await db
         .update(videos)
