@@ -112,6 +112,12 @@ export function ToolPageLayout({
     imageUrl?: string;
   } | null>(null);
 
+  useEffect(() => {
+    const handleMissingKey = () => setShowDialog(true);
+    window.addEventListener("fal-key-missing", handleMissingKey);
+    return () => window.removeEventListener("fal-key-missing", handleMissingKey);
+  }, [setShowDialog]);
+
   const addGeneratingId = useCallback((videoId: string) => {
     setGeneratingIds((prev) => (prev.includes(videoId) ? prev : [videoId, ...prev]));
   }, []);
@@ -448,9 +454,11 @@ export function ToolPageLayout({
         : data.imageUrl;
       const imageUrls = imageUrl ? [imageUrl] : undefined;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (falKey) {
-        headers["x-fal-key"] = falKey;
+      if (!falKey) {
+        setShowDialog(true);
+        throw new Error("Please set your fal.ai API key before generating videos.");
       }
+      headers["x-fal-key"] = falKey;
       const response = await fetch("/api/v1/video/generate", {
         method: "POST",
         headers,
@@ -470,6 +478,10 @@ export function ToolPageLayout({
 
       if (!response.ok) {
         const error = await response.json();
+        const code = error?.error?.details?.code;
+        if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+          setShowDialog(true);
+        }
         throw new Error(error?.error?.message || error?.message || "Failed to generate video");
       }
 
