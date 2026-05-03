@@ -55,6 +55,17 @@ fal.ai 执行生成 → 返回视频 URL
    - 优先在 `src/components/tool/tool-page-layout.tsx` 集成 key 缺失弹窗与 `fal-key-missing` 事件
    - 不建议在服务端 layout 组件里直接做浏览器事件逻辑
 
+7. fal 任务完成链路要按 provider 生命周期处理：
+   - `createTask` 必须把本次使用的 `falEndpoint` 存进 `videos.parameters`
+   - 轮询时优先使用该 endpoint 查询 `fal.queue.status/result`，避免 request id 与 endpoint 不匹配导致一直显示生成中
+   - webhook 解析要兼容 `request_id/requestId/id` 以及 `payload/data/output` 多层结果结构
+   - 如果回调 URL 签名已通过且 videoUuid 已定位记录，fal 回调缺少 task id 时不应直接丢弃完成结果
+
+8. BYOK 模式不能走平台积分结算失败路径：
+   - 用户 key 生成时没有 `credit_holds` 记录
+   - `creditService.release` 和 `creditService.settle` 都应在无 hold 时静默返回
+   - 否则 fal.ai 已完成后，R2 转存/完成入库阶段会因为 `Hold not found` 回滚，页面保持生成中
+
 ---
 
 ## 开发顺序（10 天计划）

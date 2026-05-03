@@ -198,6 +198,7 @@ export class CreditService {
 
   /**
    * 结算积分（任务成功时调用）
+   * BYOK 模式下如果没有 hold 记录，静默返回
    */
   async settle(videoUuid: string): Promise<void> {
     await db.transaction(async (trx) => {
@@ -208,7 +209,8 @@ export class CreditService {
         .limit(1);
 
       if (!hold) {
-        throw new Error(`Hold not found for video: ${videoUuid}`);
+        // BYOK 模式不冻结平台积分，生成成功时也不需要结算。
+        return;
       }
 
       if (hold.status === "SETTLED") {

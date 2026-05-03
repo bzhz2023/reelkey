@@ -19,7 +19,7 @@ import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
 import { emitVideoEvent } from "@/lib/video-events";
 import { ApiError } from "@/lib/api/error";
 import { getConfiguredAIProvider } from "@/ai/provider-config";
-import { parseFalAiCallback } from "@/ai/providers/falai";
+import { FalAiProvider, parseFalAiCallback } from "@/ai/providers/falai";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -76,6 +76,28 @@ export class VideoService {
       requiredCredits,
       availableCredits,
     });
+  }
+
+  private async getFalAiTaskStatus(
+    provider: ReturnType<typeof getProviderWithKey>,
+    externalTaskId: string,
+    parameters: typeof videos.$inferSelect.parameters
+  ) {
+    const falEndpoint =
+      parameters &&
+      typeof parameters === "object" &&
+      "falEndpoint" in parameters &&
+      typeof parameters.falEndpoint === "string"
+        ? parameters.falEndpoint
+        : undefined;
+
+    if (falEndpoint) {
+      if (provider instanceof FalAiProvider) {
+        return provider.getTaskStatusForEndpoint(externalTaskId, falEndpoint);
+      }
+    }
+
+    return provider.getTaskStatus(externalTaskId);
   }
 
   /**
@@ -272,6 +294,20 @@ export class VideoService {
       await db
         .update(videos)
         .set({
+          parameters: {
+            duration: params.duration,
+            aspectRatio: params.aspectRatio,
+            quality: params.quality,
+            outputNumber,
+            mode: resolvedMode,
+            imageUrl: params.imageUrl,
+            imageUrls: params.imageUrls,
+            generateAudio: params.generateAudio,
+            falEndpoint:
+              actualProvider === "falai"
+                ? (result.raw as { endpoint?: string } | undefined)?.endpoint
+                : undefined,
+          },
           status: VideoStatus.GENERATING,
           externalTaskId: result.taskId,
           provider: actualProvider,
@@ -330,7 +366,7 @@ export class VideoService {
       return;
     }
 
-    if (video.externalTaskId && video.externalTaskId !== result.taskId) {
+    if (video.externalTaskId && result.taskId && video.externalTaskId !== result.taskId) {
       console.error(
         `Task ID mismatch: expected ${video.externalTaskId}, got ${result.taskId}`
       );
@@ -389,7 +425,14 @@ export class VideoService {
             ? getProviderWithKey(providerType, userApiKey)
             : getProvider(providerType);
 
-        const result = await provider.getTaskStatus(video.externalTaskId);
+        const result =
+          providerType === "falai"
+            ? await this.getFalAiTaskStatus(
+              provider as ReturnType<typeof getProviderWithKey>,
+              video.externalTaskId,
+              video.parameters
+            )
+            : await provider.getTaskStatus(video.externalTaskId);
 
         if (result.status === "completed" && result.videoUrl) {
           const updated = await this.tryCompleteGeneration(video.uuid, result);
