@@ -31,7 +31,7 @@
     "badge": "Bring Your Own API Key • No Subscriptions",
     "title": "AI Video Generation with Your Own API Key",
     "subtitle": "No subscriptions. No expiring credits.",
-    "description": "Use Sora, Kling, and other AI video models with your own API keys. Pay providers directly, keep full control. One-time purchase, lifetime access.",
+    "description": "Use Kling 2.5 and Wan 2.5 with your own fal.ai API key. Pay fal.ai directly, keep full control. One-time purchase, lifetime access.",
     "startCreating": "Get Started Free",
     "viewExamples": "View Examples",
     "features": {
@@ -94,7 +94,7 @@
     "badge": "Why ReelKey",
     "title": "Full Control, Zero Lock-In",
     "subtitle": "The smarter way to use AI video generation",
-    "description": "Stop paying for subscriptions and expiring credits. Use your own API keys and pay providers directly.",
+    "description": "Stop paying for subscriptions and expiring credits. Use your own fal.ai API key and pay fal.ai directly.",
     "learnMore": "Learn more",
     "bottomCTA": {
       "text": "Ready to take control of your AI video workflow?",
@@ -116,17 +116,17 @@
       "stat": "No Expiration"
     },
     "enhancement": {
-      "title": "Multi-Provider Support",
-      "description": "Switch between Sora, Kling, Runway, Luma, and other providers. Not locked into a single vendor.",
-      "stat": "10+ Providers"
+      "title": "Multi-Model Support",
+      "description": "Kling 2.5 Turbo Pro and Wan 2.5 available now. More models added regularly — all included in your lifetime license.",
+      "stat": "More Coming"
     },
     "fast": {
       "title": "Privacy First",
-      "description": "Your API keys stay on your device. We never see or store your credentials."
+      "description": "Your fal.ai API key stays in your browser only. We never see or store your credentials."
     },
     "secure": {
       "title": "Full Transparency",
-      "description": "See exactly what you're paying each provider. No hidden fees or surprise charges."
+      "description": "See exactly what you're paying fal.ai for each generation. No hidden fees or surprise charges."
     },
     "realtime": {
       "title": "Always Available",
@@ -144,8 +144,8 @@
   "HowItWorks": {
     "badge": "Simple Setup",
     "title": "Get Started in Minutes",
-    "subtitle": "3 steps to start generating videos",
-    "description": "No complex setup. Just add your API keys and start creating.",
+    "subtitle": "4 steps to start generating videos",
+    "description": "No complex setup. Just add your fal.ai API key and start creating.",
     "bottomHint": "One-time purchase • Lifetime access",
     "cta": "Get ReelKey Now",
     "steps": {
@@ -161,7 +161,7 @@
       },
       "generate": {
         "title": "Start Creating",
-        "description": "Generate videos using your own API quota. Pay providers directly at their rates—no markup.",
+        "description": "Generate videos using your own fal.ai quota. Pay fal.ai directly at their rates — no markup.",
         "stat": "Your Cost"
       },
       "download": {
