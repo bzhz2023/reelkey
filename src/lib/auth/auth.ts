@@ -19,7 +19,7 @@ import * as schema from "@/db/schema";
 import {
   buildByokEntitlementGrantInput,
   byokEntitlementService,
-  getConfiguredByokLifetimeProductId,
+  getConfiguredByokLifetimeProductIds,
   isByokLifetimeCheckout,
 } from "@/services/byok-entitlement";
 import { env } from "./env.mjs";
@@ -234,18 +234,19 @@ if (env.CREEM_API_KEY) {
 
         const product = checkoutData.product;
         const metadata = checkoutData.metadata as Record<string, unknown>;
-        const configuredLifetimeProductId = getConfiguredByokLifetimeProductId();
+        const configuredLifetimeProductIds =
+          getConfiguredByokLifetimeProductIds();
 
         if (
           isByokLifetimeCheckout({
             productId: product.id,
-            configuredProductId: configuredLifetimeProductId,
+            configuredProductIds: configuredLifetimeProductIds,
             metadata,
           })
         ) {
-          if (!configuredLifetimeProductId) {
+          if (configuredLifetimeProductIds.length === 0) {
             console.warn(
-              "[Creem] CREEM_LIFETIME_PRODUCT_ID/NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID is missing; granting BYOK lifetime from checkout metadata fallback."
+              "[Creem] BYOK lifetime product ids are missing; granting BYOK lifetime from checkout metadata fallback."
             );
           }
 

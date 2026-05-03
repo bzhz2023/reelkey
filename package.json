@@ -19,6 +19,7 @@
     "db:test": "node scripts/test-db-full.mjs",
     "db:verify": "node scripts/test-db-full.mjs",
     "email": "email dev --dir src/mail/templates --port 3333",
+    "script:setup-creem-byok": "tsx scripts/setup-creem-byok.ts",
     "script:add-credits": "dotenv -e .env.local -- tsx scripts/add-credits.ts",
     "script:check-credits": "dotenv -e .env.local -- tsx scripts/check-user-credits.ts",
     "script:reset-credits": "dotenv -e .env.local -- tsx scripts/reset-user-credits.ts",

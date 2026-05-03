@@ -36,8 +36,12 @@ export interface ByokPricingCtaState {
   action: ByokPricingCtaAction;
 }
 
-const lifetimeProductId =
-  process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID ?? "";
+const lifetimeEarlyBirdProductId =
+  process.env.NEXT_PUBLIC_CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID ??
+  process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID ??
+  "";
+const lifetimeRegularProductId =
+  process.env.NEXT_PUBLIC_CREEM_LIFETIME_REGULAR_PRODUCT_ID ?? "";
 
 export const BYOK_PRICING_PLANS: ByokPricingPlan[] = [
   {
@@ -71,7 +75,7 @@ export const BYOK_PRICING_PLANS: ByokPricingPlan[] = [
     historyRetentionDays: null,
     includesCloudStorage: true,
     highlight: true,
-    productId: lifetimeProductId,
+    productId: lifetimeEarlyBirdProductId,
     ctaLabel: "Get lifetime access",
     features: [
       "Unlimited generations through your API key",
@@ -91,6 +95,7 @@ export const BYOK_PRICING_PLANS: ByokPricingPlan[] = [
     modelAccess: "all models",
     historyRetentionDays: null,
     includesCloudStorage: true,
+    productId: lifetimeRegularProductId,
     ctaLabel: "After early bird",
     features: [
       "Unlimited generations through your API key",

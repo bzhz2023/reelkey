@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   buildByokEntitlementGrantInput,
+  getConfiguredByokLifetimeProductIdsFromEnv,
   isByokLifetimeCheckout,
 } from "./byok-entitlement";
 
@@ -11,6 +12,25 @@ assert.equal(
   isByokLifetimeCheckout({
     productId,
     configuredProductId: productId,
+    metadata: {},
+  }),
+  true,
+);
+
+assert.deepEqual(
+  getConfiguredByokLifetimeProductIdsFromEnv({
+    CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID: "prod_early",
+    CREEM_LIFETIME_PRODUCT_ID: "prod_legacy",
+    CREEM_LIFETIME_REGULAR_PRODUCT_ID: "prod_regular",
+    NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID: "prod_legacy",
+  }),
+  ["prod_early", "prod_legacy", "prod_regular"],
+);
+
+assert.equal(
+  isByokLifetimeCheckout({
+    productId: "prod_regular",
+    configuredProductIds: ["prod_early", "prod_regular"],
     metadata: {},
   }),
   true,

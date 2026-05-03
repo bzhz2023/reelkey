@@ -19,6 +19,7 @@ export interface ByokEntitlementGrantInput {
 interface LifetimeCheckoutCheckInput {
   productId?: string | null;
   configuredProductId?: string | null;
+  configuredProductIds?: string[] | null;
   metadata?: Record<string, unknown> | null;
 }
 
@@ -37,23 +38,43 @@ function getString(value: unknown): string | undefined {
 }
 
 export function getConfiguredByokLifetimeProductId(): string {
-  return (
-    process.env.CREEM_LIFETIME_PRODUCT_ID?.trim() ||
-    process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID?.trim() ||
-    ""
-  );
+  return getConfiguredByokLifetimeProductIds()[0] ?? "";
+}
+
+export function getConfiguredByokLifetimeProductIdsFromEnv(
+  env: Record<string, string | undefined>
+): string[] {
+  const ids = [
+    env.CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID,
+    env.CREEM_LIFETIME_PRODUCT_ID,
+    env.CREEM_LIFETIME_REGULAR_PRODUCT_ID,
+    env.NEXT_PUBLIC_CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID,
+    env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID,
+    env.NEXT_PUBLIC_CREEM_LIFETIME_REGULAR_PRODUCT_ID,
+  ]
+    .map((value) => value?.trim())
+    .filter((value): value is string => !!value);
+
+  return [...new Set(ids)];
+}
+
+export function getConfiguredByokLifetimeProductIds(): string[] {
+  return getConfiguredByokLifetimeProductIdsFromEnv(process.env);
 }
 
 export function isByokLifetimeCheckout({
   productId,
   configuredProductId = getConfiguredByokLifetimeProductId(),
+  configuredProductIds,
   metadata,
 }: LifetimeCheckoutCheckInput): boolean {
   const normalizedProductId = productId?.trim() ?? "";
-  const normalizedConfiguredProductId = configuredProductId?.trim() ?? "";
+  const normalizedConfiguredProductIds =
+    configuredProductIds?.map((id) => id.trim()).filter(Boolean) ??
+    (configuredProductId?.trim() ? [configuredProductId.trim()] : []);
 
-  if (normalizedConfiguredProductId) {
-    return normalizedProductId === normalizedConfiguredProductId;
+  if (normalizedConfiguredProductIds.length > 0) {
+    return normalizedConfiguredProductIds.includes(normalizedProductId);
   }
 
   return (
