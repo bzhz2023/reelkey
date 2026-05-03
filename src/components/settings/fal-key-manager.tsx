@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,6 @@ import {
   LockKeyhole,
   ShieldCheck,
   Trash2,
-  XCircle,
 } from "lucide-react";
 import { falKeyStorage } from "@/lib/fal-key";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +31,7 @@ export function FalKeyManager() {
   const [showFullKey, setShowFullKey] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const presentationStatus = status === "invalid" ? "missing" : status;
 
   const statusMeta = {
     valid: {
@@ -41,14 +41,6 @@ export function FalKeyManager() {
       tone: "text-emerald-600",
       badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
       panelClass: "border-emerald-200 bg-emerald-50/60",
-    },
-    invalid: {
-      label: "Invalid key",
-      description: "The last key could not be authenticated by fal.ai.",
-      icon: XCircle,
-      tone: "text-red-600",
-      badgeClass: "border-red-200 bg-red-50 text-red-700",
-      panelClass: "border-red-200 bg-red-50/60",
     },
     validating: {
       label: "Validating",
@@ -66,11 +58,17 @@ export function FalKeyManager() {
       badgeClass: "border-border bg-muted text-muted-foreground",
       panelClass: "border-border bg-muted/30",
     },
-  }[status];
+  }[presentationStatus];
 
   const StatusIcon = statusMeta.icon;
   const isValidating = status === "validating";
   const hasStoredKey = status === "valid" && maskedKey;
+
+  useEffect(() => {
+    if (status === "invalid") {
+      setError("Invalid API key. Please check and try again.");
+    }
+  }, [status]);
 
   const handleSave = async () => {
     if (!inputKey.trim()) {
@@ -106,11 +104,9 @@ export function FalKeyManager() {
   };
 
   const getStatusIcon = () => {
-    switch (status) {
+    switch (presentationStatus) {
       case "valid":
         return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
-      case "invalid":
-        return <XCircle className="h-4 w-4 text-red-600" />;
       case "validating":
         return <Loader2 className="h-4 w-4 animate-spin text-sky-600" />;
       default:
@@ -142,7 +138,7 @@ export function FalKeyManager() {
             <StatusIcon
               className={cn(
                 "h-3.5 w-3.5",
-                status === "validating" && "animate-spin"
+                presentationStatus === "validating" && "animate-spin"
               )}
             />
             {statusMeta.label}
@@ -163,7 +159,7 @@ export function FalKeyManager() {
                   className={cn(
                     "h-4 w-4",
                     statusMeta.tone,
-                    status === "validating" && "animate-spin"
+                    presentationStatus === "validating" && "animate-spin"
                   )}
                 />
               </div>
@@ -258,7 +254,10 @@ export function FalKeyManager() {
                 type={showKey ? "text" : "password"}
                 placeholder="Paste your fal.ai key"
                 value={inputKey}
-                onChange={(e) => setInputKey(e.target.value)}
+                onChange={(e) => {
+                  setInputKey(e.target.value);
+                  if (error) setError("");
+                }}
                 disabled={isValidating}
                 className="pr-10"
               />
