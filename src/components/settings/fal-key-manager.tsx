@@ -21,8 +21,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { falKeyStorage } from "@/lib/fal-key";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/components/ui";
 
 export function FalKeyManager() {
   const { status, maskedKey, saveKey, removeKey } = useFalKey();
@@ -31,31 +29,9 @@ export function FalKeyManager() {
   const [showFullKey, setShowFullKey] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const presentationStatus = status === "valid" ? "valid" : "missing";
 
-  const statusMeta = {
-    valid: {
-      label: "Connected",
-      description: "This key passed fal.ai authentication and is ready for generation.",
-      icon: CheckCircle2,
-      tone: "text-emerald-600",
-      badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-      panelClass: "border-emerald-200 bg-emerald-50/60",
-    },
-    missing: {
-      label: "Not connected",
-      description: "Add a fal.ai key to generate videos through your own account.",
-      icon: Key,
-      tone: "text-muted-foreground",
-      badgeClass: "border-border bg-muted text-muted-foreground",
-      panelClass: "border-border bg-muted/30",
-    },
-  }[presentationStatus];
-
-  const StatusIcon = statusMeta.icon;
   const isValidating = status === "validating";
   const hasStoredKey = status === "valid" && maskedKey;
-  const showConnectionState = presentationStatus === "valid";
 
   useEffect(() => {
     if (status === "invalid") {
@@ -97,12 +73,11 @@ export function FalKeyManager() {
   };
 
   const getStatusIcon = () => {
-    switch (presentationStatus) {
-      case "valid":
-        return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
-      default:
-        return <Key className="h-4 w-4 text-muted-foreground" />;
+    if (hasStoredKey) {
+      return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
     }
+
+    return <Key className="h-4 w-4 text-muted-foreground" />;
   };
 
   return (
@@ -119,79 +94,39 @@ export function FalKeyManager() {
               it before saving, then keeps it in this browser only.
             </CardDescription>
           </div>
-          {showConnectionState && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "w-fit gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-                statusMeta.badgeClass
-              )}
-            >
-              <StatusIcon
-                className="h-3.5 w-3.5"
-              />
-              {statusMeta.label}
-            </Badge>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-5 p-6">
-        {showConnectionState && (
-          <div
-            className={cn(
-              "rounded-lg border p-4 transition-colors",
-              statusMeta.panelClass
+        {hasStoredKey && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {!showFullKey && (
+              <code className="w-fit rounded-md border bg-muted/40 px-3 py-1.5 font-mono text-xs text-foreground">
+                {maskedKey}
+              </code>
             )}
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
-                  <StatusIcon
-                    className={cn("h-4 w-4", statusMeta.tone)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-semibold">
-                    {statusMeta.label}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {statusMeta.description}
-                  </p>
-                </div>
-              </div>
-
-              {hasStoredKey && (
-                <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
-                  {maskedKey}
+            {showFullKey && (
+              <div className="flex min-w-0 flex-1 flex-col gap-2 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center">
+                <code className="min-w-0 flex-1 break-all font-mono text-xs">
+                  {falKeyStorage.get()}
                 </code>
-              )}
-            </div>
-
-            {showFullKey && hasStoredKey && (
-              <div className="mt-4 rounded-md border bg-background p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <code className="min-w-0 flex-1 break-all font-mono text-xs">
-                    {falKeyStorage.get()}
-                  </code>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyFullKey}
-                    className="shrink-0"
-                  >
-                    {copied ? (
-                      <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyFullKey}
+                  className="shrink-0"
+                >
+                  {copied ? (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy
+                    </>
+                  )}
+                </Button>
               </div>
             )}
           </div>
