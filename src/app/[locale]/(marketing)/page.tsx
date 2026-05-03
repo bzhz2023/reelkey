@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: PageMetadataProps) {
   const { locale } = await params;
 
   const titles = {
-    en: "AI Video Generator - Create Stunning Videos with Sora 2 & Veo 3.1",
-    zh: "AI视频生成器 - 使用Sora 2和Veo 3.1创建精彩视频",
+    en: "ReelKey — BYOK AI Video Generation, No Subscriptions",
+    zh: "ReelKey — 自带 API Key 生成 AI 视频，无订阅费",
   };
 
   const descriptions = {
-    en: "Transform your ideas into stunning videos with AI. Access Sora 2, Veo 3.1, Wan 2.6, and more. Fast, easy, and professional quality video generation in minutes. Start creating today!",
-    zh: "用AI将您的想法转化为精彩视频。访问Sora 2、Veo 3.1、Wan 2.6等模型。快速、简单、专业品质的视频生成，几分钟内完成。立即开始创作！",
+    en: "Generate AI videos using your own fal.ai API key. Support Kling 2.5 and Wan 2.5 models. Pay providers directly — no subscriptions, no expiring credits. One-time lifetime license from $29.",
+    zh: "使用你自己的 fal.ai API Key 生成 AI 视频。支持 Kling 2.5 和 Wan 2.5 模型。直接向服务商付费，无订阅费，无过期积分。一次性终身授权，$29 起。",
   };
 
   const canonicalUrl = `${siteConfig.url}${locale === i18n.defaultLocale ? "" : `/${locale}`}`;

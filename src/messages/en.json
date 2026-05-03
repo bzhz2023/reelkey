@@ -102,7 +102,7 @@
     },
     "textToVideo": {
       "title": "Bring Your Own Key",
-      "description": "Use your own API keys from OpenAI, Kling, Luma, and more. Pay providers directly at their rates—no markup, no middleman.",
+      "description": "Connect your own fal.ai API key and pay fal.ai directly at their rates — no markup, no middleman. Your billing is entirely between you and fal.ai.",
       "stat": "Your API, Your Cost"
     },
     "imageToVideo": {
@@ -129,12 +129,12 @@
       "description": "See exactly what you're paying each provider. No hidden fees or surprise charges."
     },
     "realtime": {
-      "title": "Offline Capable",
-      "description": "Desktop app works offline. Your data stays local, syncs when you want."
+      "title": "Always Available",
+      "description": "Access your generation history and completed videos 24/7 from any browser. No desktop install required."
     },
     "formats": {
-      "title": "Open Source",
-      "description": "Core features are open source. Audit the code, contribute, or self-host."
+      "title": "Lifetime Updates",
+      "description": "New model integrations and features ship to all lifetime license holders at no extra charge — forever."
     },
     "ai": {
       "title": "Lifetime Updates",
@@ -155,8 +155,8 @@
         "stat": "Pay Once"
       },
       "upload": {
-        "title": "Add Your API Keys",
-        "description": "Connect your own API keys from OpenAI, Kling, Luma, or other providers. Keys stay private on your device.",
+        "title": "Add Your fal.ai Key",
+        "description": "Connect your fal.ai API key in seconds. Your key is stored only in your browser — never sent to our servers.",
         "stat": "30 Seconds"
       },
       "generate": {
@@ -207,8 +207,8 @@
       "answer": "ReelKey separates the workspace from provider billing. ReelKey handles the interface, generation history, and storage features; fal.ai bills generation costs directly to your own account."
     },
     "aiModels": {
-      "question": "Which AI providers are supported?",
-      "answer": "ReelKey supports 10+ providers including OpenAI (Sora), Kling AI, Luma Labs (Dream Machine), Runway ML, and more. You can switch between providers anytime—no vendor lock-in. New providers are added regularly with free updates."
+      "question": "Which AI models are supported?",
+      "answer": "ReelKey currently supports Kling 2.5 Turbo Pro and Wan 2.5 via fal.ai — covering text-to-video and image-to-video modes at multiple resolutions. Additional models are added regularly, and all future additions are included in the lifetime license at no extra charge."
     },
     "providerBilling": {
       "question": "Who bills generation costs?",
@@ -220,7 +220,7 @@
     },
     "support": {
       "question": "Are my API keys safe?",
-      "answer": "Yes. Your API keys are stored locally on your device and encrypted. ReelKey never sends your keys to our servers—all API calls go directly from your device to the provider. You can verify this in our open-source code."
+      "answer": "Yes. Your fal.ai API key is stored only in your browser's localStorage and is never transmitted to or stored on our servers. When you generate a video, your browser sends the key directly in the request; our server uses it in-memory for that single request only and immediately discards it."
     }
   },
   "Footer": {
@@ -230,6 +230,7 @@
     "copyright": "© {year} ReelKey. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "acceptableUse": "Acceptable Use",
     "cookie": "Cookie Policy"
   },
   "Credits": {

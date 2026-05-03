@@ -102,7 +102,7 @@
     },
     "textToVideo": {
       "title": "自带密钥",
-      "description": "使用您自己的 OpenAI、Kling、Luma 等 API Key。直接按提供商价格付费——无加价，无中间商。",
+      "description": "连接您自己的 fal.ai API Key，按 fal.ai 的实际价格付费——无加价，无中间商。计费完全在您与 fal.ai 之间。",
       "stat": "您的 API，您的成本"
     },
     "imageToVideo": {
@@ -129,12 +129,12 @@
       "description": "清楚看到您向每个提供商支付的费用。无隐藏费用或意外收费。"
     },
     "realtime": {
-      "title": "离线可用",
-      "description": "桌面应用支持离线工作。数据保存在本地，按需同步。"
+      "title": "随时可用",
+      "description": "在任意浏览器中 24/7 访问您的生成记录和完成的视频。无需安装桌面应用。"
     },
     "formats": {
-      "title": "开源",
-      "description": "核心功能开源。审计代码、贡献或自托管。"
+      "title": "终身更新",
+      "description": "新模型集成和功能持续更新，所有终身许可证用户免费获得——永久有效。"
     },
     "ai": {
       "title": "终身更新",
@@ -155,8 +155,8 @@
         "stat": "付费一次"
       },
       "upload": {
-        "title": "添加 API Key",
-        "description": "连接您自己的 OpenAI、Kling、Luma 或其他提供商的 API Key。密钥私密保存在您的设备上。",
+        "title": "添加 fal.ai Key",
+        "description": "几秒钟内连接您的 fal.ai API Key。密钥仅存储在您的浏览器中——从不发送到我们的服务器。",
         "stat": "30 秒"
       },
       "generate": {
@@ -207,8 +207,8 @@
       "answer": "ReelKey 把工作台能力和模型方计费拆开。ReelKey 负责界面、生成记录和存储能力；fal.ai 的生成成本由 fal.ai 直接向您的账号计费。"
     },
     "aiModels": {
-      "question": "支持哪些 AI 提供商？",
-      "answer": "ReelKey 支持 10+ 个提供商，包括 OpenAI (Sora)、Kling AI、Luma Labs (Dream Machine)、Runway ML 等。您可以随时在提供商之间切换——无供应商锁定。新提供商会定期添加，并提供免费更新。"
+      "question": "支持哪些 AI 模型？",
+      "answer": "ReelKey 目前通过 fal.ai 支持 Kling 2.5 Turbo Pro 和 Wan 2.5，涵盖文本生视频和图片生视频两种模式，支持多种分辨率。后续会持续新增模型，终身许可证用户免费获得所有新增模型，无需额外付费。"
     },
     "providerBilling": {
       "question": "生成费用由谁收取？",
@@ -220,7 +220,7 @@
     },
     "support": {
       "question": "我的 API Key 安全吗？",
-      "answer": "是的。您的 API Key 加密存储在本地设备上。ReelKey 从不将您的密钥发送到我们的服务器——所有 API 调用都直接从您的设备发送到提供商。您可以在我们的开源代码中验证这一点。"
+      "answer": "是的。您的 fal.ai API Key 仅存储在您浏览器的 localStorage 中，从不传输到或存储在我们的服务器上。当您发起视频生成时，您的浏览器将 Key 附加在请求中发送；我们的服务器仅在该单次请求内存中使用此 Key，请求结束后立即丢弃。"
     }
   },
   "Footer": {
@@ -230,6 +230,7 @@
     "copyright": "© {year} ReelKey. 保留所有权利。",
     "privacy": "隐私政策",
     "terms": "服务条款",
+    "acceptableUse": "可接受使用政策",
     "cookie": "Cookie 政策"
   },
   "Credits": {
