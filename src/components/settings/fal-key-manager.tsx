@@ -98,14 +98,28 @@ export function FalKeyManager() {
       </CardHeader>
       <CardContent className="space-y-5 p-6">
         {hasStoredKey && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            {!showFullKey && (
-              <code className="w-fit rounded-md border bg-muted/40 px-3 py-1.5 font-mono text-xs text-foreground">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 transition-colors">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Connected</div>
+                  <p className="text-sm text-muted-foreground">
+                    This key passed fal.ai authentication and is ready for
+                    generation.
+                  </p>
+                </div>
+              </div>
+
+              <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
                 {maskedKey}
               </code>
-            )}
+            </div>
+
             {showFullKey && (
-              <div className="flex min-w-0 flex-1 flex-col gap-2 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center">
+              <div className="mt-4 flex min-w-0 flex-col gap-2 rounded-md border bg-background p-3 sm:flex-row sm:items-center">
                 <code className="min-w-0 flex-1 break-all font-mono text-xs">
                   {falKeyStorage.get()}
                 </code>
