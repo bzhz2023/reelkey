@@ -698,16 +698,19 @@ export const CREDITS_CONFIG = {
 
 ### Phase 9: 定价与支付（Day 9）
 
-#### 9.1 更新定价页面（1小时）
+#### 9.1 更新定价页面（1小时）✅
 
 - 修改 `src/components/landing/pricing-section.tsx`
-- 移除所有订阅选项
+- BYOK 模式下不展示原订阅/积分购买页，原代码保留给非 BYOK 模式复用
+- 新增 `src/config/byok-pricing.ts`，集中配置免费版、买断早鸟、买断正式价格和权益
+- 新增 `src/components/price/byok-lifetime-pricing.tsx`
 - 改为买断制：
   ```
   免费版：10次/月 + 2模型 + 7天历史
   买断版（早鸟）：$29 无限次 + 全模型 + 云端存储
   买断版（正式）：$49（早鸟期后）
   ```
+- 当前早鸟购买按钮已预留 Creem checkout 入口；正式可用前需要在 9.2 配置 `NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID`
 
 #### 9.2 配置 Creem（30分钟）
 

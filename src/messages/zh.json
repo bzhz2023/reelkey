@@ -200,19 +200,19 @@
     "contact": "还有其他问题？请联系我们",
     "general": {
       "question": "什么是 ReelKey？",
-      "answer": "ReelKey 是一个 BYOK（自带密钥）AI 视频生成平台。您无需向我们支付订阅或积分费用，而是使用自己的 OpenAI、Kling、Luma 等提供商的 API Key。您直接按提供商价格付费——我们只提供界面。一次性购买许可证，终身访问。"
+      "answer": "ReelKey 是一个 BYOK（自带密钥）AI 视频生成工作台。您连接自己的 fal.ai API Key，通过支持的模型生成视频，并由 fal.ai 直接向您的账号计费。"
     },
     "commercial": {
       "question": "这与其他 AI 视频平台有何不同？",
-      "answer": "大多数平台收取月度订阅费并出售会过期的积分。ReelKey 使用 BYOK 模式：您自带 API Key，直接向提供商付费，永不失去访问权限。无加价，无过期积分，无重复费用。根据用户报告，与传统订阅模式相比，这可以节省 60-80% 的费用。"
+      "answer": "ReelKey 把工作台能力和模型方计费拆开。ReelKey 负责界面、生成记录和存储能力；fal.ai 的生成成本由 fal.ai 直接向您的账号计费。"
     },
     "aiModels": {
       "question": "支持哪些 AI 提供商？",
       "answer": "ReelKey 支持 10+ 个提供商，包括 OpenAI (Sora)、Kling AI、Luma Labs (Dream Machine)、Runway ML 等。您可以随时在提供商之间切换——无供应商锁定。新提供商会定期添加，并提供免费更新。"
     },
-    "credits": {
-      "question": "我需要从 ReelKey 购买积分吗？",
-      "answer": "不需要。您使用自己的 API Key，直接按提供商公布的价格付费。ReelKey 收取一次性软件许可费，而非按生成次数收费。您的 API 配额永不过期，我们从不收取加价。"
+    "providerBilling": {
+      "question": "生成费用由谁收取？",
+      "answer": "fal.ai 的生成成本由 fal.ai 直接向您的 fal.ai 账号计费。BYOK 模式下，ReelKey 不转售模型方用量。"
     },
     "refund": {
       "question": "你们的退款政策是什么？",

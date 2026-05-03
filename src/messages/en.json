@@ -200,19 +200,19 @@
     "contact": "Still have questions? Contact us at",
     "general": {
       "question": "What is ReelKey?",
-      "answer": "ReelKey is a BYOK (Bring Your Own Key) AI video generation platform. Instead of paying us for subscriptions or credits, you use your own API keys from providers like OpenAI, Kling, and Luma. You pay providers directly at their rates—we just provide the interface. One-time license purchase, lifetime access."
+      "answer": "ReelKey is a BYOK (Bring Your Own Key) AI video generation workspace. You connect your own fal.ai API key, generate through supported models, and pay fal.ai directly for provider usage."
     },
     "commercial": {
       "question": "How is this different from other AI video platforms?",
-      "answer": "Most platforms charge monthly subscriptions and sell credits that expire. ReelKey uses the BYOK model: you bring your own API keys, pay providers directly, and never lose access. No markup, no expiring credits, no recurring fees. According to user reports, this can save 60-80% compared to traditional subscription models."
+      "answer": "ReelKey separates the workspace from provider billing. ReelKey handles the interface, generation history, and storage features; fal.ai bills generation costs directly to your own account."
     },
     "aiModels": {
       "question": "Which AI providers are supported?",
       "answer": "ReelKey supports 10+ providers including OpenAI (Sora), Kling AI, Luma Labs (Dream Machine), Runway ML, and more. You can switch between providers anytime—no vendor lock-in. New providers are added regularly with free updates."
     },
-    "credits": {
-      "question": "Do I need to buy credits from ReelKey?",
-      "answer": "No. You use your own API keys and pay providers directly at their published rates. ReelKey charges a one-time license fee for the software, not per-generation fees. Your API quota never expires and you're never charged a markup."
+    "providerBilling": {
+      "question": "Who bills generation costs?",
+      "answer": "fal.ai bills generation costs to your own fal.ai account. ReelKey does not resell provider usage in BYOK mode."
     },
     "refund": {
       "question": "What's your refund policy?",

@@ -37,6 +37,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/components/ui";
+import { BYOK_MODE } from "@/config/byok-mode";
 import { useCredits } from "@/stores/credits-store";
 import { headerModels, headerTools, headerDocs } from "@/config/navigation";
 import { Gem, ImagePlay, Type, Video, BookOpen } from "lucide-react";
@@ -44,6 +45,7 @@ import { LocaleLink } from "@/i18n/navigation";
 import type { User } from "@/lib/auth/client";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { authClient } from "@/lib/auth/client";
+import { shouldShowCreditBalanceInHeader } from "./header-visibility";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ImagePlay,
@@ -60,6 +62,12 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
+  const isByokMode = BYOK_MODE;
+  const showCreditBalance = shouldShowCreditBalanceInHeader({
+    isByokMode,
+    hasUser: Boolean(user),
+  });
+  const billingLabel = isByokMode ? t("Header.apiUsage") : t("Header.credits");
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -216,7 +224,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <Globe className="h-4 w-4" />
                   <span className="hidden sm:inline">{locale.toUpperCase()}</span>
                 </button>
@@ -244,6 +252,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
+                  type="button"
                   className="flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                   aria-label="Toggle theme"
                 >
@@ -270,8 +279,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Credits Display */}
-            {user && (
+            {/* Credits Display - kept for non-BYOK deployments only. */}
+            {showCreditBalance && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm border border-border/50">
                 <Gem className="h-4 w-4 text-amber-500" />
                 <CreditsDisplay />
@@ -282,7 +291,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <button type="button" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background/20">
                       <span className="text-sm font-medium">
                         {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
@@ -298,7 +307,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     <LocaleLink href="/my-creations">{t('Header.myCreations')}</LocaleLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
-                    <LocaleLink href="/credits">{t('Header.credits')}</LocaleLink>
+                    <LocaleLink href="/credits">{billingLabel}</LocaleLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
                     <LocaleLink href="/settings">{t('Header.settings')}</LocaleLink>
@@ -333,8 +342,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
 
           {/* Mobile Menu */}
           <div className="flex items-center gap-3">
-            {/* Credits Display */}
-            {user && (
+            {/* Credits Display - kept for non-BYOK deployments only. */}
+            {showCreditBalance && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted border border-border">
                 <Gem className="h-3 w-3 text-amber-500" />
                 <span className="text-xs font-medium">
@@ -432,6 +441,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                   <div className="flex items-center gap-3 p-2">
                     <Globe className="h-4 w-4" />
                     <button
+                      type="button"
                       onClick={() => switchLocale("en")}
                       className="text-sm hover:text-foreground transition-colors"
                     >
@@ -439,6 +449,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     </button>
                     <span className="text-muted-foreground">/</span>
                     <button
+                      type="button"
                       onClick={() => switchLocale("zh")}
                       className="text-sm hover:text-foreground transition-colors"
                     >
@@ -452,6 +463,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     <div className="flex items-center gap-1">
                       {(["light", "dark", "system"] as const).map((mode) => (
                         <button
+                          type="button"
                           key={mode}
                           onClick={() => setTheme(mode)}
                           className={cn(
@@ -482,7 +494,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                         href="/credits"
                         className="p-2 hover:bg-accent rounded-md transition-colors"
                       >
-                        {t('Header.credits')}
+                        {billingLabel}
                       </LocaleLink>
                       <LocaleLink
                         href="/settings"
@@ -491,6 +503,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                         {t('Header.settings')}
                       </LocaleLink>
                       <button
+                        type="button"
                         onClick={handleSignOut}
                         className="p-2 text-left text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                       >

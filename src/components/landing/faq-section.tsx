@@ -30,8 +30,8 @@ const faqData: FAQItem[] = [
     answerKey: "aiModels.answer",
   },
   {
-    questionKey: "credits.question",
-    answerKey: "credits.answer",
+    questionKey: "providerBilling.question",
+    answerKey: "providerBilling.answer",
   },
   {
     questionKey: "refund.question",
