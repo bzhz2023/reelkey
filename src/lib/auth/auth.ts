@@ -16,6 +16,12 @@ import {
 
 import { creditPackages, db, users } from "@/db";
 import * as schema from "@/db/schema";
+import {
+  buildByokEntitlementGrantInput,
+  byokEntitlementService,
+  getConfiguredByokLifetimeProductId,
+  isByokLifetimeCheckout,
+} from "@/services/byok-entitlement";
 import { env } from "./env.mjs";
 import { eq } from "drizzle-orm";
 
@@ -132,6 +138,26 @@ if (env.CREEM_API_KEY) {
           metadata,
         });
 
+        const isByokLifetime = isByokLifetimeCheckout({
+          productId: product.id,
+          metadata: metadata as Record<string, unknown>,
+        });
+
+        if (isByokLifetime) {
+          console.log(
+            `[Creem] BYOK lifetime subscription-style grant detected for product ${product.id}`
+          );
+          await byokEntitlementService.grantLifetime(
+            buildByokEntitlementGrantInput({
+              productId: product.id,
+              productName: product.name,
+              metadata: metadata as Record<string, unknown>,
+              customerId: (customer as { id?: string })?.id,
+            })
+          );
+          return;
+        }
+
         const productConfig = getProductById(product.id);
         if (!productConfig) {
           console.error(`[Creem] Unknown product: ${product.id}`);
@@ -207,6 +233,45 @@ if (env.CREEM_API_KEY) {
         }
 
         const product = checkoutData.product;
+        const metadata = checkoutData.metadata as Record<string, unknown>;
+        const configuredLifetimeProductId = getConfiguredByokLifetimeProductId();
+
+        if (
+          isByokLifetimeCheckout({
+            productId: product.id,
+            configuredProductId: configuredLifetimeProductId,
+            metadata,
+          })
+        ) {
+          if (!configuredLifetimeProductId) {
+            console.warn(
+              "[Creem] CREEM_LIFETIME_PRODUCT_ID/NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID is missing; granting BYOK lifetime from checkout metadata fallback."
+            );
+          }
+
+          const customerId =
+            typeof checkoutData.customer === "object"
+              ? checkoutData.customer?.id
+              : checkoutData.customer;
+
+          await byokEntitlementService.grantLifetime(
+            buildByokEntitlementGrantInput({
+              productId: product.id,
+              productName: product.name,
+              metadata,
+              order: checkoutData.order,
+              checkoutId: checkoutData.id,
+              customerId,
+              webhookId: checkoutData.webhookId,
+            })
+          );
+
+          console.log(
+            `[Creem] BYOK lifetime entitlement granted for product ${product.id}`
+          );
+          return;
+        }
+
         const productConfig = getProductById(product.id);
         if (!productConfig) {
           console.error(`[Creem] Unknown product in checkout: ${product.id}`);

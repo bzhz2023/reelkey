@@ -98,6 +98,32 @@ export const creemSubscriptions = pgTable(
   })
 );
 
+export const byokEntitlements = pgTable(
+  "byok_entitlements",
+  {
+    id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: text("user_id").notNull(),
+    tier: text("tier").default("lifetime").notNull(),
+    status: text("status").default("active").notNull(),
+    source: text("source").default("creem").notNull(),
+    productId: text("product_id"),
+    productName: text("product_name"),
+    orderId: text("order_id").unique(),
+    checkoutId: text("checkout_id"),
+    customerId: text("customer_id"),
+    metadata: jsonb("metadata"),
+    purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
+    revokedAt: timestamp("revoked_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: uniqueIndex("byok_entitlements_user_id_idx").on(table.userId),
+    statusIdx: index("byok_entitlements_status_idx").on(table.status),
+    orderIdIdx: index("byok_entitlements_order_id_idx").on(table.orderId),
+  })
+);
+
 export const sessions = pgTable(
   "session",
   {
@@ -332,6 +358,7 @@ export const videos = pgTable(
 
 export type Customer = typeof customers.$inferSelect;
 export type BetterAuthUser = typeof users.$inferSelect;
+export type ByokEntitlement = typeof byokEntitlements.$inferSelect;
 export type CreditPackage = typeof creditPackages.$inferSelect;
 export type CreditHold = typeof creditHolds.$inferSelect;
 export type CreditTransaction = typeof creditTransactions.$inferSelect;

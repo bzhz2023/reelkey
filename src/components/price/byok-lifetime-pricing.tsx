@@ -18,12 +18,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/components/ui";
 import {
   getByokPricingPlans,
+  getByokPricingCtaState,
   type ByokPricingPlan,
 } from "@/config/byok-pricing";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { creem } from "@/lib/auth/client";
 
 interface ByokLifetimePricingProps {
+  hasLifetimeEntitlement?: boolean;
   userId?: string;
 }
 
@@ -37,9 +39,11 @@ function getLocalePrefix(pathname: string): string {
 }
 
 function PlanCard({
+  hasLifetimeEntitlement,
   plan,
   userId,
 }: {
+  hasLifetimeEntitlement: boolean;
   plan: ByokPricingPlan;
   userId?: string;
 }) {
@@ -48,9 +52,15 @@ function PlanCard({
   const [isPending, startTransition] = useTransition();
   const localePrefix = getLocalePrefix(pathname);
   const isCheckoutPlan = plan.id === "lifetime-early-bird";
-  const isFuturePlan = plan.availability === "after_early_bird";
+  const ctaState = getByokPricingCtaState({
+    planId: plan.id,
+    hasLifetimeEntitlement,
+    hasUser: !!userId,
+  });
 
   const handleClick = () => {
+    if (ctaState.action === "active" || ctaState.action === "future") return;
+
     if (plan.id === "free") {
       if (!userId) {
         signInModal.onOpen();
@@ -61,7 +71,7 @@ function PlanCard({
       return;
     }
 
-    if (!isCheckoutPlan || isFuturePlan) return;
+    if (!isCheckoutPlan) return;
 
     if (!userId) {
       signInModal.onOpen();
@@ -170,18 +180,21 @@ function PlanCard({
 
       <Button
         className="mt-auto w-full"
-        disabled={isPending || isFuturePlan}
+        disabled={isPending || ctaState.disabled}
         onClick={handleClick}
         variant={plan.highlight ? "default" : "outline"}
       >
         {isPending ? <Loader2 className="animate-spin" /> : null}
-        {plan.ctaLabel}
+        {ctaState.label}
       </Button>
     </div>
   );
 }
 
-export function ByokLifetimePricing({ userId }: ByokLifetimePricingProps) {
+export function ByokLifetimePricing({
+  hasLifetimeEntitlement = false,
+  userId,
+}: ByokLifetimePricingProps) {
   const pathname = usePathname();
   const plans = getByokPricingPlans();
   const localePrefix = getLocalePrefix(pathname);
@@ -204,7 +217,12 @@ export function ByokLifetimePricing({ userId }: ByokLifetimePricingProps) {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {plans.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} userId={userId} />
+          <PlanCard
+            hasLifetimeEntitlement={hasLifetimeEntitlement}
+            key={plan.id}
+            plan={plan}
+            userId={userId}
+          />
         ))}
       </div>
 

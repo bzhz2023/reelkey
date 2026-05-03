@@ -24,6 +24,18 @@ export interface ByokPricingPlan {
   features: string[];
 }
 
+export type ByokPricingCtaAction =
+  | "active"
+  | "checkout"
+  | "future"
+  | "free";
+
+export interface ByokPricingCtaState {
+  label: string;
+  disabled: boolean;
+  action: ByokPricingCtaAction;
+}
+
 const lifetimeProductId =
   process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID ?? "";
 
@@ -103,4 +115,45 @@ export function getActiveByokPricingPlan(
   }
 
   return plan;
+}
+
+export function getByokPricingCtaState({
+  planId,
+  hasLifetimeEntitlement,
+}: {
+  planId: ByokPricingPlanId;
+  hasLifetimeEntitlement: boolean;
+  hasUser: boolean;
+}): ByokPricingCtaState {
+  const plan = getActiveByokPricingPlan(planId);
+
+  if (plan.billingKind === "lifetime" && hasLifetimeEntitlement) {
+    return {
+      label: "Lifetime access active",
+      disabled: true,
+      action: "active",
+    };
+  }
+
+  if (plan.availability === "after_early_bird") {
+    return {
+      label: plan.ctaLabel,
+      disabled: true,
+      action: "future",
+    };
+  }
+
+  if (plan.billingKind === "free") {
+    return {
+      label: plan.ctaLabel,
+      disabled: false,
+      action: "free",
+    };
+  }
+
+  return {
+    label: plan.ctaLabel,
+    disabled: false,
+    action: "checkout",
+  };
 }
