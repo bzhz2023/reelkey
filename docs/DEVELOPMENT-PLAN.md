@@ -687,7 +687,11 @@ export const CREDITS_CONFIG = {
 #### 8.4 改造历史页面（1小时）✅
 
 - BYOK usage 表格列：Generation、Model、Settings、Status、Cost
-- 成本显示使用现有模型配置约定：`creditsUsed` 作为美分估算值（例如 35 = $0.35）
+- 记录列表展示全部请求，便于排查失败和生成中的任务
+- 顶部 Estimated cost 只统计已完成且预计会被 provider 计费的请求
+- 成本显示按 provider/model 独立估算：
+  - `falai` + `kling-2.5-turbo`：按 fal.ai 当前用量口径 `duration * $0.07` 估算
+  - 失败请求显示 `Not billed`，生成中请求显示 `Pending`
 - 表格只读取 ReelKey 已有视频记录，不触发 fal.ai 请求，不消耗生成费用
 
 ---
