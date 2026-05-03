@@ -13,6 +13,7 @@ import { BillingList } from "@/components/billing";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { FalKeyManager } from "@/components/settings/fal-key-manager";
+import { CREDITS_CONFIG } from "@/config/credits";
 
 interface SettingsPageProps {
   locale: string;
@@ -123,11 +124,13 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
       <FalKeyManager />
 
       {/* Billing History */}
-      <BillingList
-        invoices={invoices}
-        hasMore={hasMore}
-        onLoadMore={() => fetchNextPage()}
-      />
+      {!CREDITS_CONFIG.BYOK_MODE && (
+        <BillingList
+          invoices={invoices}
+          hasMore={hasMore}
+          onLoadMore={() => fetchNextPage()}
+        />
+      )}
 
       {/* Infinite scroll sentinel */}
       {hasMore && <div ref={observerTarget} className="py-4" />}
