@@ -116,9 +116,9 @@
       "stat": "无过期时间"
     },
     "enhancement": {
-      "title": "多提供商支持",
-      "description": "在 Sora、Kling、Runway、Luma 等提供商之间切换。不锁定单一供应商。",
-      "stat": "10+ 提供商"
+      "title": "多模型支持",
+      "description": "Kling 2.5 Turbo Pro 和 Wan 2.5 已上线，更多模型持续添加——均包含在终身许可证中。",
+      "stat": "更多即将上线"
     },
     "fast": {
       "title": "隐私优先",
@@ -144,7 +144,7 @@
   "HowItWorks": {
     "badge": "简单设置",
     "title": "几分钟内开始使用",
-    "subtitle": "3 步开始生成视频",
+    "subtitle": "4 步开始生成视频",
     "description": "无复杂设置。只需添加您的 API Key 即可开始创作。",
     "bottomHint": "一次性购买 • 终身访问",
     "cta": "立即获取 ReelKey",
@@ -161,7 +161,7 @@
       },
       "generate": {
         "title": "开始创作",
-        "description": "使用您自己的 API 配额生成视频。直接按提供商价格付费——无加价。",
+        "description": "使用您自己的 API 配额生成视频。直接按 fal.ai 价格付费——无加价。",
         "stat": "您的成本"
       },
       "download": {
