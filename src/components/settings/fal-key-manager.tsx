@@ -31,7 +31,7 @@ export function FalKeyManager() {
   const [showFullKey, setShowFullKey] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const presentationStatus = status === "invalid" ? "missing" : status;
+  const presentationStatus = status === "valid" ? "valid" : "missing";
 
   const statusMeta = {
     valid: {
@@ -41,14 +41,6 @@ export function FalKeyManager() {
       tone: "text-emerald-600",
       badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
       panelClass: "border-emerald-200 bg-emerald-50/60",
-    },
-    validating: {
-      label: "Validating",
-      description: "Checking this key with fal.ai before saving it locally.",
-      icon: Loader2,
-      tone: "text-sky-600",
-      badgeClass: "border-sky-200 bg-sky-50 text-sky-700",
-      panelClass: "border-sky-200 bg-sky-50/60",
     },
     missing: {
       label: "Not connected",
@@ -63,7 +55,7 @@ export function FalKeyManager() {
   const StatusIcon = statusMeta.icon;
   const isValidating = status === "validating";
   const hasStoredKey = status === "valid" && maskedKey;
-  const showConnectionState = presentationStatus !== "missing";
+  const showConnectionState = presentationStatus === "valid";
 
   useEffect(() => {
     if (status === "invalid") {
@@ -108,8 +100,6 @@ export function FalKeyManager() {
     switch (presentationStatus) {
       case "valid":
         return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
-      case "validating":
-        return <Loader2 className="h-4 w-4 animate-spin text-sky-600" />;
       default:
         return <Key className="h-4 w-4 text-muted-foreground" />;
     }
@@ -138,10 +128,7 @@ export function FalKeyManager() {
               )}
             >
               <StatusIcon
-                className={cn(
-                  "h-3.5 w-3.5",
-                  presentationStatus === "validating" && "animate-spin"
-                )}
+                className="h-3.5 w-3.5"
               />
               {statusMeta.label}
             </Badge>
@@ -160,11 +147,7 @@ export function FalKeyManager() {
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
                   <StatusIcon
-                    className={cn(
-                      "h-4 w-4",
-                      statusMeta.tone,
-                      presentationStatus === "validating" && "animate-spin"
-                    )}
+                    className={cn("h-4 w-4", statusMeta.tone)}
                   />
                 </div>
                 <div className="space-y-1">
