@@ -63,6 +63,7 @@ export function FalKeyManager() {
   const StatusIcon = statusMeta.icon;
   const isValidating = status === "validating";
   const hasStoredKey = status === "valid" && maskedKey;
+  const showConnectionState = presentationStatus !== "missing";
 
   useEffect(() => {
     if (status === "invalid") {
@@ -128,84 +129,90 @@ export function FalKeyManager() {
               it before saving, then keeps it in this browser only.
             </CardDescription>
           </div>
-          <Badge
-            variant="outline"
-            className={cn(
-              "w-fit gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-              statusMeta.badgeClass
-            )}
-          >
-            <StatusIcon
+          {showConnectionState && (
+            <Badge
+              variant="outline"
               className={cn(
-                "h-3.5 w-3.5",
-                presentationStatus === "validating" && "animate-spin"
+                "w-fit gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                statusMeta.badgeClass
               )}
-            />
-            {statusMeta.label}
-          </Badge>
+            >
+              <StatusIcon
+                className={cn(
+                  "h-3.5 w-3.5",
+                  presentationStatus === "validating" && "animate-spin"
+                )}
+              />
+              {statusMeta.label}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-5 p-6">
-        <div
-          className={cn(
-            "rounded-lg border p-4 transition-colors",
-            statusMeta.panelClass
-          )}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
-                <StatusIcon
-                  className={cn(
-                    "h-4 w-4",
-                    statusMeta.tone,
-                    presentationStatus === "validating" && "animate-spin"
-                  )}
-                />
+        {showConnectionState && (
+          <div
+            className={cn(
+              "rounded-lg border p-4 transition-colors",
+              statusMeta.panelClass
+            )}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
+                  <StatusIcon
+                    className={cn(
+                      "h-4 w-4",
+                      statusMeta.tone,
+                      presentationStatus === "validating" && "animate-spin"
+                    )}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">
+                    {statusMeta.label}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {statusMeta.description}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="text-sm font-semibold">{statusMeta.label}</div>
-                <p className="text-sm text-muted-foreground">
-                  {statusMeta.description}
-                </p>
-              </div>
+
+              {hasStoredKey && (
+                <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
+                  {maskedKey}
+                </code>
+              )}
             </div>
 
-            {hasStoredKey && (
-              <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
-                {maskedKey}
-              </code>
+            {showFullKey && hasStoredKey && (
+              <div className="mt-4 rounded-md border bg-background p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <code className="min-w-0 flex-1 break-all font-mono text-xs">
+                    {falKeyStorage.get()}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyFullKey}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
-
-          {showFullKey && hasStoredKey && (
-            <div className="mt-4 rounded-md border bg-background p-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <code className="min-w-0 flex-1 break-all font-mono text-xs">
-                  {falKeyStorage.get()}
-                </code>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyFullKey}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {hasStoredKey && (
           <div className="flex flex-wrap gap-2">
@@ -241,7 +248,9 @@ export function FalKeyManager() {
         <div className="rounded-lg border p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <Label htmlFor="fal-key">Replace API key</Label>
+              <Label htmlFor="fal-key">
+                {hasStoredKey ? "Replace API key" : "API key"}
+              </Label>
               <p className="mt-1 text-sm text-muted-foreground">
                 The key is saved only after fal.ai authentication succeeds.
               </p>
