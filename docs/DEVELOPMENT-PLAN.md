@@ -676,18 +676,19 @@ export const CREDITS_CONFIG = {
 - 生成提交不再检查/冻结/释放平台积分，缺少 fal.ai Key 时直接弹出 Key 设置弹窗
 - 工具落地页移除 `free credits` 文案，改为提示用户使用自己的 fal.ai API Key
 
-#### 8.3 改造成本显示（1小时）
+#### 8.3 改造成本显示（1小时）✅
 
-- 修改 `src/components/credits/balance-card.tsx`
-  - "积分余额" → "本月已花费"
-  - 数字从 credits 换算成 USD（1 credit = $0.01）
-  - "充值" → "查看 fal.ai 账单"
+- 保留原 `src/components/credits/credits-page.tsx`、`BalanceCard`、`CreditHistory` 代码，便于未来非 BYOK 模式复用
+- 新增 BYOK 专用 `src/components/usage/api-usage-page.tsx`
+- `/credits` 路由根据 `CREDITS_CONFIG.BYOK_MODE` 切换：
+  - BYOK 模式：显示 API usage、生成统计、估算 provider 成本、fal.ai billing 入口
+  - 非 BYOK 模式：继续显示原积分页面
 
-#### 8.4 改造历史页面（1小时）
+#### 8.4 改造历史页面（1小时）✅
 
-- 修改 `src/app/[locale]/(dashboard)/credits/page.tsx`
-  - 标题："积分历史" → "API 使用记录"
-  - 表格列：时间、模型、时长、花费（USD）
+- BYOK usage 表格列：Generation、Model、Settings、Status、Cost
+- 成本显示使用现有模型配置约定：`creditsUsed` 作为美分估算值（例如 35 = $0.35）
+- 表格只读取 ReelKey 已有视频记录，不触发 fal.ai 请求，不消耗生成费用
 
 ---
 

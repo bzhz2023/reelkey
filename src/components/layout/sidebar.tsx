@@ -71,6 +71,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
   // 渲染导航项
   const renderNavItem = (item: any, isActive: boolean) => {
     const Icon = iconMap[item.icon as keyof typeof iconMap];
+    const title = isByokMode && item.byokTitle ? item.byokTitle : item.title;
 
     return (
       <Link
@@ -84,7 +85,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
         )}
       >
         {Icon && <Icon className="h-4 w-4 shrink-0" />}
-        <span className="truncate">{item.title}</span>
+        <span className="truncate">{title}</span>
       </Link>
     );
   };
@@ -172,7 +173,11 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
                         const Icon = iconMap[item.icon as keyof typeof iconMap];
                         return Icon && <Icon className="h-4 w-4 shrink-0" />;
                       })()}
-                      <span className="truncate">{item.title}</span>
+                      <span className="truncate">
+                        {isByokMode && item.byokTitle
+                          ? item.byokTitle
+                          : item.title}
+                      </span>
                     </Link>
                   </SheetClose>
                 );

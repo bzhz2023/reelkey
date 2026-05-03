@@ -55,7 +55,7 @@ export function HeaderSimple({
 
   const menuLabelMap: Record<string, string> = {
     creations: tHeader("myCreations"),
-    credits: tHeader("credits"),
+    credits: isByokMode ? tHeader("apiUsage") : tHeader("credits"),
     settings: tHeader("settings"),
   };
 

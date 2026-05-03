@@ -6,6 +6,7 @@
 export interface NavItem {
   id: string;
   title: string;
+  byokTitle?: string; // BYOK 模式下使用的标题
   href: string;
   icon?: string; // Lucide 图标名称
   badge?: string; // 标签文字，如 "New", "Beta"
@@ -71,9 +72,9 @@ export const sidebarNavigation: NavGroup[] = [
       {
         id: "credits",
         title: "Credits",
+        byokTitle: "API Usage",
         href: "/credits",
         icon: "Gem",
-        hiddenInByok: true,
       },
       {
         id: "settings",
@@ -130,8 +131,14 @@ export const headerDocs = {
 };
 
 // 用户菜单项 (HeaderSimple 组件使用)
-export const userMenuItems = [
+export const userMenuItems: NavItem[] = [
   { id: "creations", title: "My Creations", href: "/my-creations", icon: "FolderOpen" },
-  { id: "credits", title: "Credits", href: "/credits", icon: "Gem", hiddenInByok: true },
+  {
+    id: "credits",
+    title: "Credits",
+    byokTitle: "API Usage",
+    href: "/credits",
+    icon: "Gem",
+  },
   { id: "settings", title: "Account", href: "/settings", icon: "User" },
 ];
