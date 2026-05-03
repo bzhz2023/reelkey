@@ -7,6 +7,46 @@ import { z } from "zod";
 // Import proxy configuration for fetch requests
 import "@/lib/proxy-config";
 
+const CREEM_API_BASE =
+  process.env.NODE_ENV === "production"
+    ? "https://api.creem.io"
+    : "https://test-api.creem.io";
+
+async function moderatePrompt(prompt: string, userId: string): Promise<void> {
+  const apiKey = process.env.CREEM_API_KEY;
+  if (!apiKey) return; // skip in dev if key not configured
+
+  let decision: string;
+  try {
+    const res = await fetch(`${CREEM_API_BASE}/v1/moderation/prompt`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ prompt, external_id: `user_${userId}` }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json() as { decision?: string };
+    decision = data.decision ?? "deny";
+  } catch {
+    // Fail closed: if moderation is unreachable, block generation
+    throw new ApiError(
+      "Content moderation service unavailable. Please try again.",
+      503,
+      { code: "MODERATION_UNAVAILABLE" }
+    );
+  }
+
+  if (decision !== "allow") {
+    throw new ApiError(
+      "Your prompt was rejected by our content policy. Please revise and try again.",
+      400,
+      { code: "PROMPT_REJECTED" }
+    );
+  }
+}
+
 const generateSchema = z.object({
   prompt: z.string().min(1).max(5000),
   model: z.string().min(1),
@@ -38,6 +78,9 @@ export async function POST(request: NextRequest) {
         { code: "FAL_KEY_MISSING" }
       );
     }
+
+    // Screen prompt before generation (Creem Moderation API requirement)
+    await moderatePrompt(data.prompt, user.id);
 
     const result = await videoService.generate({
       userId: user.id,
