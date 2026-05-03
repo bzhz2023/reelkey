@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { userMenuItems } from "@/config/navigation";
 import { i18n, localeMap } from "@/config/i18n-config";
+import { CREDITS_CONFIG } from "@/config/credits";
 
 interface HeaderSimpleProps {
   user?: Pick<User, "name" | "image" | "email"> | null;
@@ -43,6 +44,10 @@ export function HeaderSimple({
   const tCommon = useTranslations("Common");
   const tHeader = useTranslations("Header");
   const currentLocale = lang || "en";
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const visibleUserMenuItems = userMenuItems.filter(
+    (item) => !(isByokMode && item.hiddenInByok)
+  );
 
   const switchLocale = (nextLocale: string) => {
     router.push(pathname, { locale: nextLocale });
@@ -71,7 +76,7 @@ export function HeaderSimple({
           </Link>
         </div>
 
-        {/* Right: Credits + User Menu */}
+        {/* Right: Account controls */}
         <div className="flex items-center gap-4">
           {/* Language Switcher */}
           <DropdownMenu>
@@ -135,8 +140,8 @@ export function HeaderSimple({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Credits Display */}
-          {user && balance && (
+          {/* Credits Display - hidden in BYOK mode, original credit UI kept for non-BYOK deployments */}
+          {user && !isByokMode && balance && (
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border">
               <Gem className="h-4 w-4 text-amber-500" />
               <span className="text-sm font-medium">
@@ -161,7 +166,7 @@ export function HeaderSimple({
                   </div>
                 )}
                 <DropdownMenuSeparator />
-                {userMenuItems.map((item) => (
+                {visibleUserMenuItems.map((item) => (
                   <DropdownMenuItem key={item.id} asChild>
                     <Link href={`/${lang}${item.href}`}>
                       {menuLabelMap[item.id] ?? item.title}

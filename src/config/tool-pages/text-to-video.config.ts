@@ -1,5 +1,4 @@
 import { ToolPageConfig } from "./types";
-import { NEW_USER_GIFT } from "@/config/pricing-user";
 
 /**
  * Text to Video 工具页面配置
@@ -64,7 +63,7 @@ export const textToVideoConfig: ToolPageConfig = {
       title: "Create Stunning Videos from Text",
       description: "Describe your vision in plain text and let AI bring it to life. From cinematic scenes to product showcases, the possibilities are endless.",
       ctaText: "Start Creating",
-      ctaSubtext: `${NEW_USER_GIFT.credits} free credits to try`,
+      ctaSubtext: "Use your own fal.ai API key",
     },
 
     examples: [

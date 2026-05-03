@@ -24,6 +24,7 @@ import { videoHistoryStorage, type VideoHistoryItem } from "@/lib/video-history-
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
 import { siteConfig } from "@/config/site";
+import { CREDITS_CONFIG } from "@/config/credits";
 import { useFalKeyPrompt } from "@/hooks/use-fal-key-prompt";
 import { FalKeySetupDialog } from "@/components/fal-key-setup-dialog";
 import type { Video } from "@/db";
@@ -95,6 +96,7 @@ export function ToolPageLayout({
   const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
   const tNotify = useTranslations("Notifications");
   const tTool = useTranslations("ToolPage");
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
 
   // 状态
   const [user, setUser] = useState<any>(null);
@@ -150,8 +152,10 @@ export function ToolPageLayout({
         return [video, ...prev];
       });
       removeGeneratingId(video.uuid);
-      // 刷新积分（生成成功，积分已结算）
-      invalidate();
+      // 刷新积分（非 BYOK 模式生成成功后，积分已结算）
+      if (!isByokMode) {
+        invalidate();
+      }
       if (user?.id) {
         videoTaskStorage.updateTask(
           video.uuid,
@@ -213,7 +217,7 @@ export function ToolPageLayout({
       // 标记为已通知，防止其他标签页重复通知
       markNotified(video.uuid);
     },
-    [removeGeneratingId, user?.id, invalidate, tNotify, shouldNotify, markNotified]
+    [removeGeneratingId, user?.id, invalidate, isByokMode, tNotify, shouldNotify, markNotified]
   );
 
   const handleFailed = useCallback(
@@ -230,8 +234,10 @@ export function ToolPageLayout({
 
       // 移除生成 ID
       removeGeneratingId(videoId);
-      // 刷新积分（生成失败，积分已释放）
-      invalidate();
+      // 刷新积分（非 BYOK 模式生成失败后，积分已释放）
+      if (!isByokMode) {
+        invalidate();
+      }
       if (user?.id) {
         videoTaskStorage.updateTask(
           videoId,
@@ -246,7 +252,7 @@ export function ToolPageLayout({
         markNotified(notificationKey);
       }
     },
-    [removeGeneratingId, user?.id, invalidate, shouldNotify, markNotified]
+    [removeGeneratingId, user?.id, invalidate, isByokMode, shouldNotify, markNotified]
   );
 
   const { startPolling, stopPolling, isPolling } = useVideoPolling({
@@ -408,7 +414,12 @@ export function ToolPageLayout({
     const requiredCredits = data.estimatedCredits || 0;
     const availableCredits = balance?.availableCredits ?? 0;
 
-    if (!falKey && availableCredits < requiredCredits) {
+    if (!falKey) {
+      setShowDialog(true);
+      return;
+    }
+
+    if (!isByokMode && availableCredits < requiredCredits) {
       // 打开升级弹窗
       openModal({
         reason: "insufficient_credits",
@@ -417,8 +428,10 @@ export function ToolPageLayout({
       return;
     }
 
-    // 乐观更新：立即冻结积分（UI 立即反映变化）
-    optimisticFreeze(requiredCredits);
+    // 乐观更新：非 BYOK 模式立即冻结积分（UI 立即反映变化）
+    if (!isByokMode) {
+      optimisticFreeze(requiredCredits);
+    }
 
     // 开始提交
     setIsSubmitting(true);
@@ -454,10 +467,6 @@ export function ToolPageLayout({
         : data.imageUrl;
       const imageUrls = imageUrl ? [imageUrl] : undefined;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (!falKey) {
-        setShowDialog(true);
-        throw new Error("Please set your fal.ai API key before generating videos.");
-      }
       headers["x-fal-key"] = falKey;
       const response = await fetch("/api/v1/video/generate", {
         method: "POST",
@@ -497,7 +506,7 @@ export function ToolPageLayout({
         prompt: data.prompt,
         model: data.model,
         status: "generating",
-        creditsUsed: data.estimatedCredits,
+        creditsUsed: isByokMode ? 0 : data.estimatedCredits,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -523,8 +532,10 @@ export function ToolPageLayout({
     } catch (error) {
       console.error("Generation error:", error);
       // API 调用失败，回滚乐观更新（释放积分）
-      const requiredCredits = data.estimatedCredits || 0;
-      optimisticRelease(requiredCredits);
+      if (!isByokMode) {
+        const requiredCredits = data.estimatedCredits || 0;
+        optimisticRelease(requiredCredits);
+      }
       // 显示错误提示
       toast.error(error instanceof Error ? error.message : "Failed to generate video");
     }
@@ -540,6 +551,8 @@ export function ToolPageLayout({
     addGeneratingId,
     optimisticFreeze,
     optimisticRelease,
+    isByokMode,
+    setShowDialog,
     tNotify,
   ]);
 

@@ -10,6 +10,7 @@ export interface NavItem {
   icon?: string; // Lucide 图标名称
   badge?: string; // 标签文字，如 "New", "Beta"
   requiresAuth?: boolean; // 是否需要登录
+  hiddenInByok?: boolean; // BYOK 模式下隐藏，但保留原有入口配置
 }
 
 export interface NavGroup {
@@ -72,6 +73,7 @@ export const sidebarNavigation: NavGroup[] = [
         title: "Credits",
         href: "/credits",
         icon: "Gem",
+        hiddenInByok: true,
       },
       {
         id: "settings",
@@ -130,6 +132,6 @@ export const headerDocs = {
 // 用户菜单项 (HeaderSimple 组件使用)
 export const userMenuItems = [
   { id: "creations", title: "My Creations", href: "/my-creations", icon: "FolderOpen" },
-  { id: "credits", title: "Credits", href: "/credits", icon: "Gem" },
+  { id: "credits", title: "Credits", href: "/credits", icon: "Gem", hiddenInByok: true },
   { id: "settings", title: "Account", href: "/settings", icon: "User" },
 ];

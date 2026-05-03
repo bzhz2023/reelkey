@@ -14,7 +14,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { cn } from "@/components/ui";
 import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator";
-import { getAvailableModels, calculateModelCredits } from "@/config/credits";
+import { CREDITS_CONFIG, getAvailableModels, calculateModelCredits } from "@/config/credits";
 import { ChevronDown, X, Sparkles, Image as ImageIcon, Clock, Check } from "lucide-react";
 import {
   DropdownMenu,
@@ -212,6 +212,7 @@ export function GeneratorPanel({
       quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
     });
   }, [selectedModel, duration, quality, currentModel]);
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
 
   const handleSubmit = useCallback(() => {
     if (!currentModel) return;
@@ -351,7 +352,11 @@ export function GeneratorPanel({
                             <span>•</span>
                           </>
                         )}
-                        <span>{model.creditCost?.base ?? ""} credits</span>
+                        <span>
+                          {isByokMode
+                            ? "Billed by fal.ai"
+                            : `${model.creditCost?.base ?? ""} credits`}
+                        </span>
                       </div>
                     </DropdownMenuItem>
                   ))}
@@ -519,14 +524,18 @@ export function GeneratorPanel({
           )}
         </div>
 
-        {/* Bottom Section - Credits + Generate Button */}
+        {/* Bottom Section - Billing + Generate Button */}
         <div className="px-5 py-4 bg-muted/40 border-t border-border space-y-4 shrink-0">
-          {/* Credits Display */}
+          {/* Credit display is preserved for non-BYOK deployments. */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total Credits:</span>
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              {isByokMode ? "Provider Billing:" : "Total Credits:"}
+            </span>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-              <span className="text-foreground font-medium">{estimatedCredits} Credits</span>
+              <span className="text-foreground font-medium">
+                {isByokMode ? "Your fal.ai account" : `${estimatedCredits} Credits`}
+              </span>
             </div>
           </div>
 

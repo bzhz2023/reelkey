@@ -11,6 +11,7 @@ import { ImagePlay, Type, Video, FolderOpen, Gem, User, Sparkles } from "lucide-
 import { useTranslations } from "next-intl";
 import { cn } from "@/components/ui";
 import { sidebarNavigation } from "@/config/navigation";
+import { CREDITS_CONFIG } from "@/config/credits";
 import {
   Sheet,
   SheetContent,
@@ -41,9 +42,20 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
   const pathWithoutLang = pathname.replace(new RegExp(`^/${lang}`), "");
   const t = useTranslations("Sidebar");
   const { openModal } = useUpgradeModal();
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const visibleSidebarNavigation = useMemo(
+    () =>
+      sidebarNavigation
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => !(isByokMode && item.hiddenInByok)),
+        }))
+        .filter((group) => group.items.length > 0),
+    [isByokMode]
+  );
 
   // 判断是否为免费用户（可根据实际业务调整）
-  const isFreeUser = useMemo(() => true, []);
+  const isFreeUser = useMemo(() => !isByokMode, [isByokMode]);
 
   // 处理升级按钮点击
   const handleUpgradeClick = () => {
@@ -82,7 +94,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
     <div className="flex flex-col h-full py-4">
       {/* 主导航 */}
       <nav className="flex-1 px-3 space-y-6 overflow-y-auto">
-        {sidebarNavigation.map((group) => (
+        {visibleSidebarNavigation.map((group) => (
           <div key={group.id} className="space-y-1">
             {group.title && (
               <div className="px-2 mb-2 text-xs font-medium text-muted-foreground">
@@ -134,7 +146,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
   const MobileNav = () => (
     <div className="flex flex-col h-full py-4">
       <nav className="flex-1 px-3 space-y-6 overflow-y-auto">
-        {sidebarNavigation.map((group) => (
+        {visibleSidebarNavigation.map((group) => (
           <div key={group.id} className="space-y-1">
             {group.title && (
               <div className="px-2 mb-2 text-xs font-medium text-muted-foreground">

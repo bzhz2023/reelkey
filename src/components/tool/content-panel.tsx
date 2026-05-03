@@ -88,7 +88,7 @@ export function ContentPanel({ lang = "en" }: ContentPanelProps) {
         {/* CTA */}
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">
-            Sign up now and get <span className="font-semibold text-foreground">50 free credits</span> to try!
+            Sign up and generate with your own <span className="font-semibold text-foreground">fal.ai API key</span>.
           </p>
           <Link
             href={`/${lang}/login`}

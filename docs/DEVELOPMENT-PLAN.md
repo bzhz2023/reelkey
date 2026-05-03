@@ -651,7 +651,7 @@ export const VIDEO_MODEL_PRICING = {
 
 ### Phase 8: 积分系统改造（Day 8）
 
-#### 8.1 添加 BYOK 开关（15分钟）
+#### 8.1 添加 BYOK 开关（15分钟）✅
 
 ```ts
 // src/config/credits.ts
@@ -661,14 +661,23 @@ export const CREDITS_CONFIG = {
 }
 ```
 
-#### 8.2 改造成本显示（1小时）
+#### 8.2 工具页积分入口隐藏（45分钟）✅
+
+- 保留原积分代码，通过 `CREDITS_CONFIG.BYOK_MODE` 控制展示
+- 顶部栏隐藏积分余额
+- 侧边栏隐藏 `Credits` 入口和 `Upgrade to Pro` 积分升级区
+- 生成面板从 `Total Credits` 改为 BYOK 计费说明
+- 生成提交不再检查/冻结/释放平台积分，缺少 fal.ai Key 时直接弹出 Key 设置弹窗
+- 工具落地页移除 `free credits` 文案，改为提示用户使用自己的 fal.ai API Key
+
+#### 8.3 改造成本显示（1小时）
 
 - 修改 `src/components/credits/balance-card.tsx`
   - "积分余额" → "本月已花费"
   - 数字从 credits 换算成 USD（1 credit = $0.01）
   - "充值" → "查看 fal.ai 账单"
 
-#### 8.3 改造历史页面（1小时）
+#### 8.4 改造历史页面（1小时）
 
 - 修改 `src/app/[locale]/(dashboard)/credits/page.tsx`
   - 标题："积分历史" → "API 使用记录"

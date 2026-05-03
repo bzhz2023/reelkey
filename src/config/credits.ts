@@ -80,6 +80,7 @@ function usdToCents(usd: number): number {
 export const CREDITS_CONFIG = {
   // ========== 系统开关 ==========
   enabled: true, // 积分系统始终启用
+  BYOK_MODE: true, // 当前产品模式：用户自带 fal.ai API Key，工具主链路不展示/不消耗平台积分
 
   // ========== 新用户赠送 ==========
   registerGift: {
