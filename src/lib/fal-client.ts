@@ -25,23 +25,36 @@ export async function validateFalKey(key: string): Promise<{
   valid: boolean;
   error?: string;
 }> {
-  try {
-    configureFalClient(key);
+  const normalizedKey = key.trim();
 
-    // 尝试查询一个任务状态（会返回 404，但 Key 有效时不会返回 401/403）
-    await fal.queue.status("fal-ai/kling-video/v2.1/standard/text-to-video", {
-      requestId: "validation-test",
-      logs: false,
+  if (!normalizedKey) {
+    return { valid: false, error: "Missing API key" };
+  }
+
+  try {
+    const response = await fetch("/api/v1/fal/validate-key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-fal-key": normalizedKey,
+      },
+      cache: "no-store",
     });
 
-    return { valid: true };
-  } catch (e: any) {
-    // 401/403 表示 Key 无效
-    if (e?.status === 401 || e?.status === 403) {
-      return { valid: false, error: "Invalid API key" };
+    const result = await response.json().catch(() => null);
+
+    if (response.ok && result?.valid === true) {
+      return { valid: true };
     }
 
-    // 其他错误（如 404）说明 Key 本身有效，只是请求参数有问题
-    return { valid: true };
+    return {
+      valid: false,
+      error: result?.error || "Invalid API key",
+    };
+  } catch {
+    return {
+      valid: false,
+      error: "Unable to validate API key",
+    };
   }
 }

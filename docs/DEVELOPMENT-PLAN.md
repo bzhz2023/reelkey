@@ -66,6 +66,12 @@ fal.ai 执行生成 → 返回视频 URL
    - `creditService.release` 和 `creditService.settle` 都应在无 hold 时静默返回
    - 否则 fal.ai 已完成后，R2 转存/完成入库阶段会因为 `Hold not found` 回滚，页面保持生成中
 
+9. API Key 校验必须按 provider 独立实现：
+   - 当前 fal.ai 校验使用 `fal.queue.status` 查询一个不存在的 request id：401/403 代表 key 无效，404 代表认证通过但任务不存在
+   - 该规则只适用于 fal.ai，不能直接复用到 OpenRouter、KIE、Evolink 等其他 provider
+   - 后续新增 provider 时，应提供各自的最小无计费校验方式，并把校验结果统一映射为 `valid / invalid / temporarily_unavailable`
+   - UI 层只展示统一连接状态，不应关心具体 provider 的校验细节
+
 ---
 
 ## 开发顺序（10 天计划）

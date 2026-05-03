@@ -15,11 +15,29 @@ export function useFalKey() {
 
   // 初始化时从 localStorage 读取
   useEffect(() => {
+    let active = true;
+
     const stored = falKeyStorage.get();
     if (stored) {
-      setStatus("valid");
       setMaskedKey(maskKey(stored));
+      setStatus("validating");
+      validateFalKey(stored).then((result) => {
+        if (!active) return;
+
+        if (result.valid) {
+          setStatus("valid");
+          return;
+        }
+
+        falKeyStorage.remove();
+        setMaskedKey(null);
+        setStatus("invalid");
+      });
     }
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   /**
@@ -28,12 +46,13 @@ export function useFalKey() {
   const saveKey = async (newKey: string): Promise<boolean> => {
     setStatus("validating");
 
-    const result = await validateFalKey(newKey);
+    const normalizedKey = newKey.trim();
+    const result = await validateFalKey(normalizedKey);
 
     if (result.valid) {
-      falKeyStorage.set(newKey);
+      falKeyStorage.set(normalizedKey);
       setStatus("valid");
-      setMaskedKey(maskKey(newKey));
+      setMaskedKey(maskKey(normalizedKey));
       return true;
     }
 

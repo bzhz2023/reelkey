@@ -61,7 +61,7 @@ export function FalKeySetupDialog({
           </DialogTitle>
           <DialogDescription>
             ReelKey uses your own fal.ai API key. Your key is stored locally in
-            your browser and never sent to our servers.
+            your browser and is only sent when validating the key or starting a generation.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,8 +99,8 @@ export function FalKeySetupDialog({
           <Alert>
             <AlertDescription className="text-sm">
               <strong>Privacy guarantee:</strong> Your API key is stored only
-              in your browser's local storage. It's never uploaded to our
-              servers or stored in any database.
+              in your browser's local storage. It is never stored on our
+              servers or in any database.
             </AlertDescription>
           </Alert>
         </div>

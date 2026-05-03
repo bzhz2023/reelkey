@@ -7,8 +7,23 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFalKey } from "@/hooks/use-fal-key";
-import { ExternalLink, Eye, EyeOff, Loader2, CheckCircle2, XCircle, Key, Copy } from "lucide-react";
+import {
+  Activity,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Key,
+  Loader2,
+  LockKeyhole,
+  ShieldCheck,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { falKeyStorage } from "@/lib/fal-key";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/components/ui";
 
 export function FalKeyManager() {
   const { status, maskedKey, saveKey, removeKey } = useFalKey();
@@ -17,6 +32,45 @@ export function FalKeyManager() {
   const [showFullKey, setShowFullKey] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const statusMeta = {
+    valid: {
+      label: "Connected",
+      description: "This key passed fal.ai authentication and is ready for generation.",
+      icon: CheckCircle2,
+      tone: "text-emerald-600",
+      badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      panelClass: "border-emerald-200 bg-emerald-50/60",
+    },
+    invalid: {
+      label: "Invalid key",
+      description: "The last key could not be authenticated by fal.ai.",
+      icon: XCircle,
+      tone: "text-red-600",
+      badgeClass: "border-red-200 bg-red-50 text-red-700",
+      panelClass: "border-red-200 bg-red-50/60",
+    },
+    validating: {
+      label: "Validating",
+      description: "Checking this key with fal.ai before saving it locally.",
+      icon: Loader2,
+      tone: "text-sky-600",
+      badgeClass: "border-sky-200 bg-sky-50 text-sky-700",
+      panelClass: "border-sky-200 bg-sky-50/60",
+    },
+    missing: {
+      label: "Not connected",
+      description: "Add a fal.ai key to generate videos through your own account.",
+      icon: Key,
+      tone: "text-muted-foreground",
+      badgeClass: "border-border bg-muted text-muted-foreground",
+      panelClass: "border-border bg-muted/30",
+    },
+  }[status];
+
+  const StatusIcon = statusMeta.icon;
+  const isValidating = status === "validating";
+  const hasStoredKey = status === "valid" && maskedKey;
 
   const handleSave = async () => {
     if (!inputKey.trim()) {
@@ -54,172 +108,227 @@ export function FalKeyManager() {
   const getStatusIcon = () => {
     switch (status) {
       case "valid":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
       case "invalid":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-red-600" />;
       case "validating":
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-sky-600" />;
       default:
-        return <Key className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (status) {
-      case "valid":
-        return "Connected";
-      case "invalid":
-        return "Invalid key";
-      case "validating":
-        return "Validating...";
-      default:
-        return "Not configured";
+        return <Key className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {getStatusIcon()}
-          fal.ai API Key
-        </CardTitle>
-        <CardDescription>
-          Manage your fal.ai API key for video generation. Your key is stored locally in your browser and never sent to our servers.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* 当前状态 */}
-        {status !== "missing" && (
-          <Alert>
-            <AlertDescription className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Status:</span>
-                  <span className={status === "valid" ? "text-green-600" : "text-red-600"}>
-                    {getStatusText()}
-                  </span>
-                </div>
-                {maskedKey && (
-                  <code className="text-xs bg-muted px-2 py-1 rounded">
-                    {maskedKey}
-                  </code>
-                )}
-              </div>
-
-              {/* 显示完整 Key */}
-              {showFullKey && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs bg-muted px-3 py-2 rounded break-all select-all">
-                      {falKeyStorage.get()}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyFullKey}
-                    >
-                      {copied ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4 mr-1" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b bg-muted/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <CardTitle className="flex items-center gap-2">
+              {getStatusIcon()}
+              fal.ai API Key
+            </CardTitle>
+            <CardDescription className="max-w-2xl">
+              Manage the key used for fal.ai video generation. ReelKey validates
+              it before saving, then keeps it in this browser only.
+            </CardDescription>
+          </div>
+          <Badge
+            variant="outline"
+            className={cn(
+              "w-fit gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+              statusMeta.badgeClass
+            )}
+          >
+            <StatusIcon
+              className={cn(
+                "h-3.5 w-3.5",
+                status === "validating" && "animate-spin"
               )}
+            />
+            {statusMeta.label}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 p-6">
+        <div
+          className={cn(
+            "rounded-lg border p-4 transition-colors",
+            statusMeta.panelClass
+          )}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
+                <StatusIcon
+                  className={cn(
+                    "h-4 w-4",
+                    statusMeta.tone,
+                    status === "validating" && "animate-spin"
+                  )}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm font-semibold">{statusMeta.label}</div>
+                <p className="text-sm text-muted-foreground">
+                  {statusMeta.description}
+                </p>
+              </div>
+            </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFullKey(!showFullKey)}
-              >
-                {showFullKey ? (
-                  <>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    Hide Full Key
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Show Full Key
-                  </>
-                )}
-              </Button>
-            </AlertDescription>
-          </Alert>
+            {hasStoredKey && (
+              <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
+                {maskedKey}
+              </code>
+            )}
+          </div>
+
+          {showFullKey && hasStoredKey && (
+            <div className="mt-4 rounded-md border bg-background p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <code className="min-w-0 flex-1 break-all font-mono text-xs">
+                  {falKeyStorage.get()}
+                </code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyFullKey}
+                  className="shrink-0"
+                >
+                  {copied ? (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {hasStoredKey && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFullKey(!showFullKey)}
+            >
+              {showFullKey ? (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  Hide stored key
+                </>
+              ) : (
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Reveal stored key
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRemove}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Remove key
+            </Button>
+          </div>
         )}
 
-        {/* 输入区域 */}
-        <div className="space-y-2">
-          <Label htmlFor="fal-key">API Key</Label>
-          <div className="flex gap-2">
+        <div className="rounded-lg border p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <Label htmlFor="fal-key">Replace API key</Label>
+              <p className="mt-1 text-sm text-muted-foreground">
+                The key is saved only after fal.ai authentication succeeds.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <Input
                 id="fal-key"
                 type={showKey ? "text" : "password"}
-                placeholder="sk-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                placeholder="Paste your fal.ai key"
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
-                disabled={status === "validating"}
+                disabled={isValidating}
+                className="pr-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0"
                 onClick={() => setShowKey(!showKey)}
+                aria-label={showKey ? "Hide API key" : "Show API key"}
               >
                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
             <Button
               onClick={handleSave}
-              disabled={status === "validating" || !inputKey.trim()}
+              disabled={isValidating || !inputKey.trim()}
+              className="sm:min-w-[132px]"
             >
-              {status === "validating" ? (
+              {isValidating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Validating
+                  Verifying
                 </>
               ) : (
-                "Save"
+                "Verify & Save"
               )}
             </Button>
           </div>
           {error && (
-            <p className="text-sm text-red-500">{error}</p>
+            <p className="mt-2 text-sm text-red-600">{error}</p>
           )}
         </div>
 
-        {/* 操作按钮 */}
-        {status !== "missing" && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRemove}
-            >
-              Remove Key
-            </Button>
-          </div>
-        )}
-
-        {/* 帮助信息 */}
-        <Alert>
-          <AlertDescription className="space-y-2">
-            <p className="text-sm">
-              Don't have a fal.ai API key yet?
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+              <LockKeyhole className="h-4 w-4 text-sky-600" />
+              Local storage
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Stored in this browser, not in ReelKey's database.
             </p>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+              <Activity className="h-4 w-4 text-sky-600" />
+              Real validation
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Sent only to authenticate with fal.ai before saving.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              Direct billing
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Generation costs are billed by fal.ai to your account.
+            </p>
+          </div>
+        </div>
+
+        <Alert>
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm">Need a fal.ai key?</span>
             <Button
               variant="link"
-              className="h-auto p-0 text-sm"
+              className="h-auto w-fit p-0 text-sm"
               asChild
             >
               <a
@@ -227,19 +336,12 @@ export function FalKeyManager() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get your API key from fal.ai
+                Open fal.ai key dashboard
                 <ExternalLink className="ml-1 h-3 w-3" />
               </a>
             </Button>
           </AlertDescription>
         </Alert>
-
-        {/* 安全说明 */}
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>🔒 Your API key is stored locally in your browser</p>
-          <p>🚫 We never store your key on our servers</p>
-          <p>✅ Your key is only sent directly to fal.ai for video generation</p>
-        </div>
       </CardContent>
     </Card>
   );
