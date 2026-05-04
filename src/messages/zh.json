@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "ReelKey - AI 视频生成平台",
-    "description": "使用 Sora 2、Veo 3.1 等模型在几分钟内创建惊人的 AI 视频"
+    "description": "用自己的 fal.ai API Key 生成 AI 视频，支持 Kling 2.5 和 Wan 2.5，一次性终身授权 $29 起。"
   },
   "Common": {
     "login": "登录",
@@ -30,7 +30,7 @@
   "Hero": {
     "badge": "自带 API Key • 无订阅制",
     "title": "用自己的 API Key 生成 AI 视频",
-    "subtitle": "无订阅，积分永不过期",
+    "subtitle": "无订阅，按需使用，费用直付 fal.ai",
     "description": "使用 Kling 2.5 和 Wan 2.5，自带 fal.ai API Key，直接向 fal.ai 付费，完全掌控。一次购买，终身使用。",
     "startCreating": "免费开始",
     "viewExamples": "查看示例",
@@ -44,7 +44,7 @@
       "users": "位满意用户",
       "rating": "用户评分"
     },
-    "creditsHint": "自带 API Key • 直接向提供商付费"
+    "creditsHint": "自带 fal.ai API Key • 直接向 fal.ai 付费"
   },
   "Notifications": {
     "generationWillNotify": "生成时间较长，我们会在生成完成后通知你。",
@@ -111,8 +111,8 @@
       "stat": "付费一次，永久拥有"
     },
     "referenceGen": {
-      "title": "积分永不过期",
-      "description": "与其他平台不同，您的使用额度永不过期。按自己的节奏使用 API 配额，无人为期限。",
+      "title": "按需付费，无囤积压力",
+      "description": "不需要预购积分或担心过期。直接向 fal.ai 充值，用多少付多少，完全由您掌控。",
       "stat": "无过期时间"
     },
     "enhancement": {
@@ -182,7 +182,7 @@
       "free": "一次性付款",
       "noCard": "包含终身更新",
       "cancel": "使用自己的 API Key",
-      "support": "积分永不过期"
+      "support": "按需付费，无过期压力"
     },
     "generating": "生成中...",
     "readyIn": "就绪时间",
@@ -228,6 +228,12 @@
     "company": "公司",
     "legal": "法律",
     "copyright": "© {year} ReelKey. 保留所有权利。",
+    "tagline": "用 AI 将你的创意变成精彩视频。",
+    "madeWith": "由 ReelKey 团队用 <heart></heart> 制作",
+    "imageToVideo": "图片生成视频",
+    "textToVideo": "文字生成视频",
+    "referenceToVideo": "参考图生成视频",
+    "pricing": "定价",
     "privacy": "隐私政策",
     "terms": "服务条款",
     "acceptableUse": "可接受使用政策",
@@ -387,7 +393,7 @@
       "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
-        "models": "使用 Sora 2、Veo 3.1 等多种 AI 模型",
+        "models": "用自己的 fal.ai API Key 使用 Kling 2.5 和 Wan 2.5",
         "share": "随时随地下载和分享您的作品"
       },
       "cta": "开始创作视频",
@@ -426,7 +432,7 @@
       "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
-        "models": "使用 Sora 2、Veo 3.1 等多种 AI 模型",
+        "models": "用自己的 fal.ai API Key 使用 Kling 2.5 和 Wan 2.5",
         "share": "随时随地下载和分享您的作品"
       },
       "cta": "开始创作视频",
@@ -530,6 +536,33 @@
         "paid": "已支付",
         "pending": "待支付",
         "failed": "失败"
+      },
+      "falKey": {
+        "cardTitle": "fal.ai API Key",
+        "cardDescription": "管理用于 fal.ai 视频生成的密钥。ReelKey 在保存前验证密钥，验证后仅保存在本浏览器中。",
+        "connected": "已连接",
+        "connectedDesc": "密钥已通过 fal.ai 身份验证，可以开始生成。",
+        "revealKey": "显示存储的密钥",
+        "hideKey": "隐藏存储的密钥",
+        "removeKey": "移除密钥",
+        "copied": "已复制",
+        "copy": "复制",
+        "replaceLabel": "替换 API 密钥",
+        "addLabel": "API 密钥",
+        "saveHint": "密钥仅在 fal.ai 身份验证成功后保存。",
+        "placeholder": "粘贴您的 fal.ai 密钥",
+        "verifying": "验证中",
+        "verifyAndSave": "验证并保存",
+        "errorInvalid": "无效的 API 密钥，请检查后重试。",
+        "errorEmpty": "请输入您的 fal.ai API 密钥",
+        "localStorage": "本地存储",
+        "localStorageDesc": "存储在此浏览器中，不在 ReelKey 数据库中。",
+        "realValidation": "真实验证",
+        "realValidationDesc": "仅在保存前发送给 fal.ai 进行身份验证。",
+        "directBilling": "直接计费",
+        "directBillingDesc": "生成费用由 fal.ai 直接向您的账户收取。",
+        "needKey": "需要 fal.ai 密钥？",
+        "openDashboard": "打开 fal.ai 密钥控制台"
       }
     }
   },
@@ -541,5 +574,85 @@
     "copyLink": "复制链接",
     "removeFromHistory": "从历史中移除",
     "generationFailed": "生成失败"
+  },
+  "ApiUsage": {
+    "title": "API 用量",
+    "description": "追踪使用 fal.ai API Key 的生成请求。预估费用仅统计已完成的请求。",
+    "openBilling": "打开 fal.ai 账单",
+    "metricRequests": "请求总数",
+    "metricCompleted": "已完成",
+    "metricFailed": "失败",
+    "metricEstimatedCost": "预估费用",
+    "historyTitle": "请求历史",
+    "historyDescription": "仅在请求完成后计入费用。失败的请求仅用于调试，不计入预估费用。",
+    "loading": "加载用量记录中...",
+    "emptyTitle": "暂无 API 用量",
+    "emptyDescription": "您的视频生成记录将在创建后显示在这里。",
+    "colGeneration": "生成",
+    "colModel": "模型",
+    "colSettings": "参数",
+    "colStatus": "状态",
+    "colCost": "费用",
+    "loadMore": "加载更多",
+    "statusCompleted": "已完成",
+    "statusFailed": "失败",
+    "statusGenerating": "生成中",
+    "statusPending": "等待中",
+    "statusUploading": "上传中",
+    "costPending": "等待中",
+    "costNotBilled": "未计费"
+  },
+  "ByokPricing": {
+    "badge": "BYOK 定价",
+    "title": "ReelKey 一次付费，fal.ai 直接计费。",
+    "subtitle": "ReelKey 提供工作台、模型接入与存储。视频生成通过您自己的 fal.ai API Key 完成，用量直接计入您的 fal.ai 账户。",
+    "earlyBirdBadge": "早鸟价",
+    "billingLifetime": "一次性",
+    "billingFree": "永久免费",
+    "unlimited": "无限次生成",
+    "generationsPerMonth": "每月 {count} 次生成",
+    "cloudStorage": "含云端存储",
+    "historyDays": "{days} 天历史记录",
+    "bottomNote": "视频生成费用由 fal.ai 直接向您收取，ReelKey 不转售 API 用量。",
+    "manageKey": "在 <link>账户设置</link> 中管理您的 Key。",
+    "ctaActive": "终身授权已激活",
+    "plans": {
+      "free": {
+        "title": "免费版",
+        "subtitle": "用自己的 fal.ai API Key 体验 ReelKey",
+        "modelAccess": "2 个模型",
+        "ctaLabel": "免费开始",
+        "features": [
+          "每月 10 次生成",
+          "2 个入门模型",
+          "7 天生成历史",
+          "使用您自己的 fal.ai 计费"
+        ]
+      },
+      "lifetime-early-bird": {
+        "title": "终身早鸟版",
+        "subtitle": "限时早鸟价，一次付费永久使用",
+        "modelAccess": "全部模型",
+        "ctaLabel": "获取终身授权",
+        "features": [
+          "通过自己的 API Key 无限次生成",
+          "访问所有支持的视频模型",
+          "永久云端存储已完成的视频",
+          "未来新增模型自动包含"
+        ]
+      },
+      "lifetime-regular": {
+        "title": "终身正价版",
+        "subtitle": "早鸟窗口结束后开放购买",
+        "modelAccess": "全部模型",
+        "ctaLabel": "即将开放",
+        "features": [
+          "通过自己的 API Key 无限次生成",
+          "访问所有支持的视频模型",
+          "永久云端存储已完成的视频",
+          "未来新增模型自动包含"
+        ]
+      }
+    }
   }
 }

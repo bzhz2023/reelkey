@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "ReelKey - AI Video Generation Platform",
-    "description": "Create stunning AI-generated videos in minutes with Sora 2, Veo 3.1, and more"
+    "description": "Generate AI videos with your own fal.ai API key. Supports Kling 2.5 and Wan 2.5. One-time lifetime license from $29."
   },
   "Common": {
     "login": "Login",
@@ -30,7 +30,7 @@
   "Hero": {
     "badge": "Bring Your Own API Key • No Subscriptions",
     "title": "AI Video Generation with Your Own API Key",
-    "subtitle": "No subscriptions. No expiring credits.",
+    "subtitle": "No subscriptions. Pay fal.ai directly.",
     "description": "Use Kling 2.5 and Wan 2.5 with your own fal.ai API key. Pay fal.ai directly, keep full control. One-time purchase, lifetime access.",
     "startCreating": "Get Started Free",
     "viewExamples": "View Examples",
@@ -111,8 +111,8 @@
       "stat": "Pay Once, Own Forever"
     },
     "referenceGen": {
-      "title": "Credits Never Expire",
-      "description": "Unlike other platforms, your usage never expires. Use your API quota on your own schedule without artificial deadlines.",
+      "title": "Pay As You Go, No Hoarding",
+      "description": "No credits to pre-buy or worry about expiring. Top up fal.ai directly and pay only for what you use — fully on your terms.",
       "stat": "No Expiration"
     },
     "enhancement": {
@@ -182,7 +182,7 @@
       "free": "One-time payment",
       "noCard": "Lifetime updates included",
       "cancel": "Use your own API keys",
-      "support": "No expiring credits"
+      "support": "Pay as you go, no expiry pressure"
     },
     "generating": "Generating...",
     "readyIn": "Ready in",
@@ -228,6 +228,12 @@
     "company": "Company",
     "legal": "Legal",
     "copyright": "© {year} ReelKey. All rights reserved.",
+    "tagline": "Transform your ideas into stunning videos with AI.",
+    "madeWith": "Made with <heart></heart> by ReelKey Team",
+    "imageToVideo": "Image to Video",
+    "textToVideo": "Text to Video",
+    "referenceToVideo": "Reference to Video",
+    "pricing": "Pricing",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "acceptableUse": "Acceptable Use",
@@ -387,7 +393,7 @@
       "features": "With ReelKey, you can:",
       "featuresList": {
         "generate": "Generate stunning AI videos in minutes",
-        "models": "Use multiple AI models like Sora 2, Veo 3.1, and more",
+        "models": "Use Kling 2.5 and Wan 2.5 with your own fal.ai API key",
         "share": "Download and share your creations anywhere"
       },
       "cta": "Start Creating Videos",
@@ -426,7 +432,7 @@
       "features": "With ReelKey, you can:",
       "featuresList": {
         "generate": "Generate stunning AI videos in minutes",
-        "models": "Use multiple AI models like Sora 2, Veo 3.1, and more",
+        "models": "Use Kling 2.5 and Wan 2.5 with your own fal.ai API key",
         "share": "Download and share your creations anywhere"
       },
       "cta": "Start Creating Videos",
@@ -530,6 +536,33 @@
         "paid": "Paid",
         "pending": "Pending",
         "failed": "Failed"
+      },
+      "falKey": {
+        "cardTitle": "fal.ai API Key",
+        "cardDescription": "Manage the key used for fal.ai video generation. ReelKey validates it before saving, then keeps it in this browser only.",
+        "connected": "Connected",
+        "connectedDesc": "This key passed fal.ai authentication and is ready for generation.",
+        "revealKey": "Reveal stored key",
+        "hideKey": "Hide stored key",
+        "removeKey": "Remove key",
+        "copied": "Copied",
+        "copy": "Copy",
+        "replaceLabel": "Replace API key",
+        "addLabel": "API key",
+        "saveHint": "The key is saved only after fal.ai authentication succeeds.",
+        "placeholder": "Paste your fal.ai key",
+        "verifying": "Verifying",
+        "verifyAndSave": "Verify & Save",
+        "errorInvalid": "Invalid API key. Please check and try again.",
+        "errorEmpty": "Please enter your fal.ai API key",
+        "localStorage": "Local storage",
+        "localStorageDesc": "Stored in this browser, not in ReelKey's database.",
+        "realValidation": "Real validation",
+        "realValidationDesc": "Sent only to authenticate with fal.ai before saving.",
+        "directBilling": "Direct billing",
+        "directBillingDesc": "Generation costs are billed by fal.ai to your account.",
+        "needKey": "Need a fal.ai key?",
+        "openDashboard": "Open fal.ai key dashboard"
       }
     }
   },
@@ -541,5 +574,85 @@
     "copyLink": "Copy link",
     "removeFromHistory": "Remove from history",
     "generationFailed": "Generation Failed"
+  },
+  "ApiUsage": {
+    "title": "API usage",
+    "description": "Track generation requests made with your fal.ai key. Estimated cost only includes completed requests.",
+    "openBilling": "Open fal.ai billing",
+    "metricRequests": "Requests",
+    "metricCompleted": "Completed",
+    "metricFailed": "Failed",
+    "metricEstimatedCost": "Estimated cost",
+    "historyTitle": "Request history",
+    "historyDescription": "Cost is counted only after a request completes. Failed requests are shown for debugging and are not included in estimated cost.",
+    "loading": "Loading usage records...",
+    "emptyTitle": "No API usage yet",
+    "emptyDescription": "Your video generations will appear here after you create them.",
+    "colGeneration": "Generation",
+    "colModel": "Model",
+    "colSettings": "Settings",
+    "colStatus": "Status",
+    "colCost": "Cost",
+    "loadMore": "Load more",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed",
+    "statusGenerating": "Generating",
+    "statusPending": "Pending",
+    "statusUploading": "Uploading",
+    "costPending": "Pending",
+    "costNotBilled": "Not billed"
+  },
+  "ByokPricing": {
+    "badge": "BYOK pricing",
+    "title": "Pay ReelKey once. Pay fal.ai directly.",
+    "subtitle": "ReelKey provides the workspace, model access, and storage. Video generation runs through your own fal.ai API key.",
+    "earlyBirdBadge": "Early bird",
+    "billingLifetime": "one-time",
+    "billingFree": "forever",
+    "unlimited": "Unlimited generations",
+    "generationsPerMonth": "{count} generations/month",
+    "cloudStorage": "Cloud storage included",
+    "historyDays": "{days}-day history",
+    "bottomNote": "Generation provider costs are billed by fal.ai to your own account. ReelKey does not resell provider usage in BYOK mode.",
+    "manageKey": "Manage your key in <link>Account settings</link>.",
+    "ctaActive": "Lifetime access active",
+    "plans": {
+      "free": {
+        "title": "Free",
+        "subtitle": "Try ReelKey with your own fal.ai key",
+        "modelAccess": "2 models",
+        "ctaLabel": "Start free",
+        "features": [
+          "10 generations per month",
+          "Access to 2 starter models",
+          "7-day generation history",
+          "Use your own fal.ai billing"
+        ]
+      },
+      "lifetime-early-bird": {
+        "title": "Lifetime Early Bird",
+        "subtitle": "One-time access for early adopters",
+        "modelAccess": "All models",
+        "ctaLabel": "Get lifetime access",
+        "features": [
+          "Unlimited generations via your API key",
+          "Access to every supported video model",
+          "Permanent cloud storage for completed videos",
+          "All future model additions included"
+        ]
+      },
+      "lifetime-regular": {
+        "title": "Lifetime Regular",
+        "subtitle": "Available after the early-bird window closes",
+        "modelAccess": "All models",
+        "ctaLabel": "Coming soon",
+        "features": [
+          "Unlimited generations via your API key",
+          "Access to every supported video model",
+          "Permanent cloud storage for completed videos",
+          "All future model additions included"
+        ]
+      }
+    }
   }
 }
