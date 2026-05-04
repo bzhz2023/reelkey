@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ import {
 import { falKeyStorage } from "@/lib/fal-key";
 
 export function FalKeyManager() {
+  const t = useTranslations("dashboard.settings.falKey");
   const { status, maskedKey, saveKey, removeKey } = useFalKey();
   const [inputKey, setInputKey] = useState("");
   const [showKey, setShowKey] = useState(false);
@@ -35,13 +37,13 @@ export function FalKeyManager() {
 
   useEffect(() => {
     if (status === "invalid") {
-      setError("Invalid API key. Please check and try again.");
+      setError(t("errorInvalid"));
     }
-  }, [status]);
+  }, [status, t]);
 
   const handleSave = async () => {
     if (!inputKey.trim()) {
-      setError("Please enter your fal.ai API key");
+      setError(t("errorEmpty"));
       return;
     }
 
@@ -52,7 +54,7 @@ export function FalKeyManager() {
       setInputKey("");
       setShowKey(false);
     } else {
-      setError("Invalid API key. Please check and try again.");
+      setError(t("errorInvalid"));
     }
   };
 
@@ -76,7 +78,6 @@ export function FalKeyManager() {
     if (hasStoredKey) {
       return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
     }
-
     return <Key className="h-4 w-4 text-muted-foreground" />;
   };
 
@@ -87,11 +88,10 @@ export function FalKeyManager() {
           <div className="space-y-2">
             <CardTitle className="flex items-center gap-2">
               {getStatusIcon()}
-              fal.ai API Key
+              {t("cardTitle")}
             </CardTitle>
             <CardDescription className="max-w-2xl">
-              Manage the key used for fal.ai video generation. ReelKey validates
-              it before saving, then keeps it in this browser only.
+              {t("cardDescription")}
             </CardDescription>
           </div>
         </div>
@@ -105,10 +105,9 @@ export function FalKeyManager() {
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div className="space-y-1">
-                  <div className="text-sm font-semibold">Connected</div>
+                  <div className="text-sm font-semibold">{t("connected")}</div>
                   <p className="text-sm text-muted-foreground">
-                    This key passed fal.ai authentication and is ready for
-                    generation.
+                    {t("connectedDesc")}
                   </p>
                 </div>
               </div>
@@ -132,12 +131,12 @@ export function FalKeyManager() {
                   {copied ? (
                     <>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Copied
+                      {t("copied")}
                     </>
                   ) : (
                     <>
                       <Copy className="mr-2 h-4 w-4" />
-                      Copy
+                      {t("copy")}
                     </>
                   )}
                 </Button>
@@ -156,12 +155,12 @@ export function FalKeyManager() {
               {showFullKey ? (
                 <>
                   <EyeOff className="mr-2 h-4 w-4" />
-                  Hide stored key
+                  {t("hideKey")}
                 </>
               ) : (
                 <>
                   <Eye className="mr-2 h-4 w-4" />
-                  Reveal stored key
+                  {t("revealKey")}
                 </>
               )}
             </Button>
@@ -172,7 +171,7 @@ export function FalKeyManager() {
               className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Remove key
+              {t("removeKey")}
             </Button>
           </div>
         )}
@@ -181,10 +180,10 @@ export function FalKeyManager() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <Label htmlFor="fal-key">
-                {hasStoredKey ? "Replace API key" : "API key"}
+                {hasStoredKey ? t("replaceLabel") : t("addLabel")}
               </Label>
               <p className="mt-1 text-sm text-muted-foreground">
-                The key is saved only after fal.ai authentication succeeds.
+                {t("saveHint")}
               </p>
             </div>
           </div>
@@ -193,7 +192,7 @@ export function FalKeyManager() {
               <Input
                 id="fal-key"
                 type={showKey ? "text" : "password"}
-                placeholder="Paste your fal.ai key"
+                placeholder={t("placeholder")}
                 value={inputKey}
                 onChange={(e) => {
                   setInputKey(e.target.value);
@@ -221,10 +220,10 @@ export function FalKeyManager() {
               {isValidating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying
+                  {t("verifying")}
                 </>
               ) : (
-                "Verify & Save"
+                t("verifyAndSave")
               )}
             </Button>
           </div>
@@ -237,35 +236,35 @@ export function FalKeyManager() {
           <div className="rounded-lg border bg-muted/20 p-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <LockKeyhole className="h-4 w-4 text-sky-600" />
-              Local storage
+              {t("localStorage")}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Stored in this browser, not in ReelKey's database.
+              {t("localStorageDesc")}
             </p>
           </div>
           <div className="rounded-lg border bg-muted/20 p-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <Activity className="h-4 w-4 text-sky-600" />
-              Real validation
+              {t("realValidation")}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Sent only to authenticate with fal.ai before saving.
+              {t("realValidationDesc")}
             </p>
           </div>
           <div className="rounded-lg border bg-muted/20 p-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              Direct billing
+              {t("directBilling")}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Generation costs are billed by fal.ai to your account.
+              {t("directBillingDesc")}
             </p>
           </div>
         </div>
 
         <Alert>
           <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm">Need a fal.ai key?</span>
+            <span className="text-sm">{t("needKey")}</span>
             <Button
               variant="link"
               className="h-auto w-fit p-0 text-sm"
@@ -276,7 +275,7 @@ export function FalKeyManager() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Open fal.ai key dashboard
+                {t("openDashboard")}
                 <ExternalLink className="ml-1 h-3 w-3" />
               </a>
             </Button>

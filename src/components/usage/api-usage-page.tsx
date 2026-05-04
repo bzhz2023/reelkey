@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui";
@@ -42,6 +43,7 @@ const modelNames: Record<string, string> = {
 };
 
 export function ApiUsagePage() {
+  const t = useTranslations("ApiUsage");
   const {
     videos,
     isLoading,
@@ -59,10 +61,9 @@ export function ApiUsagePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">API usage</h1>
+          <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Track generation requests made with your fal.ai key. Estimated cost
-            only includes completed requests.
+            {t("description")}
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -71,7 +72,7 @@ export function ApiUsagePage() {
             target="_blank"
             rel="noreferrer"
           >
-            Open fal.ai billing
+            {t("openBilling")}
             <ExternalLink className="h-4 w-4" />
           </a>
         </Button>
@@ -80,22 +81,22 @@ export function ApiUsagePage() {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <UsageMetric
           icon={Video}
-          label="Requests"
+          label={t("metricRequests")}
           value={summary.total.toLocaleString()}
         />
         <UsageMetric
           icon={CheckCircle2}
-          label="Completed"
+          label={t("metricCompleted")}
           value={summary.completed.toLocaleString()}
         />
         <UsageMetric
           icon={AlertCircle}
-          label="Failed"
+          label={t("metricFailed")}
           value={summary.failed.toLocaleString()}
         />
         <UsageMetric
           icon={ReceiptText}
-          label="Estimated cost"
+          label={t("metricEstimatedCost")}
           value={formatProviderCost(summary.estimatedCostCents)}
         />
       </div>
@@ -103,10 +104,9 @@ export function ApiUsagePage() {
       <section className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex flex-col gap-2 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-semibold">Request history</h2>
+            <h2 className="font-semibold">{t("historyTitle")}</h2>
             <p className="text-sm text-muted-foreground">
-              Cost is counted only after a request completes. Failed requests
-              are shown for debugging and are not included in estimated cost.
+              {t("historyDescription")}
             </p>
           </div>
         </div>
@@ -114,16 +114,16 @@ export function ApiUsagePage() {
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading usage records...
+            {t("loading")}
           </div>
         ) : videos.length === 0 ? (
           <div className="px-5 py-16 text-center">
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-muted">
               <ReceiptText className="h-5 w-5 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 font-medium">No API usage yet</h3>
+            <h3 className="mt-4 font-medium">{t("emptyTitle")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Your video generations will appear here after you create them.
+              {t("emptyDescription")}
             </p>
           </div>
         ) : (
@@ -132,16 +132,16 @@ export function ApiUsagePage() {
               <table className="w-full min-w-[760px]">
                 <thead className="bg-muted/50">
                   <tr className="text-left text-xs font-medium uppercase text-muted-foreground">
-                    <th className="px-5 py-3">Generation</th>
-                    <th className="px-5 py-3">Model</th>
-                    <th className="px-5 py-3">Settings</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-right">Cost</th>
+                    <th className="px-5 py-3">{t("colGeneration")}</th>
+                    <th className="px-5 py-3">{t("colModel")}</th>
+                    <th className="px-5 py-3">{t("colSettings")}</th>
+                    <th className="px-5 py-3">{t("colStatus")}</th>
+                    <th className="px-5 py-3 text-right">{t("colCost")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {videos.map((video) => (
-                    <UsageRow key={video.uuid} video={video} />
+                    <UsageRow key={video.uuid} video={video} t={t} />
                   ))}
                 </tbody>
               </table>
@@ -157,7 +157,7 @@ export function ApiUsagePage() {
                   {isFetchingNextPage && (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   )}
-                  Load more
+                  {t("loadMore")}
                 </Button>
               </div>
             )}
@@ -186,10 +186,22 @@ function UsageMetric({ icon: Icon, label, value }: UsageMetricProps) {
   );
 }
 
+type TFunc = ReturnType<typeof useTranslations<"ApiUsage">>;
+
+const statusKeyMap: Record<string, string> = {
+  completed: "statusCompleted",
+  failed: "statusFailed",
+  generating: "statusGenerating",
+  pending: "statusPending",
+  uploading: "statusUploading",
+};
+
 function UsageRow({
   video,
+  t,
 }: {
   video: DashboardVideo;
+  t: TFunc;
 }) {
   const status = normalizeVideoStatus(video.status);
   const quality =
@@ -201,6 +213,18 @@ function UsageRow({
       ? video.parameters.mode
       : undefined;
   const costDisplay = getUsageCostDisplay(video);
+
+  const costLabel =
+    costDisplay.state === "billed"
+      ? costDisplay.label
+      : costDisplay.state === "pending"
+        ? t("costPending")
+        : t("costNotBilled");
+
+  const statusLabel = statusKeyMap[status]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ? t(statusKeyMap[status] as any)
+    : status;
 
   return (
     <tr className="text-sm hover:bg-muted/40">
@@ -228,11 +252,10 @@ function UsageRow({
         <Badge
           variant="outline"
           className={cn(
-            "capitalize",
             statusStyles[status as VideoStatus] || statusStyles.pending
           )}
         >
-          {status}
+          {statusLabel}
         </Badge>
       </td>
       <td
@@ -241,7 +264,7 @@ function UsageRow({
           costDisplay.state !== "billed" && "text-muted-foreground"
         )}
       >
-        {costDisplay.label}
+        {costLabel}
       </td>
     </tr>
   );
