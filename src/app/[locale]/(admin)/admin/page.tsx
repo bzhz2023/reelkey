@@ -64,7 +64,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">管理概览</h1>
         <p className="text-muted-foreground">
           管理后台概览
         </p>

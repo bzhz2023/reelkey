@@ -541,5 +541,10 @@
     "copyLink": "复制链接",
     "removeFromHistory": "从历史中移除",
     "generationFailed": "生成失败"
+  },
+  "ModelPage": {
+    "comingSoon": "即将推出...",
+    "tryImageToVideo": "体验图生视频",
+    "tryTextToVideo": "体验文生视频"
   }
 }

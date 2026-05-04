@@ -541,5 +541,10 @@
     "copyLink": "Copy link",
     "removeFromHistory": "Remove from history",
     "generationFailed": "Generation Failed"
+  },
+  "ModelPage": {
+    "comingSoon": "Coming soon...",
+    "tryImageToVideo": "Try Image to Video",
+    "tryTextToVideo": "Try Text to Video"
   }
 }
