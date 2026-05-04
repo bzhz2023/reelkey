@@ -4,11 +4,12 @@
 // Video Hooks
 // ============================================
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { apiClient } from "@/lib/api/dashboard-client";
+import { falKeyStorage } from "@/lib/fal-key";
 import { useVideosStore } from "@/stores/videos-store";
 import type { VideoFilterOptions } from "@/lib/types/dashboard";
 
@@ -38,6 +39,8 @@ export function useVideos(filter?: VideoFilterOptions) {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    staleTime: 30 * 1000,
   });
 
   // Flatten pages
@@ -167,22 +170,65 @@ export function useDownloadVideo() {
  * Auto-refresh processing videos
  */
 export function useRefreshProcessingVideos(
-  videos: Array<{ status?: string }>,
+  videos: Array<{ uuid?: string; status?: string }>,
   refetch: () => void,
-  interval: number = 5000
+  interval: number = 15000
 ) {
-  const hasProcessing = videos.some((v) => {
-    const status = (v.status || "").toLowerCase();
-    return status === "generating" || status === "uploading" || status === "pending";
-  });
+  const isCheckingRef = useRef(false);
+
+  const processingVideoIds = videos
+    .filter((v) => {
+      const status = (v.status || "").toLowerCase();
+      return (
+        v.uuid &&
+        (status === "generating" || status === "uploading" || status === "pending")
+      );
+    })
+    .map((v) => v.uuid as string);
 
   useEffect(() => {
-    if (!hasProcessing) return;
+    if (processingVideoIds.length === 0) return;
 
-    const timer = setInterval(() => {
-      refetch();
-    }, interval);
+    const checkProcessingVideos = async () => {
+      if (document.visibilityState !== "visible") return;
+      if (isCheckingRef.current) return;
+
+      isCheckingRef.current = true;
+
+      try {
+        const idsToCheck = processingVideoIds.slice(0, 3);
+        const headers: Record<string, string> = {};
+        const falKey = falKeyStorage.get();
+        if (falKey) {
+          headers["x-fal-key"] = falKey;
+        }
+        const results = await Promise.allSettled(
+          idsToCheck.map(async (uuid) => {
+            const response = await fetch(`/api/v1/video/${uuid}/status`, {
+              headers,
+            });
+            if (!response.ok) return null;
+            const result = await response.json();
+            return result?.data?.status as string | undefined;
+          })
+        );
+
+        const hasTerminalUpdate = results.some((result) => {
+          if (result.status !== "fulfilled") return false;
+          const status = (result.value || "").toLowerCase();
+          return status === "completed" || status === "failed";
+        });
+
+        if (hasTerminalUpdate) {
+          refetch();
+        }
+      } finally {
+        isCheckingRef.current = false;
+      }
+    };
+
+    const timer = setInterval(checkProcessingVideos, interval);
 
     return () => clearInterval(timer);
-  }, [hasProcessing, interval, refetch]);
+  }, [processingVideoIds.join(","), interval, refetch]);
 }

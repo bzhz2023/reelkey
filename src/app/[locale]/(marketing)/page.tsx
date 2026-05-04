@@ -1,16 +1,11 @@
 import { HeroSection } from "@/components/landing/hero-section";
-import { FeaturesSection } from "@/components/landing/features-section";
-// import { ShowcaseSection } from "@/components/landing/showcase-section";
-import { HowItWorks } from "@/components/landing/how-it-works-section";
-import { PricingSection } from "@/components/landing/pricing-section";
-import { FAQSection } from "@/components/landing/faq-section";
-import { CTASection } from "@/components/landing/cta-section";
+import { DeferredHomeSections } from "@/components/landing/deferred-home-sections";
 
 import type { Locale } from "@/config/i18n-config";
 import { siteConfig } from "@/config/site";
 import { i18n } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
-import { getConfiguredAIProvider } from "@/ai";
+import { getConfiguredAIProvider } from "@/ai/provider-config";
 
 interface HomePageProps {
   params: Promise<{
@@ -70,12 +65,7 @@ export default async function HomePage({ params }: HomePageProps) {
   return (
     <>
       <HeroSection currentProvider={getConfiguredAIProvider()} />
-      {/* <ShowcaseSection /> */}
-      <FeaturesSection />
-      <HowItWorks />
-      <PricingSection />
-      <CTASection />
-      <FAQSection />
+      <DeferredHomeSections />
     </>
   );
 }

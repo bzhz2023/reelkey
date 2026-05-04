@@ -36,7 +36,6 @@ export function HeaderSimple({
   mobileMenuOpen = false,
   onMobileMenuToggle,
 }: HeaderSimpleProps) {
-  const { balance } = useCredits();
   const signInModal = useSigninModal();
   const { setTheme } = useTheme();
   const router = useLocaleRouter();
@@ -45,6 +44,7 @@ export function HeaderSimple({
   const tHeader = useTranslations("Header");
   const currentLocale = lang || "en";
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const { balance } = useCredits({ enabled: Boolean(user) && !isByokMode });
   const visibleUserMenuItems = userMenuItems.filter(
     (item) => !(isByokMode && item.hiddenInByok)
   );

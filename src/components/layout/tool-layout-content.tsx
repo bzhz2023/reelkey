@@ -1,21 +1,43 @@
 "use client";
 
+import { useMemo } from "react";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { HeaderSimple } from "@/components/layout/header-simple";
 import { Sidebar } from "@/components/layout/sidebar";
+import { authClient } from "@/lib/auth/client";
+import { sidebarNavigation } from "@/config/navigation";
+import { CREDITS_CONFIG } from "@/config/credits";
+import { useIdleRoutePrefetch } from "@/hooks/use-idle-route-prefetch";
 
 interface ToolLayoutContentProps {
   children: React.ReactNode;
   lang: string;
-  user: any;
 }
 
 export function ToolLayoutContent({
   children,
   lang,
-  user,
 }: ToolLayoutContentProps) {
   const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
+  const { data: session } = authClient.useSession();
+  const user = session?.user ?? null;
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const prefetchHrefs = useMemo(() => {
+    const sidebarHrefs = sidebarNavigation.flatMap((group) =>
+      group.items
+        .filter((item) => !(isByokMode && item.hiddenInByok))
+        .map((item) => `/${lang}${item.href}`)
+    );
+
+    return [
+      ...sidebarHrefs,
+      `/${lang}`,
+      `/${lang}/pricing`,
+      `/${lang}/privacy`,
+    ];
+  }, [isByokMode, lang]);
+
+  useIdleRoutePrefetch(prefetchHrefs);
 
   return (
     <div className="min-h-screen bg-background">

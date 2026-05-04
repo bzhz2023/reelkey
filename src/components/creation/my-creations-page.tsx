@@ -5,18 +5,24 @@
 // ============================================
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useVideos } from "@/hooks/use-videos";
 import { useRefreshProcessingVideos } from "@/hooks/use-videos";
-import {
-  CreationCard,
-  CreationGrid,
-  CreationFilter,
-  CreationEmpty,
-  CreationSkeleton,
-  VideoDetailDialog,
-} from "@/components/creation";
+import { CreationCard } from "@/components/creation/creation-card";
+import { CreationGrid } from "@/components/creation/creation-grid";
+import { CreationFilter } from "@/components/creation/creation-filter";
+import { CreationEmpty } from "@/components/creation/creation-empty";
+import { CreationSkeleton } from "@/components/creation/creation-skeleton";
 import type { Video, VideoFilterOptions } from "@/lib/types/dashboard";
+
+const VideoDetailDialog = dynamic(
+  () =>
+    import("@/components/creation/video-detail-dialog").then(
+      (mod) => mod.VideoDetailDialog
+    ),
+  { ssr: false }
+);
 
 interface MyCreationsPageProps {
   locale: string;

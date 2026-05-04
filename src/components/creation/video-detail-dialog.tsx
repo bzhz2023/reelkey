@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeTime } from "@/lib/format-relative-time";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -184,7 +184,7 @@ export function VideoDetailDialog({
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("detail.createdAt")}</span>
                   <span className="font-medium">
-                    {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}
+                    {formatRelativeTime(video.createdAt)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

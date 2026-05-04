@@ -13,6 +13,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth/client";
@@ -22,20 +23,51 @@ import { useNotificationDeduplication } from "@/hooks/use-notification-deduplica
 import { videoTaskStorage } from "@/lib/video-task-storage";
 import { videoHistoryStorage, type VideoHistoryItem } from "@/lib/video-history-storage";
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
-import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
 import { siteConfig } from "@/config/site";
 import { CREDITS_CONFIG } from "@/config/credits";
 import { useFalKeyPrompt } from "@/hooks/use-fal-key-prompt";
-import { FalKeySetupDialog } from "@/components/fal-key-setup-dialog";
 import type { Video } from "@/db";
 import type { ToolPageConfig } from "@/config/tool-pages";
 import { GeneratorPanel, type GeneratorData } from "@/components/tool/generator-panel";
 import { uploadImage } from "@/lib/video-api";
-import { ToolLandingPage } from "@/components/tool/tool-landing-page";
-import { VideoHistoryPanel } from "@/components/tool/video-history-panel";
 import { toast } from "sonner";
 
+const ToolLandingPage = dynamic(
+  () => import("@/components/tool/tool-landing-page").then((mod) => mod.ToolLandingPage),
+  {
+    loading: () => <div className="min-h-[360px]" />,
+    ssr: false,
+  }
+);
+
+const VideoHistoryPanel = dynamic(
+  () => import("@/components/tool/video-history-panel").then((mod) => mod.VideoHistoryPanel),
+  {
+    loading: () => (
+      <div className="h-full min-h-[360px] rounded-2xl border border-zinc-800 bg-zinc-900/70" />
+    ),
+    ssr: false,
+  }
+);
+
+const UpgradeModal = dynamic(
+  () => import("@/components/upgrade/upgrade-modal").then((mod) => mod.UpgradeModal),
+  { ssr: false }
+);
+
+const FalKeySetupDialog = dynamic(
+  () => import("@/components/fal-key-setup-dialog").then((mod) => mod.FalKeySetupDialog),
+  { ssr: false }
+);
+
 const TOOL_PREFILL_KEY = "reel_key_tool_prefill";
+const HISTORY_SYNC_CACHE_MS = 60 * 1000;
+
+const historySyncState = {
+  userId: null as string | null,
+  lastSyncedAt: 0,
+  inFlight: false,
+};
 
 // ============================================================================
 // Types
@@ -88,7 +120,7 @@ export function ToolPageLayout({
 }: ToolPageLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { balance, optimisticFreeze, optimisticRelease, invalidate } = useCredits();
+  const { data: session, isPending: isSessionPending } = authClient.useSession();
   const { openModal } = useUpgradeModal();
   const { shouldNotify, markNotified, resetNotification } = useNotificationDeduplication();
   const { showDialog, setShowDialog } = useFalKeyPrompt();
@@ -97,9 +129,11 @@ export function ToolPageLayout({
   const tNotify = useTranslations("Notifications");
   const tTool = useTranslations("ToolPage");
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const { balance, optimisticFreeze, optimisticRelease, invalidate } = useCredits({
+    enabled: !isByokMode,
+  });
 
   // 状态
-  const [user, setUser] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentVideos, setCurrentVideos] = useState<Video[]>([]);
   const [generatingIds, setGeneratingIds] = useState<string[]>([]);
@@ -113,6 +147,7 @@ export function ToolPageLayout({
     quality?: string;
     imageUrl?: string;
   } | null>(null);
+  const user = session?.user ?? null;
 
   useEffect(() => {
     const handleMissingKey = () => setShowDialog(true);
@@ -262,13 +297,6 @@ export function ToolPageLayout({
     onFailed: handleFailed,
   });
 
-  // 检查登录状态
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      setUser(session?.data?.user ?? null);
-    });
-  }, []);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -297,18 +325,50 @@ export function ToolPageLayout({
     const history = videoHistoryStorage.getHistory(user.id);
     setHistoryItems(history);
 
-    // 可选：从服务器同步最近 20 条视频
-    fetch(`/api/v1/video/list?limit=20`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data?.videos) {
-          videoHistoryStorage.syncFromServer(data.data.videos);
-          setHistoryItems(videoHistoryStorage.getHistory(user.id));
-        }
-      })
-      .catch((error) => {
-        console.warn("Failed to sync video history from server:", error);
-      });
+    const now = Date.now();
+    const recentlySynced =
+      historySyncState.userId === user.id &&
+      now - historySyncState.lastSyncedAt < HISTORY_SYNC_CACHE_MS;
+
+    if (recentlySynced || historySyncState.inFlight) {
+      return;
+    }
+
+    // 可选：从服务器同步最近 20 条视频。延后到空闲时，避免工具页切换被远端数据库冷启动拖慢。
+    const syncServerHistory = () => {
+      historySyncState.inFlight = true;
+      historySyncState.userId = user.id;
+      const startedAt = performance.now();
+
+      fetch(`/api/v1/video/list?limit=20`)
+        .then((res) => res.json())
+        .then((data) => {
+          const elapsedMs = Math.round(performance.now() - startedAt);
+          if (elapsedMs > 1000) {
+            console.info(`[perf] tool history sync took ${elapsedMs}ms`);
+          }
+
+          if (data.data?.videos) {
+            videoHistoryStorage.syncFromServer(data.data.videos);
+            setHistoryItems(videoHistoryStorage.getHistory(user.id));
+          }
+        })
+        .catch((error) => {
+          console.warn("Failed to sync video history from server:", error);
+        })
+        .finally(() => {
+          historySyncState.inFlight = false;
+          historySyncState.lastSyncedAt = Date.now();
+        });
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(syncServerHistory, { timeout: 2000 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = setTimeout(syncServerHistory, 800);
+    return () => clearTimeout(timeoutId);
   }, [user?.id]);
 
   useEffect(() => {
@@ -612,6 +672,52 @@ export function ToolPageLayout({
 
   // 移动端：显示标签导航
   const showMobileTabs = true;
+
+  if (isSessionPending) {
+    return (
+      <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
+        {showMobileTabs && (
+          <div className="lg:hidden flex border-b border-border mb-4 shrink-0">
+            <button
+              type="button"
+              disabled
+              className="flex-1 py-3 text-sm font-medium text-foreground border-b-2 border-primary"
+            >
+              {tTool("generator")}
+            </button>
+            <button
+              type="button"
+              disabled
+              className="flex-1 py-3 text-sm font-medium text-muted-foreground"
+            >
+              {tTool("result")}
+            </button>
+          </div>
+        )}
+
+        <div className="grid min-h-0 h-fit max-h-[calc(100svh-120px)] grid-cols-1 lg:grid-cols-[380px_minmax(0,1.2fr)] gap-5">
+          <div className="flex flex-col h-full min-h-0">
+            <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
+              <GeneratorPanel
+                toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                isLoading
+                availableModelIds={config.generator.models.available}
+                defaultModelId={config.generator.models.default}
+                initialPrompt={prefillData?.prompt}
+                initialModelId={prefillData?.model}
+                initialDuration={prefillData?.duration}
+                initialAspectRatio={prefillData?.aspectRatio}
+                initialQuality={prefillData?.quality}
+                initialImageUrl={prefillData?.imageUrl}
+              />
+            </div>
+          </div>
+
+          <div className="hidden lg:block h-full min-h-[360px] rounded-2xl border border-zinc-800 bg-zinc-900/70" />
+        </div>
+      </div>
+    );
+  }
 
   // Unauthenticated Layout: Scrollable, Tool Area + Landing Page
   if (!user) {

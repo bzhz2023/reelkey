@@ -1,18 +1,15 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Sparkles, Zap, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-import {
-  VideoGeneratorInput,
-  type SubmitData,
-  DEFAULT_CONFIG,
-  DEFAULT_DEFAULTS,
-} from "@/components/video-generator";
+import type { SubmitData } from "@/components/video-generator/types";
+import { DEFAULT_CONFIG, DEFAULT_DEFAULTS } from "@/components/video-generator/defaults";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { Meteors } from "@/components/magicui/meteors";
 import { cn } from "@/components/ui";
@@ -22,7 +19,8 @@ import { NEW_USER_GIFT } from "@/config/pricing-user";
 import { uploadImage } from "@/lib/video-api";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { videoTaskStorage } from "@/lib/video-task-storage";
-import type { ProviderType } from "@/ai";
+import { falKeyStorage } from "@/lib/fal-key";
+import type { ProviderType } from "@/ai/types";
 import {
   isModelModeSupported,
   type GenerationMode,
@@ -38,7 +36,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FalKeyDialog, useFalKey } from "@/components/fal-key-dialog";
+
+const FalKeyDialog = dynamic(
+  () =>
+    import("@/components/fal-key-dialog").then((mod) => mod.FalKeyDialog),
+  { ssr: false }
+);
+
+const VideoGeneratorInput = dynamic(
+  () =>
+    import("@/components/video-generator/video-generator-input").then(
+      (mod) => mod.VideoGeneratorInput
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[360px] rounded-3xl border border-border bg-card/80 p-8 shadow-sm" />
+    ),
+  }
+);
 
 const PENDING_PROMPT_KEY = "reel_key_pending_prompt";
 const PENDING_IMAGE_KEY = "reel_key_pending_image";
@@ -79,8 +95,8 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   const { data: session } = authClient.useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifyDialog, setShowNotifyDialog] = useState(false);
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(null);
-  const { showDialog: showKeyDialog, setShowDialog: setShowKeyDialog, checkAndPrompt, getKey } = useFalKey();
 
   const generatorConfig = useMemo(() => {
     const availableModels = getAvailableModels({
@@ -178,7 +194,7 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       const hasImages = (data.images && data.images.length > 0) || (data.imageUrls && data.imageUrls.length > 0);
       const resolvedImageUrls = hasImages ? await resolveImageUrls(data) : undefined;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const falKey = getKey();
+      const falKey = falKeyStorage.get();
       if (falKey) {
         headers["x-fal-key"] = falKey;
       }
@@ -278,8 +294,9 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
 
   const handleSubmit = async (data: SubmitData) => {
     // 首先检查是否有 API Key
-    if (!checkAndPrompt()) {
+    if (!falKeyStorage.exists()) {
       setPendingSubmitData(data);
+      setShowKeyDialog(true);
       return;
     }
 

@@ -10,7 +10,8 @@ import { apiClient } from "@/lib/api/dashboard-client";
 /**
  * Get billing information
  */
-export function useBilling() {
+export function useBilling(options: { enabled?: boolean } = {}) {
+  const enabled = options.enabled ?? true;
   const {
     data,
     isLoading,
@@ -30,6 +31,7 @@ export function useBilling() {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
     refetchOnWindowFocus: false,
+    enabled,
   });
 
   const user = data?.pages[0]?.user;

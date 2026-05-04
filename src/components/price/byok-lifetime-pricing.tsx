@@ -11,7 +11,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import {
   type ByokPricingPlan,
 } from "@/config/byok-pricing";
 import { useSigninModal } from "@/hooks/use-signin-modal";
-import { creem } from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/client";
 
 interface ByokLifetimePricingProps {
   hasLifetimeEntitlement?: boolean;
@@ -47,33 +47,40 @@ function PlanCard({
   plan: ByokPricingPlan;
   userId?: string;
 }) {
+  const t = useTranslations("ByokPricing");
   const pathname = usePathname();
   const signInModal = useSigninModal();
   const [isPending, startTransition] = useTransition();
   const localePrefix = getLocalePrefix(pathname);
   const isCheckoutPlan = plan.id === "lifetime-early-bird";
+  const activeUserId = userId;
   const ctaState = getByokPricingCtaState({
     planId: plan.id,
     hasLifetimeEntitlement,
-    hasUser: !!userId,
+    hasUser: !!activeUserId,
   });
+
+  // Resolve CTA label from i18n; "active" state uses a shared key
+  const ctaLabel =
+    ctaState.action === "active"
+      ? t("ctaActive")
+      : t(`plans.${plan.id}.ctaLabel` as Parameters<typeof t>[0]);
 
   const handleClick = () => {
     if (ctaState.action === "active" || ctaState.action === "future") return;
 
     if (plan.id === "free") {
-      if (!userId) {
+      if (!activeUserId) {
         signInModal.onOpen();
         return;
       }
-
       window.location.href = `${localePrefix}/text-to-video`;
       return;
     }
 
     if (!isCheckoutPlan) return;
 
-    if (!userId) {
+    if (!activeUserId) {
       signInModal.onOpen();
       return;
     }
@@ -81,14 +88,20 @@ function PlanCard({
     const productId = plan.productId;
 
     if (!productId) {
-      toast.error("Checkout is not configured yet", {
-        description:
-          "Add NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID after creating the Creem lifetime product.",
+      import("sonner").then(({ toast }) => {
+        toast.error("Checkout is not configured yet", {
+          description:
+            "Add NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID after creating the Creem lifetime product.",
+        });
       });
       return;
     }
 
     startTransition(async () => {
+      const [{ creem }, { toast }] = await Promise.all([
+        import("@/lib/auth/client"),
+        import("sonner"),
+      ]);
       const origin = window.location.origin;
       const successUrl = `${origin}${localePrefix}/settings?payment=success`;
 
@@ -119,6 +132,13 @@ function PlanCard({
     });
   };
 
+  const planTitle = t(`plans.${plan.id}.title` as Parameters<typeof t>[0]);
+  const planSubtitle = t(`plans.${plan.id}.subtitle` as Parameters<typeof t>[0]);
+  const planModelAccess = t(`plans.${plan.id}.modelAccess` as Parameters<typeof t>[0]);
+  const planFeatures = t.raw(`plans.${plan.id}.features` as Parameters<typeof t>[0]) as string[];
+  const billingLabel =
+    plan.billingKind === "lifetime" ? t("billingLifetime") : t("billingFree");
+
   return (
     <div
       className={cn(
@@ -127,13 +147,13 @@ function PlanCard({
       )}
     >
       {plan.highlight ? (
-        <Badge className="absolute right-5 top-5">Early bird</Badge>
+        <Badge className="absolute right-5 top-5">{t("earlyBirdBadge")}</Badge>
       ) : null}
 
       <div className="mb-6">
-        <h3 className="text-xl font-semibold">{plan.title}</h3>
+        <h3 className="text-xl font-semibold">{planTitle}</h3>
         <p className="mt-2 min-h-10 text-sm leading-5 text-muted-foreground">
-          {plan.subtitle}
+          {planSubtitle}
         </p>
       </div>
 
@@ -141,9 +161,7 @@ function PlanCard({
         <span className="text-5xl font-bold tracking-normal">
           {formatPrice(plan.priceUsd)}
         </span>
-        <span className="pb-2 text-sm text-muted-foreground">
-          {plan.billingKind === "lifetime" ? "one-time" : "forever"}
-        </span>
+        <span className="pb-2 text-sm text-muted-foreground">{billingLabel}</span>
       </div>
 
       <div className="mb-6 grid gap-3 text-sm">
@@ -151,26 +169,26 @@ function PlanCard({
           <InfinityIcon className="size-4 text-primary" />
           <span>
             {plan.monthlyGenerations === null
-              ? "Unlimited generations"
-              : `${plan.monthlyGenerations} generations/month`}
+              ? t("unlimited")
+              : t("generationsPerMonth", { count: plan.monthlyGenerations })}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary" />
-          <span>{plan.modelAccess}</span>
+          <span>{planModelAccess}</span>
         </div>
         <div className="flex items-center gap-2">
           <Cloud className="size-4 text-primary" />
           <span>
             {plan.includesCloudStorage
-              ? "Cloud storage included"
-              : `${plan.historyRetentionDays}-day history`}
+              ? t("cloudStorage")
+              : t("historyDays", { days: plan.historyRetentionDays ?? 0 })}
           </span>
         </div>
       </div>
 
       <ul className="mb-8 grid gap-3 text-sm text-muted-foreground">
-        {plan.features.map((feature) => (
+        {planFeatures.map((feature) => (
           <li className="flex gap-2" key={feature}>
             <Check className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>{feature}</span>
@@ -185,7 +203,7 @@ function PlanCard({
         variant={plan.highlight ? "default" : "outline"}
       >
         {isPending ? <Loader2 className="animate-spin" /> : null}
-        {ctaState.label}
+        {ctaLabel}
       </Button>
     </div>
   );
@@ -195,23 +213,23 @@ export function ByokLifetimePricing({
   hasLifetimeEntitlement = false,
   userId,
 }: ByokLifetimePricingProps) {
+  const t = useTranslations("ByokPricing");
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
   const plans = getByokPricingPlans();
   const localePrefix = getLocalePrefix(pathname);
+  const activeUserId = userId ?? session?.user?.id;
 
   return (
     <div>
       <div className="mx-auto mb-12 max-w-3xl text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1 text-sm text-muted-foreground">
           <KeyRound className="size-4" />
-          BYOK pricing
+          {t("badge")}
         </div>
-        <h2 className="text-3xl font-bold md:text-5xl">
-          Pay ReelKey once. Pay fal.ai directly.
-        </h2>
+        <h2 className="text-3xl font-bold md:text-5xl">{t("title")}</h2>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-          ReelKey provides the workspace, model access, and storage. Video
-          generation runs through your own fal.ai API key.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -221,22 +239,26 @@ export function ByokLifetimePricing({
             hasLifetimeEntitlement={hasLifetimeEntitlement}
             key={plan.id}
             plan={plan}
-            userId={userId}
+            userId={activeUserId}
           />
         ))}
       </div>
 
       <div className="mx-auto mt-8 max-w-3xl rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
-        Generation provider costs are billed by fal.ai to your own account.
-        ReelKey does not resell provider usage in BYOK mode.
+        {t("bottomNote")}
       </div>
 
       <div className="mt-6 text-center text-sm text-muted-foreground">
-        Manage your key in{" "}
-        <Link className="text-primary hover:underline" href={`${localePrefix}/settings`}>
-          Account settings
-        </Link>
-        .
+        {t.rich("manageKey", {
+          link: (chunks) => (
+            <Link
+              className="text-primary hover:underline"
+              href={`${localePrefix}/settings`}
+            >
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </div>
   );

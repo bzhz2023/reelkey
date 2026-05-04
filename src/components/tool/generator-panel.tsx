@@ -13,7 +13,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { cn } from "@/components/ui";
-import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator";
+import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator/defaults";
 import { CREDITS_CONFIG, getAvailableModels, calculateModelCredits } from "@/config/credits";
 import { ChevronDown, X, Sparkles, Image as ImageIcon, Clock, Check } from "lucide-react";
 import {

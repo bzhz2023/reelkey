@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useMemo, useTransition } from "react";
 import { Menu, Globe, Sun, Moon, Monitor } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -45,6 +45,7 @@ import { LocaleLink } from "@/i18n/navigation";
 import type { User } from "@/lib/auth/client";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { authClient } from "@/lib/auth/client";
+import { useIdleRoutePrefetch } from "@/hooks/use-idle-route-prefetch";
 import { shouldShowCreditBalanceInHeader } from "./header-visibility";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -55,6 +56,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export function LandingHeader({ user }: { user?: User | null }) {
   const signInModal = useSigninModal();
+  const { data: session } = authClient.useSession();
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
@@ -62,12 +64,31 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
+  const currentUser = session?.user ?? user ?? null;
   const isByokMode = BYOK_MODE;
   const showCreditBalance = shouldShowCreditBalanceInHeader({
     isByokMode,
-    hasUser: Boolean(user),
+    hasUser: Boolean(currentUser),
   });
   const billingLabel = isByokMode ? t("Header.apiUsage") : t("Header.credits");
+  const prefetchHrefs = useMemo(
+    () => [
+      `/${locale}/text-to-video`,
+      `/${locale}/image-to-video`,
+      `/${locale}/reference-to-video`,
+      `/${locale}/pricing`,
+      `/${locale}/login`,
+      ...(currentUser
+        ? [`/${locale}/my-creations`, `/${locale}/credits`, `/${locale}/settings`]
+        : []),
+    ],
+    [currentUser, locale]
+  );
+
+  useIdleRoutePrefetch(prefetchHrefs, {
+    initialDelayMs: 800,
+    staggerMs: 450,
+  });
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -288,13 +309,13 @@ export function LandingHeader({ user }: { user?: User | null }) {
             )}
 
             {/* User Menu */}
-            {user ? (
+            {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button type="button" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background/20">
                       <span className="text-sm font-medium">
-                        {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                        {currentUser.name?.[0]?.toUpperCase() || currentUser.email?.[0]?.toUpperCase()}
                       </span>
                     </div>
                   </button>
@@ -482,7 +503,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
 
                 {/* Auth Section */}
                 <div className="border-t pt-4 mt-4">
-                  {user ? (
+                  {currentUser ? (
                     <div className="flex flex-col gap-2">
                       <LocaleLink
                         href="/my-creations"

@@ -143,14 +143,20 @@ export const useCreditsStore = create<CreditsState>()(
 // React Hooks
 // ============================================
 
+interface UseCreditsOptions {
+  enabled?: boolean;
+}
+
 /** 获取积分余额（自动获取） */
-export function useCredits() {
+export function useCredits(options: UseCreditsOptions = {}) {
   const { balance, isLoading, error, fetchBalance, optimisticFreeze, optimisticRelease, invalidate } = useCreditsStore();
+  const enabled = options.enabled ?? true;
 
   // 自动获取
   useEffect(() => {
+    if (!enabled) return;
     fetchBalance();
-  }, [fetchBalance]);
+  }, [enabled, fetchBalance]);
 
   return { balance, isLoading, error, refetch: fetchBalance, optimisticFreeze, optimisticRelease, invalidate };
 }

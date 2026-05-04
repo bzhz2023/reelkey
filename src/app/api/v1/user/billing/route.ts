@@ -3,9 +3,9 @@ import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/api/auth";
 import { apiSuccess, handleApiError } from "@/lib/api/response";
 import { db } from "@/db";
-import { creditPackages } from "@/db/schema";
-import { sql, eq, and } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import type { CreditTransType } from "@/db/schema";
+import { createServerTimer } from "@/lib/server-perf";
 
 /**
  * GET /api/v1/user/billing
@@ -16,8 +16,10 @@ import type { CreditTransType } from "@/db/schema";
  * - cursor: pagination cursor (creditPackages.id)
  */
 export async function GET(request: NextRequest) {
+  const timer = createServerTimer("GET /api/v1/user/billing");
   try {
     const user = await requireAuth(request);
+    timer.mark("auth");
     const { searchParams } = new URL(request.url);
 
     const limit = Number.parseInt(searchParams.get("limit") || "20");
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
       ORDER BY created_at DESC
       LIMIT ${limit + 1}
     `);
+    timer.mark("packagesQuery");
 
     // Check if there's more data
     const hasMore = packages.length > limit;
@@ -87,7 +90,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return apiSuccess({
+    const response = apiSuccess({
       user: {
         email: user.email,
         id: user.id,
@@ -97,7 +100,10 @@ export async function GET(request: NextRequest) {
       nextCursor,
       hasMore,
     });
+    timer.done();
+    return response;
   } catch (error) {
+    timer.mark("error");
     return handleApiError(error);
   }
 }

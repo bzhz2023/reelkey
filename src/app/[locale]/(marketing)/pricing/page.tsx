@@ -1,5 +1,5 @@
 import { PricingSection } from "@/components/landing/pricing-section";
-import { FAQSection } from "@/components/landing/faq-section";
+import { DeferredFAQSection } from "@/components/landing/deferred-faq-section";
 import type { Locale } from "@/config/i18n-config";
 import { buildAlternates } from "@/lib/seo";
 
@@ -24,7 +24,7 @@ export default async function PricingPage() {
   return (
     <div className="flex w-full flex-col gap-0">
       <PricingSection />
-      <FAQSection />
+      <DeferredFAQSection />
     </div>
   );
 }

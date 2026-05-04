@@ -1,7 +1,6 @@
 import { MobileMenuProvider } from "@/components/layout/mobile-menu-context";
 import { ToolLayoutContent } from "@/components/layout/tool-layout-content";
 import { i18n } from "@/config/i18n-config";
-import { getCurrentUser } from "@/lib/auth";
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -19,11 +18,10 @@ export default async function ToolLayout({
   params,
 }: ToolLayoutProps) {
   const { locale } = await params;
-  const user = await getCurrentUser();
 
   return (
     <MobileMenuProvider>
-      <ToolLayoutContent lang={locale} user={user}>
+      <ToolLayoutContent lang={locale}>
         {children}
       </ToolLayoutContent>
     </MobileMenuProvider>

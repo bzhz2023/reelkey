@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { FalKeyManager } from "@/components/settings/fal-key-manager";
 import { CREDITS_CONFIG } from "@/config/credits";
+import { authClient } from "@/lib/auth/client";
 
 interface SettingsPageProps {
   locale: string;
@@ -23,6 +24,8 @@ interface SettingsPageProps {
 
 export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
   const t = useTranslations("dashboard.settings");
+  const { data: session } = authClient.useSession();
+  const isByokMode = CREDITS_CONFIG.BYOK_MODE;
 
   const {
     user,
@@ -30,7 +33,7 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
     hasMore,
     fetchNextPage,
     isLoading,
-  } = useBilling();
+  } = useBilling({ enabled: !isByokMode });
 
   // Infinite scroll observer
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -58,9 +61,13 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
   }, [hasMore, isLoading, fetchNextPage]);
 
   // Use data from hook if available, otherwise use props
-  const displayEmail = user?.email || userEmail;
-  const displayUserId = user?.id || userId;
-  const joinedDate = user?.createdAt ? new Date(user.createdAt) : null;
+  const displayEmail = user?.email || session?.user?.email || userEmail;
+  const displayUserId = user?.id || session?.user?.id || userId;
+  const joinedDate = user?.createdAt
+    ? new Date(user.createdAt)
+    : session?.user?.createdAt
+      ? new Date(session.user.createdAt)
+      : null;
 
   return (
     <div className="space-y-8">
@@ -124,7 +131,7 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
       <FalKeyManager />
 
       {/* Billing History */}
-      {!CREDITS_CONFIG.BYOK_MODE && (
+      {!isByokMode && (
         <BillingList
           invoices={invoices}
           hasMore={hasMore}

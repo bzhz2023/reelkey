@@ -6,33 +6,26 @@ import { DarkPricing } from "@/components/price/dark-pricing";
 import { PricingCards } from "@/components/price/pricing-cards";
 import { billingProvider } from "@/config/billing-provider";
 import { BYOK_MODE } from "@/config/byok-mode";
-import { byokEntitlementService } from "@/services/byok-entitlement";
 import { getUserPlans } from "@/services/billing";
 import type { CreditsDictionary } from "@/hooks/use-credit-packages";
 import type { UserSubscriptionPlan } from "@/types";
 
 export async function PricingSection() {
-  const user = await getCurrentUser();
   let subscriptionPlan: UserSubscriptionPlan | undefined;
   const isCreem = billingProvider === "creem";
   const isByokMode = BYOK_MODE;
 
   if (isByokMode) {
-    const hasLifetimeEntitlement = user
-      ? await byokEntitlementService.hasLifetime(user.id)
-      : false;
-
     return (
       <section className="relative overflow-hidden py-24 md:py-32">
         <div className="container mx-auto px-4">
-          <ByokLifetimePricing
-            hasLifetimeEntitlement={hasLifetimeEntitlement}
-            userId={user?.id}
-          />
+          <ByokLifetimePricing />
         </div>
       </section>
     );
   }
+
+  const user = await getCurrentUser();
 
   if (user && !isCreem) {
     subscriptionPlan = await getUserPlans(user.id);
