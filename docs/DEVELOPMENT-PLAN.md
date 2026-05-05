@@ -819,6 +819,5 @@ export const CREDITS_CONFIG = {
 
 - 多模型并行对比（P1）
 - Prompt 模板库（P1）
-- 免费版生成次数限制（先全开）
-- 国际化（先只做英文）
+- 历史记录高级能力（免费版 7 天强限制、搜索、批量管理）
 - 跨设备 Key 同步（localStorage 本身不支持，需要后端，MVP 不做）

@@ -207,7 +207,7 @@ thumbnails/{user_id}/{video_id}.jpg
 
 | 版本 | 价格 | 功能 |
 |------|------|------|
-| 免费版 | $0 | 10 次/月 + 2 模型 + 7 天历史 |
+| 免费版 | $0 | 5 次/月 + 2 模型 + 7 天历史 |
 | 买断版（早鸟） | $29 | 无限次 + 全模型 + 云端存储 |
 | 买断版（正式） | $49 | 无限次 + 全模型 + 云端存储 |
 
@@ -217,7 +217,7 @@ thumbnails/{user_id}/{video_id}.jpg
 1. 用户点击"Get lifetime access — $29"
 2. 跳转到 Creem 支付页面
 3. 支付成功后，Creem Webhook 通知服务端
-4. 服务端更新用户 `isPro = true`
+4. 服务端写入 `byok_entitlements`，授予 lifetime access
 5. 用户刷新页面，解锁买断版功能
 
 ---
@@ -355,7 +355,7 @@ DEFAULT_AI_PROVIDER=
 
 - [ ] P0 四个功能全部可用（Key 接入、生成、成本显示、历史）
 - [ ] fal.ai 注册引导经过 3 个非技术用户测试
-- [ ] 实际生成 Kling 和 Wan 各 10 个视频，成功率 > 80%
+- [ ] 实际生成 Kling 和 Wan 各 5 个视频，成功率 > 80%
 - [ ] 成本显示与 fal.ai 实际扣费误差 < 5%
 - [ ] 移动端主要流程可用
 - [ ] Vercel 部署成功，域名正常访问
@@ -366,7 +366,7 @@ DEFAULT_AI_PROVIDER=
 
 - 多模型并行对比（P1）
 - Prompt 模板库（P1）
-- 国际化（先只做英文）
+- 历史记录高级能力（免费版 7 天强限制、搜索、批量管理）
 - 跨设备 Key 同步（localStorage 本身不支持，需要后端）
 - 批量生成
 - OpenRouter 接入
