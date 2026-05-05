@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,8 @@ import { LocaleLink } from "@/i18n/navigation";
 import type { User } from "@/lib/auth/client";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { authClient } from "@/lib/auth/client";
+import { apiClient } from "@/lib/api/dashboard-client";
+import type { ListVideosResponse } from "@/lib/types/dashboard";
 import { useIdleRoutePrefetch } from "@/hooks/use-idle-route-prefetch";
 import { shouldShowCreditBalanceInHeader } from "./header-visibility";
 
@@ -61,6 +64,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -71,24 +75,74 @@ export function LandingHeader({ user }: { user?: User | null }) {
     hasUser: Boolean(currentUser),
   });
   const billingLabel = isByokMode ? t("Header.apiUsage") : t("Header.credits");
+  const accountPrefetchHrefs = useMemo(
+    () => [
+      `/${locale}/my-creations`,
+      `/${locale}/settings`,
+      ...(isByokMode ? [] : [`/${locale}/credits`]),
+    ],
+    [isByokMode, locale],
+  );
   const prefetchHrefs = useMemo(
     () => [
+      ...accountPrefetchHrefs,
       `/${locale}/text-to-video`,
       `/${locale}/image-to-video`,
       `/${locale}/reference-to-video`,
       `/${locale}/pricing`,
       `/${locale}/login`,
-      ...(currentUser
-        ? [`/${locale}/my-creations`, `/${locale}/credits`, `/${locale}/settings`]
-        : []),
     ],
-    [currentUser, locale]
+    [accountPrefetchHrefs, locale]
   );
 
   useIdleRoutePrefetch(prefetchHrefs, {
-    initialDelayMs: 800,
-    staggerMs: 450,
+    initialDelayMs: 250,
+    staggerMs: 200,
   });
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    let cancelled = false;
+    const warmCreations = () => {
+      if (cancelled) return;
+      void queryClient.prefetchInfiniteQuery({
+        queryKey: [
+          "videos",
+          { status: "all", model: "all", sortBy: "newest" },
+        ],
+        queryFn: ({ pageParam }) =>
+          apiClient.getVideos({
+            limit: 20,
+            cursor: pageParam,
+            sortBy: "newest",
+          }),
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage: ListVideosResponse) =>
+          lastPage.nextCursor || undefined,
+      });
+    };
+
+    let idleId: number | null = null;
+    const timeoutId = window.setTimeout(() => {
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(warmCreations, {
+          timeout: 1500,
+        });
+        return;
+      }
+
+      warmCreations();
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      if (idleId !== null) {
+        window.cancelIdleCallback(idleId);
+      }
+    };
+  }, [currentUser?.id, queryClient]);
 
   const handleSignOut = async () => {
     await authClient.signOut();
