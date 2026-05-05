@@ -504,7 +504,8 @@
         "deleteSuccess": "Video deleted successfully",
         "deleteError": "Failed to delete video",
         "retrySuccess": "Retry initiated",
-        "retryError": "Failed to retry"
+        "retryError": "Failed to retry",
+        "pause": "Pause"
       },
       "empty": {
         "title": "No creations yet",
@@ -522,7 +523,13 @@
         "aspectRatio": "Aspect Ratio",
         "prompt": "Prompt",
         "createdAt": "Created",
-        "creditsUsed": "Credits Used"
+        "providerCost": "fal.ai cost",
+        "costEstimated": "estimated",
+        "costActual": "actual",
+        "costPending": "Pending",
+        "costNotCharged": "Not charged",
+        "progress": "Playback progress",
+        "noVideo": "No playable video"
       }
     },
     "credits": {

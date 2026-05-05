@@ -504,7 +504,8 @@
         "deleteSuccess": "删除成功",
         "deleteError": "删除失败",
         "retrySuccess": "已开始重试",
-        "retryError": "重试失败"
+        "retryError": "重试失败",
+        "pause": "暂停"
       },
       "empty": {
         "title": "暂无创作",
@@ -522,7 +523,13 @@
         "aspectRatio": "宽高比",
         "prompt": "提示词",
         "createdAt": "创建时间",
-        "creditsUsed": "消耗积分"
+        "providerCost": "fal.ai 费用",
+        "costEstimated": "估算",
+        "costActual": "实际",
+        "costPending": "生成中",
+        "costNotCharged": "未计费",
+        "progress": "播放进度",
+        "noVideo": "暂无可播放视频"
       }
     },
     "credits": {

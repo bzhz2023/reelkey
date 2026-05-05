@@ -5,7 +5,7 @@
 // ============================================
 
 import { useEffect, useRef, useState } from "react";
-import { X, Download, Trash2 } from "lucide-react";
+import { X, Download, Pause, Play, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/components/ui";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getModelDisplayName } from "@/config/credits";
 import { formatRelativeTime } from "@/lib/format-relative-time";
+import { getUsageCostDisplay } from "@/lib/usage-summary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,17 +45,16 @@ export function VideoDetailDialog({
   const t = useTranslations("dashboard.myCreations");
   const locale = useLocale();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Auto-play video when dialog opens
   useEffect(() => {
-    if (open && video?.videoUrl && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Auto-play might be blocked by browser
-        console.log("Auto-play blocked, user interaction required");
-      });
-    }
-  }, [open, video]);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [open, video?.uuid]);
 
   // Pause video when dialog closes
   useEffect(() => {
@@ -87,6 +87,39 @@ export function VideoDetailDialog({
   const statusLabel =
     t(`status.${normalizedStatus}` as "status.completed") ||
     t("status.processing");
+  const costDisplay = getUsageCostDisplay(video);
+  const providerCostLabel =
+    costDisplay.state === "billed"
+      ? costDisplay.label
+      : costDisplay.state === "pending"
+        ? t("detail.costPending")
+        : t("detail.costNotCharged");
+  const costSourceLabel =
+    costDisplay.state === "billed" && costDisplay.source === "actual"
+      ? t("detail.costActual")
+      : costDisplay.state === "billed" && costDisplay.source === "estimated"
+        ? t("detail.costEstimated")
+        : null;
+
+  const handleTogglePlayback = async () => {
+    const player = videoRef.current;
+    if (!player) return;
+
+    if (player.paused) {
+      await player.play().catch(() => setIsPlaying(false));
+    } else {
+      player.pause();
+    }
+  };
+
+  const handleSeek = (value: string) => {
+    const player = videoRef.current;
+    if (!player) return;
+
+    const nextTime = Number(value);
+    player.currentTime = nextTime;
+    setCurrentTime(nextTime);
+  };
 
   return (
     <>
@@ -112,15 +145,80 @@ export function VideoDetailDialog({
 
           <div className="flex flex-col lg:flex-row h-full">
             {/* Left: Video Player (~65% for better 16:9 display) */}
-            <div className="lg:w-[65%] h-[60vh] lg:h-full bg-black flex items-center justify-center">
+            <div className="lg:w-[65%] h-[60vh] lg:h-full bg-slate-950 flex items-center justify-center">
               {video.videoUrl ? (
-                <video
-                  ref={videoRef}
-                  src={video.videoUrl}
-                  controls
-                  className="w-full h-full"
-                  playsInline
-                />
+                <div className="group relative h-full w-full bg-slate-950">
+                  <video
+                    ref={videoRef}
+                    src={video.videoUrl}
+                    className="h-full w-full object-contain"
+                    playsInline
+                    preload="metadata"
+                    poster={video.thumbnailUrl || undefined}
+                    onLoadedMetadata={(event) => {
+                      const nextDuration = event.currentTarget.duration;
+                      setDuration(Number.isFinite(nextDuration) ? nextDuration : 0);
+                    }}
+                    onTimeUpdate={(event) =>
+                      setCurrentTime(event.currentTarget.currentTime)
+                    }
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleTogglePlayback}
+                    className={cn(
+                      "absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-950 shadow-lg transition hover:bg-white",
+                      isPlaying
+                        ? "opacity-0 group-hover:opacity-100"
+                        : "opacity-100"
+                    )}
+                    aria-label={
+                      isPlaying ? t("actions.pause") : t("actions.play")
+                    }
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-7 w-7" />
+                    ) : (
+                      <Play className="ml-1 h-7 w-7" />
+                    )}
+                  </button>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent px-5 pb-4 pt-12 text-white">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleTogglePlayback}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+                        aria-label={
+                          isPlaying ? t("actions.pause") : t("actions.play")
+                        }
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="ml-0.5 h-4 w-4" />
+                        )}
+                      </button>
+                      <span className="w-24 shrink-0 text-xs tabular-nums text-white/80">
+                        {formatVideoTime(currentTime)} /{" "}
+                        {duration > 0 ? formatVideoTime(duration) : "--:--"}
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={duration || 0}
+                        step="0.1"
+                        value={Math.min(currentTime, duration || currentTime)}
+                        onChange={(event) => handleSeek(event.target.value)}
+                        className="h-1 w-full cursor-pointer accent-sky-400"
+                        aria-label={t("detail.progress")}
+                        disabled={duration <= 0}
+                      />
+                    </div>
+                  </div>
+                </div>
               ) : video.thumbnailUrl ? (
                 <img
                   src={video.thumbnailUrl}
@@ -128,7 +226,9 @@ export function VideoDetailDialog({
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="text-muted-foreground">No video available</div>
+                <div className="text-muted-foreground">
+                  {t("detail.noVideo")}
+                </div>
               )}
             </div>
 
@@ -201,9 +301,16 @@ export function VideoDetailDialog({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {t("detail.creditsUsed")}
+                    {t("detail.providerCost")}
                   </span>
-                  <span className="font-medium">{video.creditsUsed}</span>
+                  <span className="font-medium">
+                    {providerCostLabel}
+                    {costSourceLabel ? (
+                      <span className="ml-1 text-xs font-normal text-muted-foreground">
+                        {costSourceLabel}
+                      </span>
+                    ) : null}
+                  </span>
                 </div>
               </div>
 
@@ -259,4 +366,11 @@ export function VideoDetailDialog({
       </AlertDialog>
     </>
   );
+}
+
+function formatVideoTime(value: number): string {
+  const safeValue = Math.max(0, Math.floor(value));
+  const minutes = Math.floor(safeValue / 60);
+  const seconds = safeValue % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
