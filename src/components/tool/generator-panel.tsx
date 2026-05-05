@@ -338,10 +338,8 @@ export function GeneratorPanel({
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
 
     const amountInDollars = estimatedCredits / 100;
-    return locale === "zh"
-      ? `$${amountInDollars.toFixed(2)} 预估`
-      : `$${amountInDollars.toFixed(2)} est.`;
-  }, [estimatedCredits, isByokMode, locale, text.credits]);
+    return `$${amountInDollars.toFixed(2)}`;
+  }, [estimatedCredits, isByokMode, text.credits]);
 
   const handleSubmit = useCallback(() => {
     if (!currentModel) return;
