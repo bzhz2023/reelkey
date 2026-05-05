@@ -154,7 +154,9 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
   };
 
   const handleVideoClick = (uuid: string) => {
-    const video = videos.find((v) => v.uuid === uuid);
+    const video =
+      visibleVideos.find((v) => v.uuid === uuid) ||
+      videos.find((v) => v.uuid === uuid);
     if (video) {
       setSelectedVideo(video);
     }
@@ -167,8 +169,6 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
   const settledFilterKeyRef = useRef(getFilterKey(filter));
   const currentFilterKey = getFilterKey(filter);
   const isFilterChanging = currentFilterKey !== settledFilterKeyRef.current;
-  const isFiltering =
-    isFilterChanging && isFetching && !isLoading && !isFetchingNextPage;
   const unfilteredVideosRef = useRef<Video[]>([]);
 
   useEffect(() => {
@@ -211,15 +211,9 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          {isFiltering && (
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {t("filtering")}
-            </span>
-          )}
           <CreationFilter
             filter={filter}
             onFilterChange={handleFilterChange}
-            disabled={isFiltering}
           />
         </div>
       </div>
@@ -231,25 +225,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
         <CreationEmpty />
       ) : (
         <div className="relative">
-          {isFiltering && (
-            <>
-              <div className="absolute -top-3 left-0 right-0 h-px overflow-hidden bg-border">
-                <div className="h-full w-full animate-pulse bg-primary/60" />
-              </div>
-              <div
-                className="absolute inset-0 z-20 cursor-wait"
-                aria-hidden="true"
-              />
-            </>
-          )}
-
-          <CreationGrid
-            className={
-              isFiltering
-                ? "pointer-events-none select-none opacity-70 transition-opacity duration-150"
-                : "opacity-100 transition-opacity duration-150"
-            }
-          >
+          <CreationGrid className="opacity-100 transition-opacity duration-150">
             {visibleVideos.map((video) => (
               <CreationCard
                 key={video.uuid}
