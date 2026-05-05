@@ -880,8 +880,12 @@ export function ToolPageLayout({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Detailed Preview</h3>
-                    <p className="text-sm max-w-xs">Login to generate and view your high-quality AI videos.</p>
+                    <h3 className="text-lg font-medium mb-2">
+                      {tTool("emptyTitle")}
+                    </h3>
+                    <p className="text-sm max-w-xs">
+                      {tTool("emptySubtitle")}
+                    </p>
                   </div>
                 </div>
               </div>
