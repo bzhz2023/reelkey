@@ -13,6 +13,11 @@
 // ============================================================================
 
 import type { ProviderType } from "./types";
+import {
+  getVideoModelEndpoint,
+  getVideoModelRegistryItem,
+  isVideoModelModeSupported,
+} from "@/config/video-model-registry";
 
 export type GenerationMode =
   | "text-to-video"
@@ -578,6 +583,16 @@ export function getProviderModelId(
   provider: ProviderType,
   params?: Record<string, any>
 ): string {
+  if (provider === "falai") {
+    const hasImageInput = Boolean(
+      params?.imageUrl ||
+        (Array.isArray(params?.imageUrls) && params.imageUrls.length > 0)
+    );
+    const mode = params?.mode ?? (hasImageInput ? "image-to-video" : "text-to-video");
+    const endpoint = getVideoModelEndpoint(internalModelId, mode);
+    if (endpoint) return endpoint;
+  }
+
   const mapping = MODEL_MAPPINGS[internalModelId];
   if (!mapping) {
     throw new Error(`Unknown internal model ID: ${internalModelId}`);
@@ -618,6 +633,10 @@ export function isModelSupported(
   internalModelId: string,
   provider: ProviderType
 ): boolean {
+  if (provider === "falai") {
+    return Boolean(getVideoModelRegistryItem(internalModelId));
+  }
+
   const mapping = MODEL_MAPPINGS[internalModelId];
   if (!mapping) return false;
 
@@ -652,6 +671,10 @@ export function isModelModeSupported(
   provider: ProviderType,
   mode: GenerationMode
 ): boolean {
+  if (provider === "falai") {
+    return isVideoModelModeSupported(internalModelId, mode);
+  }
+
   if (!isModelSupported(internalModelId, provider)) {
     return false;
   }

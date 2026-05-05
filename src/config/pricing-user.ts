@@ -43,6 +43,8 @@ export interface VideoModelPricing {
   perSecond: number;
   qualityMultiplier?: number;
   enabled: boolean;
+  /** free = available to free users; paid = available after lifetime/paid access */
+  accessTier?: "free" | "paid";
 }
 
 /** 订阅产品配置 */
@@ -262,6 +264,7 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     perSecond: 7,      // $0.07/s
     qualityMultiplier: 1, // 1080p 同价
     enabled: true,
+    accessTier: "free",
   },
 
   /** Wan 2.5 - fal.ai */
@@ -270,52 +273,50 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     perSecond: 5,      // $0.05/s
     qualityMultiplier: 1,
     enabled: true,
+    accessTier: "free",
   },
 
-  /** Seedance 1.5 Pro - 按秒计费（默认有音频） */
-  "seedance-1.5-pro": {
-    baseCredits: 0,
-    perSecond: 4, // 720p 有音频: 3.557 Credits/秒 → 4 积分/秒
-    qualityMultiplier: 2, // 1080p = 720p × 2
+  /** Seedance 2.0 Fast - fal.ai */
+  "seedance-2.0-fast": {
+    baseCredits: 30,
+    perSecond: 6,
+    qualityMultiplier: 1.5,
     enabled: true,
+    accessTier: "paid",
   },
 
-  /** Seedance 1.0 Pro Fast - 快速生成（APImart） */
-  "seedance-1.0-pro-fast": {
-    baseCredits: 0,
-    perSecond: 3, // 按秒计费
+  /** Kling 3.0 Pro - fal.ai */
+  "kling-3.0-pro": {
+    baseCredits: 50,
+    perSecond: 10,
+    enabled: true,
+    accessTier: "paid",
+  },
+
+  /** Veo 3.1 Fast - fal.ai */
+  "veo-3.1-fast": {
+    baseCredits: 40,
+    perSecond: 8,
     qualityMultiplier: 2,
     enabled: true,
+    accessTier: "paid",
   },
 
-  /** Seedance 1.0 Pro Quality - 高质量生成（APImart） */
-  "seedance-1.0-pro-quality": {
-    baseCredits: 0,
-    perSecond: 5, // 高质量，每秒积分更高
-    qualityMultiplier: 2,
-    enabled: true,
-  },
-
-  /** Veo 3.1 Fast Lite - Google (暂时隐藏) */
-  "veo-3.1": {
-    baseCredits: 10,
-    perSecond: 0,
-    enabled: false,
-  },
-
-  /** Sora 2 Lite - OpenAI (暂时隐藏) */
+  /** Sora 2 - fal.ai */
   "sora-2": {
-    baseCredits: 2,
-    perSecond: 0,
-    enabled: false,
+    baseCredits: 35,
+    perSecond: 7,
+    accessTier: "paid",
+    enabled: true,
   },
 
-  /** Wan 2.6 (暂时隐藏) */
-  "wan2.6": {
-    baseCredits: 25,
+  /** MiniMax Hailuo 02 Standard - fal.ai */
+  "hailuo-02-standard": {
+    baseCredits: 30,
     perSecond: 5,
-    qualityMultiplier: 1.67,
-    enabled: false,
+    qualityMultiplier: 1.2,
+    enabled: true,
+    accessTier: "paid",
   },
 };
 

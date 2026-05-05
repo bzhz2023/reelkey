@@ -467,6 +467,11 @@ export type CreditCalculator = (params: {
 }) => number;
 
 /**
+ * Credit/cost display formatter
+ */
+export type CreditFormatter = (amount: number) => string;
+
+/**
  * Default values for the generator
  */
 export interface GeneratorDefaults {
@@ -636,6 +641,11 @@ export interface VideoGeneratorInputProps {
    * Takes precedence over estimatedCredits prop
    */
   calculateCredits?: CreditCalculator;
+
+  /**
+   * Custom formatter for displaying calculated credits or external costs
+   */
+  formatCredits?: CreditFormatter;
 
   /**
    * Whether the component is disabled

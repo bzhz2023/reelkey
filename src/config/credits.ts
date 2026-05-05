@@ -10,6 +10,10 @@ import {
   type GenerationMode,
 } from "@/ai/model-mapping";
 import { BYOK_MODE } from "@/config/byok-mode";
+import {
+  getVideoModelRegistryItem,
+  VIDEO_MODEL_REGISTRY_ORDER,
+} from "@/config/video-model-registry";
 
 export interface CreditPackagePrice {
   amount: number;            // 价格（美分）
@@ -48,6 +52,8 @@ export interface ModelConfig {
   };
   /** Whether the model is enabled (default: true). Disabled models can still be shown with a badge */
   enabled?: boolean;
+  /** free = available to free users; paid = part of the full paid model catalog */
+  accessTier: "free" | "paid";
   /** Optional badge text for disabled/upcoming models (e.g., "Coming Soon") */
   badge?: string;
 }
@@ -154,98 +160,25 @@ export const CREDITS_CONFIG = {
   models: Object.fromEntries(
     Object.entries(VIDEO_MODEL_PRICING)
       .map(([modelId, pricing]) => {
-        // 模型基础配置（从 defaults.ts 获取）
-        const baseConfigs: Record<string, Omit<ModelConfig, "creditCost">> = {
-          "kling-2.5-turbo": {
-            id: "kling-2.5-turbo",
-            name: "Kling 2.5 Turbo Pro",
-            provider: "falai" as const,
-            description: "Fast, cinematic video generation",
-            supportImageToVideo: true,
-            maxDuration: 10,
-            durations: [5, 10],
-            aspectRatios: ["16:9", "9:16", "1:1"],
-            qualities: ["720P", "1080P"],
-          },
-          "wan-2.5": {
-            id: "wan-2.5",
-            name: "Wan 2.5",
-            provider: "falai" as const,
-            description: "Cost-effective, great for B-roll",
-            supportImageToVideo: true,
-            maxDuration: 5,
-            durations: [5],
-            aspectRatios: ["16:9", "9:16", "1:1"],
-            qualities: ["480P", "720P", "1080P"],
-          },
-          "sora-2": {
-            id: "sora-2",
-            name: "Sora 2",
-            provider: "evolink" as const,
-            description: "models.sora2.description",
-            supportImageToVideo: true,
-            maxDuration: 15,
-            durations: [10, 15],
-            aspectRatios: ["16:9", "9:16"],
-          },
-          "wan2.6": {
-            id: "wan2.6",
-            name: "Wan 2.6",
-            provider: "evolink" as const,
-            description: "models.wan26.description",
-            supportImageToVideo: true,
-            maxDuration: 15,
-            durations: [5, 10, 15],
-            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
-            qualities: ["720P", "1080P"],
-          },
-          "veo-3.1": {
-            id: "veo-3.1",
-            name: "Veo 3.1",
-            provider: "evolink" as const,
-            description: "models.veo31.description",
-            supportImageToVideo: true,
-            maxDuration: 8,
-            durations: [8],
-            aspectRatios: ["16:9", "9:16"],
-          },
-          "seedance-1.5-pro": {
-            id: "seedance-1.5-pro",
-            name: "Seedance 1.5 Pro",
-            provider: "apimart" as const,
-            description: "models.seedance.description",
-            supportImageToVideo: true,
-            maxDuration: 12,
-            durations: [4, 5, 6, 8, 10, 12],
-            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-            qualities: ["480P", "720P", "1080P"],
-          },
-          "seedance-1.0-pro-fast": {
-            id: "seedance-1.0-pro-fast",
-            name: "Seedance 1.0 Pro Fast",
-            provider: "apimart" as const,
-            description: "models.seedance10fast.description",
-            supportImageToVideo: true,
-            maxDuration: 12,
-            durations: [2, 4, 5, 6, 8, 10, 12],
-            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-            qualities: ["480P", "720P", "1080P"],
-          },
-          "seedance-1.0-pro-quality": {
-            id: "seedance-1.0-pro-quality",
-            name: "Seedance 1.0 Pro Quality",
-            provider: "apimart" as const,
-            description: "models.seedance10quality.description",
-            supportImageToVideo: true,
-            maxDuration: 12,
-            durations: [2, 4, 5, 6, 8, 10, 12],
-            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-            qualities: ["480P", "720P", "1080P"],
-          },
+        const registryItem = getVideoModelRegistryItem(modelId);
+        if (!registryItem) return null;
+        const durations = registryItem.capabilities.durations
+          ?.map((duration) => Number.parseInt(duration, 10))
+          .filter((duration) => !Number.isNaN(duration));
+        const maxDuration = durations?.length ? Math.max(...durations) : 5;
+        const baseConfig: Omit<ModelConfig, "creditCost" | "accessTier"> = {
+          id: registryItem.id,
+          name: registryItem.displayName,
+          provider: registryItem.provider,
+          description: registryItem.description,
+          supportImageToVideo: registryItem.capabilities.inputModes.some((mode) =>
+            ["image-to-video", "reference-to-video", "frames-to-video"].includes(mode)
+          ),
+          maxDuration,
+          durations: durations?.length ? durations : [5],
+          aspectRatios: registryItem.capabilities.aspectRatios ?? ["16:9"],
+          qualities: registryItem.capabilities.resolutions,
         };
-
-        const baseConfig = baseConfigs[modelId];
-        if (!baseConfig) return null;
 
         const creditCost: {
           base: number;
@@ -266,6 +199,7 @@ export const CREDITS_CONFIG = {
             ...baseConfig,
             creditCost,
             enabled: pricing.enabled,
+            accessTier: pricing.accessTier ?? "paid",
             badge: pricing.enabled ? undefined : "Coming Soon",
           },
         ];
@@ -316,14 +250,16 @@ export function getAvailableModels(options?: {
   provider?: ProviderType;
   mode?: GenerationMode;
   enabledOnly?: boolean;
+  access?: "free" | "paid";
 }): ModelConfig[] {
-  const { provider, mode, enabledOnly = true } = options || {};
+  const { provider, mode, enabledOnly = true, access } = options || {};
   // Define display order (newest/most important first)
   // Models not in this list are sorted to the end
-  const displayOrder = Object.keys(VIDEO_MODEL_PRICING);
+  const displayOrder = VIDEO_MODEL_REGISTRY_ORDER;
   const orderMap = new Map(displayOrder.map((id, index) => [id, index]));
   return Object.values(CREDITS_CONFIG.models)
     .filter((model) => !enabledOnly || model.enabled !== false)
+    .filter((model) => !access || access === "paid" || model.accessTier === "free")
     .filter((model) => {
       const effectiveProvider = provider || model.provider;
       if (!isModelSupported(model.id, effectiveProvider)) return false;
@@ -340,6 +276,11 @@ export function getAvailableModels(options?: {
 /** 根据模型 ID 获取配置 */
 export function getModelConfig(modelId: string): ModelConfig | null {
   return CREDITS_CONFIG.models[modelId as keyof typeof CREDITS_CONFIG.models] || null;
+}
+
+/** 获取模型显示名称，避免 UI 分散维护模型 ID -> 名称映射 */
+export function getModelDisplayName(modelId: string): string {
+  return getModelConfig(modelId)?.name ?? modelId;
 }
 
 /** 计算模型积分消耗（基于 Evolink 1:1 成本） */

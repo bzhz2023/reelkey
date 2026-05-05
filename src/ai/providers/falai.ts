@@ -10,28 +10,18 @@ import type {
   VideoTaskResponse,
 } from "../types";
 import { ApiError } from "@/lib/api/error";
+import {
+  getVideoModelEndpoint,
+  getVideoModelRegistryItem,
+  getVideoModelRegistryItems,
+  normalizeDurationForFal,
+  normalizeRegistryMode,
+  normalizeResolutionForFal,
+} from "@/config/video-model-registry";
 
-// fal.ai 模型的 endpoint 映射
-const FAL_ENDPOINTS: Record<string, { t2v: string; i2v?: string }> = {
-  "kling-2.5-turbo": {
-    // Source: fal.ai model docs (Kling 2.5 Turbo Pro/Standard)
-    t2v: "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
-    i2v: "fal-ai/kling-video/v2.5-turbo/standard/image-to-video",
-  },
-  "wan-2.5": {
-    // Source: fal.ai model docs (Wan 2.5 preview)
-    t2v: "fal-ai/wan-25-preview/text-to-video",
-    i2v: "fal-ai/wan-25-preview/image-to-video",
-  },
-};
-
-const FALLBACK_STATUS_ENDPOINTS = [
-  "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
-  "fal-ai/kling-video/v2.5-turbo/standard/image-to-video",
-  "fal-ai/kling-video/v2.5-turbo/pro/image-to-video",
-  "fal-ai/wan-25-preview/text-to-video",
-  "fal-ai/wan-25-preview/image-to-video",
-] as const;
+const FALLBACK_STATUS_ENDPOINTS = getVideoModelRegistryItems()
+  .flatMap((model) => Object.values(model.endpoints))
+  .filter((endpoint): endpoint is string => Boolean(endpoint));
 
 export class FalAiProvider implements AIVideoProvider {
   name = "falai";
@@ -49,30 +39,24 @@ export class FalAiProvider implements AIVideoProvider {
     params: VideoGenerationParams
   ): Promise<VideoTaskResponse> {
     const modelKey = params.model || "kling-2.5-turbo";
-    const endpoints = FAL_ENDPOINTS[modelKey];
-    if (!endpoints) {
+    const model = getVideoModelRegistryItem(modelKey);
+    if (!model) {
       throw new Error(`Unsupported model: ${modelKey}`);
     }
 
     const hasImage = Boolean(
       params.imageUrl || (params.imageUrls && params.imageUrls.length > 0)
     );
-    const isI2V = hasImage;
-    const endpoint = isI2V ? endpoints.i2v : endpoints.t2v;
+    const requestedMode = normalizeRegistryMode(params.mode);
+    const resolvedMode =
+      requestedMode === "text-to-video" && hasImage
+        ? "image-to-video"
+        : requestedMode;
+    const endpoint = getVideoModelEndpoint(modelKey, resolvedMode);
     if (!endpoint) {
-      throw new Error(`Model ${modelKey} does not support image-to-video`);
+      throw new Error(`Model ${modelKey} does not support ${resolvedMode}`);
     }
-
-    const input: Record<string, any> = {
-      prompt: params.prompt,
-      duration: params.duration || 5,
-      aspect_ratio: params.aspectRatio || "16:9",
-    };
-
-    const imageUrl = params.imageUrl || params.imageUrls?.[0];
-    if (isI2V && imageUrl) {
-      input.image_url = imageUrl;
-    }
+    const input = buildFalInput(modelKey, resolvedMode, params);
 
     try {
       // 添加 60 秒超时保护
@@ -208,6 +192,61 @@ export class FalAiProvider implements AIVideoProvider {
   parseCallback(payload: any): VideoTaskResponse {
     return parseFalAiCallback(payload);
   }
+}
+
+function buildFalInput(
+  modelId: string,
+  mode: string,
+  params: VideoGenerationParams
+): Record<string, any> {
+  const imageUrls = Array.isArray(params.imageUrls)
+    ? params.imageUrls
+    : params.imageUrl
+      ? [params.imageUrl]
+      : [];
+  const duration = normalizeDurationForFal(params.duration);
+  const resolution = normalizeResolutionForFal(params.quality);
+  const base: Record<string, any> = {
+    prompt: params.prompt,
+  };
+
+  if (duration !== undefined) base.duration = duration;
+  if (params.aspectRatio) base.aspect_ratio = params.aspectRatio;
+  if (resolution) base.resolution = resolution;
+  if (params.generateAudio !== undefined) {
+    base.generate_audio = params.generateAudio;
+  }
+
+  if (mode === "image-to-video" && imageUrls[0]) {
+    base.image_url = imageUrls[0];
+  }
+  if (mode === "frames-to-video") {
+    if (modelId === "veo-3.1-fast") {
+      if (imageUrls[0]) base.first_frame_url = imageUrls[0];
+      if (imageUrls[1]) base.last_frame_url = imageUrls[1];
+    } else {
+      if (imageUrls[0]) base.start_image_url = imageUrls[0];
+      if (imageUrls[1]) base.end_image_url = imageUrls[1];
+    }
+  }
+  if (mode === "reference-to-video" && imageUrls.length > 0) {
+    base.video_urls = imageUrls;
+  }
+
+  if (modelId === "sora-2") {
+    base.delete_video = false;
+  }
+  if (modelId === "hailuo-02-standard") {
+    base.prompt_optimizer = true;
+  }
+
+  return removeUndefined(base);
+}
+
+function removeUndefined(input: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== undefined)
+  );
 }
 
 function extractFalOutputUrls(output: any): {

@@ -581,6 +581,77 @@ export default function ToolLayout({ children }) {
 
 ### Phase 6: 模型配置（Day 8）
 
+#### 6.0 模型接入调研与首批扩展清单（2026-05-04 补充）
+
+结论：不能再按“所有模型共用一套固定参数”实现。fal.ai 的视频模型按 endpoint 拆分 text-to-video、image-to-video、first/last-frame、reference-to-video、extend-video、video-to-video 等能力，不同模型的 duration、aspect ratio、resolution、negative prompt、audio、seed、reference media 参数都不一致。
+
+**接入顺序建议：先做模型注册表和权限校验，再分批接模型。**
+
+- 免费模型继续只保留当前 MVP 的 2 个：`kling-2.5-turbo`、`wan-2.5`
+- 买断模型第一批新增 5 个主流 fal.ai 模型：
+  1. `seedance-2.0-fast`
+  2. `kling-3.0-pro`
+  3. `veo-3.1-fast`
+  4. `sora-2`
+  5. `hailuo-02-standard`
+- 所有新增模型先标记 `accessTier: "paid"`，前端隐藏给免费用户，后端 `/api/v1/video/generate` 必须二次校验，不能只靠前端过滤。
+- 真实生成链路暂不逐个模型测试；本阶段只做配置、参数校验、endpoint 映射、UI 动态渲染和 mock/类型验证，后续统一真实测试。
+
+**首批模型参数矩阵：**
+
+| ReelKey model id | fal.ai endpoint | 输入模式 | 关键参数 | 推荐权限 |
+|---|---|---|---|---|
+| `seedance-2.0-fast` | `bytedance/seedance-2.0/fast/text-to-video` / `bytedance/seedance-2.0/fast/image-to-video` | text, image, reference video | `prompt`, `resolution: 480p/720p`, `duration: auto/4-15`, `aspect_ratio: auto/21:9/16:9/4:3/1:1/3:4/9:16`, `generate_audio`, `seed`, optional `image_url`, optional `video_urls` | paid |
+| `kling-3.0-pro` | `fal-ai/kling-video/v3/pro/text-to-video` / `fal-ai/kling-video/v3/pro/image-to-video` | text, image, start/end frame, elements | `prompt` or `multi_prompt`, `duration: 3-15`, `aspect_ratio: 16:9/9:16/1:1` for T2V, `generate_audio`, `negative_prompt`, `cfg_scale: 0-1`, `start_image_url`, optional `end_image_url`, optional `elements` | paid |
+| `veo-3.1-fast` | `fal-ai/veo3.1/fast` / `fal-ai/veo3.1/fast/image-to-video` / `fal-ai/veo3.1/fast/first-last-frame-to-video` | text, image, first/last frame, extend | `prompt`, `aspect_ratio: auto/16:9/9:16` depending endpoint, `duration: 4s/6s/8s`, `resolution: 720p/1080p/4k`, `negative_prompt`, `generate_audio`, `seed`, `auto_fix`, `safety_tolerance`, optional `image_url`, `first_frame_url`, `last_frame_url`, `video_url` | paid |
+| `sora-2` | `fal-ai/sora-2/text-to-video` | text | `prompt`, `resolution: 720p`, `aspect_ratio: 9:16/16:9`, `duration: 4/8/12/16/20`, `delete_video` | paid |
+| `hailuo-02-standard` | `fal-ai/minimax/hailuo-02/standard/text-to-video` / `fal-ai/minimax/hailuo-02/standard/image-to-video` | text, image, start/end frame | `prompt`, `duration: 6/10`, `resolution: 512P/768P`, `prompt_optimizer`, `image_url`, optional `end_image_url` | paid |
+
+**配置结构要求：**
+
+```ts
+type VideoModelRegistryItem = {
+  id: string;
+  provider: "falai";
+  displayName: string;
+  accessTier: "free" | "paid";
+  endpoints: Partial<Record<
+    "text-to-video" | "image-to-video" | "first-last-frame" | "reference-to-video" | "extend-video" | "video-to-video",
+    string
+  >>;
+  capabilities: {
+    inputModes: string[];
+    durations?: string[];
+    aspectRatios?: string[];
+    resolutions?: string[];
+    supportsAudio?: boolean;
+    supportsNegativePrompt?: boolean;
+    supportsSeed?: boolean;
+  };
+  parameterSchema: Array<{
+    key: string;
+    type: "string" | "number" | "boolean" | "select" | "multiselect" | "file" | "file-list";
+    required?: boolean;
+    default?: string | number | boolean;
+    options?: Array<string | number>;
+    modes?: string[];
+  }>;
+  pricingEstimate: {
+    unit: "per-second" | "per-generation" | "token-formula" | "manual";
+    note: string;
+  };
+};
+```
+
+**官方调研入口：**
+
+- fal.ai Video Generation overview: `https://fal.ai/docs/model-api-reference/video-generation-api/overview`
+- Seedance 2.0 Fast: `https://fal.ai/docs/model-api-reference/video-generation-api/bytedance-seedance-2.0-fast`
+- Kling Video V3 Pro: `https://fal.ai/docs/model-api-reference/video-generation-api/kling-video-v3-pro`
+- Veo 3.1 Fast: `https://fal.ai/docs/model-api-reference/video-generation-api/veo3.1-fast`
+- Sora 2 Text To Video: `https://fal.ai/docs/model-api-reference/video-generation-api/sora-2-text-to-video`
+- MiniMax Hailuo 02 Standard: `https://fal.ai/models/fal-ai/minimax/hailuo-02/standard/text-to-video/api`
+
 #### 6.1 配置 fal.ai 模型（30分钟）
 
 **修改：`src/config/pricing-user.ts`**

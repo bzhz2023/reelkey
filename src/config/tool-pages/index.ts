@@ -57,18 +57,15 @@ export function getToolPageConfig(route: ToolPageRoute): ToolPageConfig {
 
 export function getToolPageConfigForProvider(
   route: ToolPageRoute,
-  provider?: ProviderType
+  provider?: ProviderType,
+  access: "free" | "paid" = "free"
 ): ToolPageConfig {
   const config = getToolPageConfig(route);
-  const providerModels = new Set(
-    getAvailableModels({
-      provider,
-      mode: route,
-    }).map((model) => model.id)
-  );
-  const available = config.generator.models.available.filter((modelId) =>
-    providerModels.has(modelId)
-  );
+  const available = getAvailableModels({
+    provider,
+    mode: route,
+    access,
+  }).map((model) => model.id);
   const defaultModel = available.includes(config.generator.models.default || "")
     ? config.generator.models.default
     : available[0];

@@ -4,6 +4,7 @@ import type { Locale } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
 import { siteConfig } from "@/config/site";
 import { getConfiguredAIProvider } from "@/ai/provider-config";
+import { BYOK_MODE } from "@/config/byok-mode";
 
 interface ImageToVideoPageProps {
   params: Promise<{
@@ -47,7 +48,8 @@ export async function generateMetadata({
 export default async function ImageToVideoPage({ params }: ImageToVideoPageProps) {
   const config = getToolPageConfigForProvider(
     "image-to-video",
-    getConfiguredAIProvider()
+    BYOK_MODE ? "falai" : getConfiguredAIProvider(),
+    "paid"
   );
   const { locale } = await params;
   return (

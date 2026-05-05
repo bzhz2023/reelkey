@@ -1,5 +1,5 @@
 import { VideoStatus, db, videos } from "@/db";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
@@ -20,6 +20,26 @@ import { emitVideoEvent } from "@/lib/video-events";
 import { ApiError } from "@/lib/api/error";
 import { getConfiguredAIProvider } from "@/ai/provider-config";
 import { FalAiProvider, parseFalAiCallback } from "@/ai/providers/falai";
+import { byokEntitlementService } from "@/services/byok-entitlement";
+
+const PROVIDER_STATUS_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => clearTimeout(timeoutId));
+  });
+}
 
 export interface GenerateVideoParams {
   userId: string;
@@ -45,6 +65,26 @@ export interface VideoGenerationResult {
   creditsUsed: number;
 }
 
+function normalizeVideoStatusFilter(
+  status?: string,
+): (typeof VideoStatus)[keyof typeof VideoStatus] | undefined {
+  if (!status) return undefined;
+
+  const trimmed = status.trim();
+  if (!trimmed || trimmed.toLowerCase() === "all") return undefined;
+
+  const normalized = trimmed.toUpperCase();
+  const validStatuses = Object.values(VideoStatus);
+  if (validStatuses.includes(normalized as (typeof validStatuses)[number])) {
+    return normalized as (typeof VideoStatus)[keyof typeof VideoStatus];
+  }
+
+  throw new ApiError("Invalid video status filter", 400, {
+    code: "INVALID_VIDEO_STATUS",
+    status,
+  });
+}
+
 export class VideoService {
   private callbackBaseUrl: string;
 
@@ -57,11 +97,11 @@ export class VideoService {
    */
   private toInsufficientCreditsApiError(
     error: unknown,
-    fallbackRequiredCredits: number
+    fallbackRequiredCredits: number,
   ): ApiError | null {
     const message = error instanceof Error ? error.message : String(error);
     const match = message.match(
-      /Insufficient credits\.\s*Required:\s*(\d+)(?:,\s*Available:\s*(\d+))?/i
+      /Insufficient credits\.\s*Required:\s*(\d+)(?:,\s*Available:\s*(\d+))?/i,
     );
     if (!match) return null;
 
@@ -81,7 +121,7 @@ export class VideoService {
   private async getFalAiTaskStatus(
     provider: ReturnType<typeof getProviderWithKey>,
     externalTaskId: string,
-    parameters: typeof videos.$inferSelect.parameters
+    parameters: typeof videos.$inferSelect.parameters,
   ) {
     const falEndpoint =
       parameters &&
@@ -112,16 +152,32 @@ export class VideoService {
       });
     }
 
+    if (params.userApiKey && modelConfig.accessTier === "paid") {
+      const hasLifetime = await byokEntitlementService.hasLifetime(params.userId);
+      if (!hasLifetime) {
+        throw new ApiError(
+          "This model is available with ReelKey Lifetime access.",
+          403,
+          {
+            code: "MODEL_REQUIRES_LIFETIME",
+            model: params.model,
+          }
+        );
+      }
+    }
+
     const effectiveDuration = params.duration || modelConfig.durations[0] || 5;
 
     const outputNumber = Math.max(1, params.outputNumber ?? 1);
-    const creditsRequired = calculateModelCredits(params.model, {
-      duration: effectiveDuration,
-      quality: params.quality,
-    }) * outputNumber;
+    const creditsRequired =
+      calculateModelCredits(params.model, {
+        duration: effectiveDuration,
+        quality: params.quality,
+      }) * outputNumber;
 
     const hasImageInput =
-      (params.imageUrls && params.imageUrls.length > 0) || Boolean(params.imageUrl);
+      (params.imageUrls && params.imageUrls.length > 0) ||
+      Boolean(params.imageUrl);
     const resolvedMode = normalizeGenerationMode(params.mode, hasImageInput);
 
     if (
@@ -137,7 +193,7 @@ export class VideoService {
           code: "MISSING_INPUT_MEDIA",
           mode: resolvedMode,
           model: params.model,
-        }
+        },
       );
     }
 
@@ -148,7 +204,7 @@ export class VideoService {
         {
           code: "IMAGE_TO_VIDEO_NOT_SUPPORTED",
           model: params.model,
-        }
+        },
       );
     }
 
@@ -159,7 +215,10 @@ export class VideoService {
     const providerForValidation = isByokFalFlow
       ? ("falai" as ProviderType)
       : configuredProvider;
-    if (providerForValidation && !isModelSupported(params.model, providerForValidation)) {
+    if (
+      providerForValidation &&
+      !isModelSupported(params.model, providerForValidation)
+    ) {
       throw new ApiError(
         `Model ${params.model} is not available for provider ${providerForValidation}`,
         400,
@@ -167,7 +226,7 @@ export class VideoService {
           code: "MODEL_NOT_AVAILABLE_FOR_PROVIDER",
           model: params.model,
           provider: providerForValidation,
-        }
+        },
       );
     }
 
@@ -183,7 +242,7 @@ export class VideoService {
           model: params.model,
           mode: resolvedMode,
           provider: actualProvider,
-        }
+        },
       );
     }
 
@@ -241,7 +300,7 @@ export class VideoService {
 
         const insufficientCreditsError = this.toInsufficientCreditsApiError(
           error,
-          creditsRequired
+          creditsRequired,
         );
         if (insufficientCreditsError) {
           throw insufficientCreditsError;
@@ -271,16 +330,16 @@ export class VideoService {
 
     const callbackUrl = this.callbackBaseUrl
       ? generateSignedCallbackUrl(
-        `${this.callbackBaseUrl}/${actualProvider}`,
-        videoResult.uuid
-      )
+          `${this.callbackBaseUrl}/${actualProvider}`,
+          videoResult.uuid,
+        )
       : undefined;
 
     try {
       const result = await provider.createTask({
         model: params.model,
         prompt: params.prompt,
-        duration: effectiveDuration,  // ✅ 使用计算后的时长
+        duration: effectiveDuration, // ✅ 使用计算后的时长
         aspectRatio: params.aspectRatio,
         quality: params.quality,
         imageUrl: params.imageUrl,
@@ -348,7 +407,7 @@ export class VideoService {
     providerType: ProviderType,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any,
-    videoUuid: string
+    videoUuid: string,
   ): Promise<void> {
     const result =
       providerType === "falai"
@@ -366,9 +425,13 @@ export class VideoService {
       return;
     }
 
-    if (video.externalTaskId && result.taskId && video.externalTaskId !== result.taskId) {
+    if (
+      video.externalTaskId &&
+      result.taskId &&
+      video.externalTaskId !== result.taskId
+    ) {
       console.error(
-        `Task ID mismatch: expected ${video.externalTaskId}, got ${result.taskId}`
+        `Task ID mismatch: expected ${video.externalTaskId}, got ${result.taskId}`,
       );
       return;
     }
@@ -386,7 +449,7 @@ export class VideoService {
   async refreshStatus(
     videoUuid: string,
     userId: string,
-    userApiKey?: string
+    userApiKey?: string,
   ): Promise<{
     status: string;
     videoUrl?: string;
@@ -402,7 +465,10 @@ export class VideoService {
       throw new Error("Video not found");
     }
 
-    if (video.status === VideoStatus.COMPLETED || video.status === VideoStatus.FAILED) {
+    if (
+      video.status === VideoStatus.COMPLETED ||
+      video.status === VideoStatus.FAILED
+    ) {
       return {
         status: video.status,
         videoUrl: video.videoUrl || undefined,
@@ -416,7 +482,9 @@ export class VideoService {
 
         // BYOK 模式：必须提供 userApiKey 才能查询 fal.ai 状态
         if (providerType === "falai" && !userApiKey) {
-          console.warn(`[refreshStatus] falai provider requires userApiKey for video ${videoUuid}`);
+          console.warn(
+            `[refreshStatus] falai provider requires userApiKey for video ${videoUuid}`,
+          );
           return { status: video.status };
         }
 
@@ -425,14 +493,19 @@ export class VideoService {
             ? getProviderWithKey(providerType, userApiKey)
             : getProvider(providerType);
 
-        const result =
+        const statusPromise =
           providerType === "falai"
-            ? await this.getFalAiTaskStatus(
-              provider as ReturnType<typeof getProviderWithKey>,
-              video.externalTaskId,
-              video.parameters
-            )
-            : await provider.getTaskStatus(video.externalTaskId);
+            ? this.getFalAiTaskStatus(
+                provider as ReturnType<typeof getProviderWithKey>,
+                video.externalTaskId,
+                video.parameters,
+              )
+            : provider.getTaskStatus(video.externalTaskId);
+        const result = await withTimeout(
+          statusPromise,
+          PROVIDER_STATUS_TIMEOUT_MS,
+          `Provider status timed out after ${PROVIDER_STATUS_TIMEOUT_MS}ms`,
+        );
 
         if (result.status === "completed" && result.videoUrl) {
           const updated = await this.tryCompleteGeneration(video.uuid, result);
@@ -445,14 +518,17 @@ export class VideoService {
         if (result.status === "failed") {
           const updated = await this.tryFailGeneration(
             video.uuid,
-            result.error?.message
+            result.error?.message,
           );
           return {
             status: updated.status,
             error: updated.errorMessage || undefined,
           };
         }
-        if (result.status === "processing" && video.status === VideoStatus.PENDING) {
+        if (
+          result.status === "processing" &&
+          video.status === VideoStatus.PENDING
+        ) {
           await db
             .update(videos)
             .set({
@@ -463,6 +539,14 @@ export class VideoService {
           return { status: VideoStatus.GENERATING };
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes("Provider status timed out")) {
+          console.warn(`[refreshStatus] ${message} for video ${videoUuid}`);
+          return {
+            status: video.status,
+            error: "PROVIDER_STATUS_TIMEOUT",
+          };
+        }
         console.error("Failed to refresh status from provider:", error);
       }
     }
@@ -492,7 +576,7 @@ export class VideoService {
    */
   async tryCompleteGeneration(
     videoUuid: string,
-    result: VideoTaskResponse
+    result: VideoTaskResponse,
   ): Promise<{ status: string; videoUrl?: string | null }> {
     return db.transaction(async (trx) => {
       const [video] = await trx
@@ -566,7 +650,7 @@ export class VideoService {
    */
   private async tryFailGeneration(
     videoUuid: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<{ status: string; errorMessage?: string | null }> {
     return db.transaction(async (trx) => {
       const [video] = await trx
@@ -579,7 +663,10 @@ export class VideoService {
         throw new Error("Video not found");
       }
 
-      if (video.status === VideoStatus.COMPLETED || video.status === VideoStatus.FAILED) {
+      if (
+        video.status === VideoStatus.COMPLETED ||
+        video.status === VideoStatus.FAILED
+      ) {
         return { status: video.status, errorMessage: video.errorMessage };
       }
 
@@ -619,8 +706,8 @@ export class VideoService {
         and(
           eq(videos.uuid, uuid),
           eq(videos.userId, userId),
-          eq(videos.isDeleted, false)
-        )
+          eq(videos.isDeleted, false),
+        ),
       )
       .limit(1);
     return video ?? null;
@@ -635,17 +722,22 @@ export class VideoService {
       limit?: number;
       cursor?: string;
       status?: string;
-    }
+      model?: string;
+      sortBy?: string;
+    },
   ) {
     const limit = options?.limit || 20;
+    const sortBy = options?.sortBy === "oldest" ? "oldest" : "newest";
 
-    const conditions = [
-      eq(videos.userId, userId),
-      eq(videos.isDeleted, false),
-    ];
+    const conditions = [eq(videos.userId, userId), eq(videos.isDeleted, false)];
 
-    if (options?.status) {
-      conditions.push(eq(videos.status, options.status as typeof VideoStatus[keyof typeof VideoStatus]));
+    const statusFilter = normalizeVideoStatusFilter(options?.status);
+    if (statusFilter) {
+      conditions.push(eq(videos.status, statusFilter));
+    }
+
+    if (options?.model) {
+      conditions.push(eq(videos.model, options.model));
     }
 
     if (options?.cursor) {
@@ -656,7 +748,11 @@ export class VideoService {
         .limit(1);
 
       if (cursorVideo) {
-        conditions.push(lt(videos.createdAt, cursorVideo.createdAt));
+        conditions.push(
+          sortBy === "oldest"
+            ? gt(videos.createdAt, cursorVideo.createdAt)
+            : lt(videos.createdAt, cursorVideo.createdAt),
+        );
       }
     }
 
@@ -664,7 +760,9 @@ export class VideoService {
       .select()
       .from(videos)
       .where(and(...conditions))
-      .orderBy(desc(videos.createdAt))
+      .orderBy(
+        sortBy === "oldest" ? asc(videos.createdAt) : desc(videos.createdAt),
+      )
       .limit(limit + 1);
 
     const hasMore = list.length > limit;
