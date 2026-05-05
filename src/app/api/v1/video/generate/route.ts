@@ -14,9 +14,15 @@ const CREEM_API_BASE =
 
 async function moderatePrompt(prompt: string, userId: string): Promise<void> {
   const apiKey = process.env.CREEM_API_KEY;
-  if (!apiKey) return; // skip in dev if key not configured
+  if (!apiKey) {
+    console.warn("[Moderation] CREEM_API_KEY not set, skipping moderation");
+    return;
+  }
+
+  console.log(`[Moderation] Calling Creem Moderation API | user=${userId} | prompt="${prompt.slice(0, 80)}..."`);
 
   let decision: string;
+  let moderationId: string | undefined;
   try {
     const res = await fetch(`${CREEM_API_BASE}/v1/moderation/prompt`, {
       method: "POST",
@@ -27,9 +33,12 @@ async function moderatePrompt(prompt: string, userId: string): Promise<void> {
       body: JSON.stringify({ prompt, external_id: `user_${userId}` }),
       signal: AbortSignal.timeout(8000),
     });
-    const data = await res.json() as { decision?: string };
+    const data = await res.json() as { id?: string; decision?: string };
     decision = data.decision ?? "deny";
-  } catch {
+    moderationId = data.id;
+    console.log(`[Moderation] Result: decision=${decision} | id=${moderationId} | user=${userId}`);
+  } catch (err) {
+    console.error(`[Moderation] API call failed | user=${userId} | error=${String(err)}`);
     // Fail closed: if moderation is unreachable, block generation
     throw new ApiError(
       "Content moderation service unavailable. Please try again.",
@@ -39,6 +48,7 @@ async function moderatePrompt(prompt: string, userId: string): Promise<void> {
   }
 
   if (decision !== "allow") {
+    console.warn(`[Moderation] Prompt rejected | decision=${decision} | id=${moderationId} | user=${userId}`);
     throw new ApiError(
       "Your prompt was rejected by our content policy. Please revise and try again.",
       400,
