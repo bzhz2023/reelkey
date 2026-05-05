@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useTransition } from "react";
+import { useCallback, useState, useEffect, useMemo, useTransition } from "react";
 import { Menu, Globe, Sun, Moon, Monitor } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -101,6 +101,51 @@ export function LandingHeader({ user }: { user?: User | null }) {
     staggerMs: 200,
   });
 
+  const warmCreationsList = useCallback(() => {
+    if (!currentUser?.id) return;
+
+    void queryClient.prefetchInfiniteQuery({
+      queryKey: [
+        "videos",
+        { status: "all", model: "all", sortBy: "newest" },
+      ],
+      queryFn: ({ pageParam }) =>
+        apiClient.getVideos({
+          limit: 20,
+          cursor: pageParam,
+          sortBy: "newest",
+        }),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage: ListVideosResponse) =>
+        lastPage.nextCursor || undefined,
+    });
+  }, [currentUser?.id, queryClient]);
+
+  const warmAccountNavigation = useCallback(() => {
+    for (const href of accountPrefetchHrefs) {
+      try {
+        if (process.env.NODE_ENV === "development") {
+          void fetch(href, {
+            credentials: "same-origin",
+            headers: {
+              "x-reelkey-route-prewarm": "1",
+            },
+            priority: "high",
+          } as RequestInit & { priority?: "low" | "high" | "auto" });
+          continue;
+        }
+
+        router.prefetch(href);
+      } catch (error) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`[perf] account route prewarm failed for ${href}`, error);
+        }
+      }
+    }
+
+    warmCreationsList();
+  }, [accountPrefetchHrefs, router, warmCreationsList]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -111,21 +156,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
     let cancelled = false;
     const warmCreations = () => {
       if (cancelled) return;
-      void queryClient.prefetchInfiniteQuery({
-        queryKey: [
-          "videos",
-          { status: "all", model: "all", sortBy: "newest" },
-        ],
-        queryFn: ({ pageParam }) =>
-          apiClient.getVideos({
-            limit: 20,
-            cursor: pageParam,
-            sortBy: "newest",
-          }),
-        initialPageParam: undefined as string | undefined,
-        getNextPageParam: (lastPage: ListVideosResponse) =>
-          lastPage.nextCursor || undefined,
-      });
+      warmCreationsList();
     };
 
     let idleId: number | null = null;
@@ -147,7 +178,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
         window.cancelIdleCallback(idleId);
       }
     };
-  }, [currentUser?.id, queryClient]);
+  }, [currentUser?.id, warmCreationsList]);
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -369,9 +400,18 @@ export function LandingHeader({ user }: { user?: User | null }) {
 
             {/* User Menu */}
             {currentUser ? (
-              <DropdownMenu>
+              <DropdownMenu
+                onOpenChange={(open) => {
+                  if (open) warmAccountNavigation();
+                }}
+              >
                 <DropdownMenuTrigger asChild>
-                  <button type="button" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    onFocus={warmAccountNavigation}
+                    onPointerEnter={warmAccountNavigation}
+                  >
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background/20">
                       <span className="text-sm font-medium">
                         {currentUser.name?.[0]?.toUpperCase() || currentUser.email?.[0]?.toUpperCase()}
@@ -383,7 +423,12 @@ export function LandingHeader({ user }: { user?: User | null }) {
                   align="end"
                   className="w-48 border-border/50 bg-background/95 backdrop-blur-sm shadow-xl"
                 >
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer hover:bg-accent"
+                    onFocus={warmAccountNavigation}
+                    onPointerEnter={warmAccountNavigation}
+                  >
                     <LocaleLink href="/my-creations">{t('Header.myCreations')}</LocaleLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
