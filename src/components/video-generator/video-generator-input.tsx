@@ -85,7 +85,6 @@ import type {
   UploadSlot,
   VideoGeneratorInputProps,
   SubmitData,
-  OutputNumberOption,
 } from "./types";
 
 import {
@@ -170,8 +169,6 @@ export function VideoGeneratorInput({
   const imageAspectRatios = config.aspectRatios?.image ?? [];
   const durations = config.durations ?? [];
   const resolutions = config.resolutions ?? [];
-  const videoOutputNumbers = config.outputNumbers?.video ?? [];
-  const imageOutputNumbers = config.outputNumbers?.image ?? [];
 
   // ============================================================================
   // State
@@ -206,9 +203,6 @@ export function VideoGeneratorInput({
   );
   const [duration, setDuration] = useState(defaults.duration ?? durations[0] ?? "5s");
   const [resolution, setResolution] = useState(defaults.resolution ?? resolutions[0] ?? "720P");
-  const [videoOutputNumber, setVideoOutputNumber] = useState(
-    defaults.videoOutputNumber ?? videoOutputNumbers[0]?.value ?? 1
-  );
 
   // Image-specific state
   const [selectedImageModel, setSelectedImageModel] = useState<ImageModel | null>(
@@ -219,9 +213,6 @@ export function VideoGeneratorInput({
   );
   const [imageAspectRatio, setImageAspectRatio] = useState(
     defaults.imageAspectRatio ?? imageAspectRatios[0] ?? "1:1"
-  );
-  const [imageOutputNumber, setImageOutputNumber] = useState(
-    defaults.imageOutputNumber ?? imageOutputNumbers[0]?.value ?? 1
   );
   const [selectedStyle, setSelectedStyle] = useState<ImageStyle | null>(
     () => imageStyles.find((s) => s.id === defaults.imageStyle) ?? imageStyles[0] ?? null
@@ -347,23 +338,7 @@ export function VideoGeneratorInput({
 
   const currentAspectRatio = generationType === "video" ? videoAspectRatio : imageAspectRatio;
   const currentAspectRatios = generationType === "video" ? effectiveVideoAspectRatios : effectiveImageAspectRatios;
-  const currentOutputNumber = generationType === "video" ? videoOutputNumber : imageOutputNumber;
-
-  // Get effective output numbers - model-level takes precedence
-  const effectiveVideoOutputNumbers = useMemo(() => {
-    // Check if current video model has its own output numbers
-    if (selectedVideoModel?.outputNumbers && selectedVideoModel.outputNumbers.length > 0) {
-      return selectedVideoModel.outputNumbers;
-    }
-    return videoOutputNumbers;
-  }, [selectedVideoModel, videoOutputNumbers]);
-
-  const effectiveImageOutputNumbers = useMemo(() => {
-    // Image models don't have model-level output numbers yet, use global
-    return imageOutputNumbers;
-  }, [imageOutputNumbers]);
-
-  const currentOutputNumbers = generationType === "video" ? effectiveVideoOutputNumbers : effectiveImageOutputNumbers;
+  const currentOutputNumber = 1;
 
   // Check if resolution control should be shown
   const showResolutionControl = useMemo(() => {
@@ -456,18 +431,6 @@ export function VideoGeneratorInput({
       onChange?.({ aspectRatio: effectiveImageAspectRatios[0] });
     }
   }, [effectiveImageAspectRatios, imageAspectRatio]);
-
-  // Auto-switch video output number when model changes and current is not available
-  useEffect(() => {
-    if (effectiveVideoOutputNumbers.length > 0) {
-      const isCurrentAvailable = effectiveVideoOutputNumbers.some((opt) => opt.value === videoOutputNumber);
-      if (!isCurrentAvailable) {
-        const newValue = effectiveVideoOutputNumbers[0]?.value ?? 1;
-        setVideoOutputNumber(newValue);
-        onChange?.({ outputNumber: newValue });
-      }
-    }
-  }, [effectiveVideoOutputNumbers, videoOutputNumber]);
 
   // Scroll to selected model when dropdown opens
   useEffect(() => {
@@ -799,20 +762,6 @@ export function VideoGeneratorInput({
       setImageAspectRatio(ratio);
     }
     onChange?.({ aspectRatio: ratio });
-  };
-
-  const handleOutputNumberChange = (option: OutputNumberOption) => {
-    // Check if this is a Pro feature and user is not Pro
-    if (option.isPro && !isPro) {
-      onProFeatureClick?.(`output_number_${option.value}`);
-      return;
-    }
-    if (generationType === "video") {
-      setVideoOutputNumber(option.value);
-    } else {
-      setImageOutputNumber(option.value);
-    }
-    onChange?.({ outputNumber: option.value });
   };
 
   const refreshSuggestions = useCallback(() => {
@@ -1353,47 +1302,14 @@ export function VideoGeneratorInput({
                 </PopoverContent>
               </Popover>
 
-              {/* Advanced Settings (Output Number, Generate Audio) */}
-              <Popover open={isAdvancedSettingsOpen} onOpenChange={setIsAdvancedSettingsOpen}>
-                <PopoverTrigger asChild>
-                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-popover border-border p-4" align="end">
-                  {/* Output Number */}
-                  {currentOutputNumbers.length > 0 && (
-                    <div className={modelSupportsAudio ? "mb-4" : ""}>
-                      <label className="text-xs text-muted-foreground mb-2 block">
-                        {generationType === "video" ? texts.outputNumber : texts.numberOfImages}
-                      </label>
-                      <div className="flex gap-2">
-                        {currentOutputNumbers.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={() => handleOutputNumberChange(option)}
-                            className={cn(
-                              "flex-1 py-2 rounded-lg text-sm transition-colors relative",
-                              currentOutputNumber === option.value
-                                ? "bg-muted text-foreground"
-                                : "bg-secondary text-muted-foreground hover:bg-muted",
-                              option.isPro && !isPro && "opacity-70"
-                            )}
-                          >
-                            <span className="flex items-center justify-center gap-1">
-                              {option.value}
-                              {option.isPro && !isPro && (
-                                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400">PRO</span>
-                              )}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Generate Audio - only show when model supports it */}
-                  {modelSupportsAudio && (
+              {modelSupportsAudio && (
+                <Popover open={isAdvancedSettingsOpen} onOpenChange={setIsAdvancedSettingsOpen}>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 bg-popover border-border p-4" align="end">
                     <div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -1421,9 +1337,9 @@ export function VideoGeneratorInput({
                         </button>
                       </div>
                     </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
 
             {/* Credits & Submit */}

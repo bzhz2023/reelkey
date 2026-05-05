@@ -38,7 +38,6 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-import type { OutputNumberOption } from "./types";
 import {
   VideoGeneratorCore,
   useVideoGeneratorCore,
@@ -419,44 +418,18 @@ function CompactRenderer() {
       </div>
 
       {/* 高级设置（仅显示需要时） */}
-      {showAdvancedSettings && (computed.effectiveVideoOutputNumbers.length > 1 || computed.modelSupportsAudio) && (
+      {showAdvancedSettings && computed.modelSupportsAudio && (
         <div className="flex items-center gap-3 pt-2 border-t border-zinc-800">
-          {/* 输出数量 */}
-          {computed.effectiveVideoOutputNumbers.length > 1 && (
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-zinc-400">{texts.outputNumber}</Label>
-              <div className="flex gap-1">
-                {computed.effectiveVideoOutputNumbers.map((option: OutputNumberOption) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handlers.handleOutputNumberChange(option)}
-                    className={cn(
-                      "px-2 py-0.5 rounded text-xs transition-colors",
-                      computed.currentOutputNumber === option.value
-                        ? "bg-zinc-700 text-white"
-                        : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700",
-                      option.isPro && !isPro && "opacity-70"
-                    )}
-                  >
-                    {option.value}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* 生成音频（仅视频且模型支持时） */}
-          {computed.modelSupportsAudio && (
-            <div className="flex items-center gap-2">
-              <Volume2 className="w-3.5 h-3.5 text-zinc-500" />
-              <Label className="text-xs text-zinc-300">{texts.generateAudio ?? "Audio"}</Label>
-              <Switch
-                checked={state.generateAudio}
-                onCheckedChange={actions.setGenerateAudio}
-                className="scale-75"
-              />
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-3.5 h-3.5 text-zinc-500" />
+            <Label className="text-xs text-zinc-300">{texts.generateAudio ?? "Audio"}</Label>
+            <Switch
+              checked={state.generateAudio}
+              onCheckedChange={actions.setGenerateAudio}
+              className="scale-75"
+            />
+          </div>
         </div>
       )}
     </div>
