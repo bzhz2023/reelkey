@@ -44,16 +44,16 @@ export function VideoHistoryCard({
         minute: "2-digit",
         hour12: false,
       });
-    } else {
-      // 其他日期显示日期和时间
-      return date.toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
     }
+
+    // 其他日期显示日期和时间
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   };
 
   // 复制提示词
@@ -67,17 +67,17 @@ export function VideoHistoryCard({
   // 元数据标签
   const renderMetadata = () => {
     return (
-      <div className="flex items-center flex-wrap gap-2 text-xs text-zinc-500 mt-2">
-        <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+      <div className="flex items-center flex-wrap gap-2 text-xs text-slate-500 mt-2">
+        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
           {getModelDisplayName(video.model)}
         </span>
         {video.aspectRatio && (
-          <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
             {video.aspectRatio}
           </span>
         )}
         {video.duration && (
-          <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
             {video.duration}s
           </span>
         )}
@@ -88,20 +88,20 @@ export function VideoHistoryCard({
   // 生成中状态
   if (isGenerating || video.status === "generating") {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-4">
+      <div className="rounded-xl border border-sky-100 bg-white p-4 space-y-4 shadow-sm">
         {/* 顶部行：Prompt + 发起时间 */}
         <div className="flex items-center justify-between">
-          <p className="text-sm text-white font-medium line-clamp-1 flex-1">
+          <p className="text-sm text-slate-800 font-medium line-clamp-1 flex-1">
             {video.prompt || "Untitled"}
           </p>
-          <span className="text-xs text-zinc-500 ml-2">
+          <span className="text-xs text-slate-400 ml-2">
             {formatTime(video.createdAt)}
           </span>
         </div>
 
         {/* 进度面板：矩形框 + 加载动画 */}
-        <div className="bg-zinc-800/50 rounded-lg p-6">
-          <div className="flex items-center justify-center gap-3 text-sm text-white">
+        <div className="bg-sky-50 rounded-lg p-6">
+          <div className="flex items-center justify-center gap-3 text-sm text-slate-700">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <span>{t("generating")}</span>
           </div>
@@ -116,7 +116,7 @@ export function VideoHistoryCard({
   // 已完成状态
   if (isCompleted) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+      <div className="rounded-xl border border-sky-100 bg-white overflow-hidden shadow-sm">
         {/* 视频缩略图 */}
         <div className="relative aspect-video bg-black">
           {video.videoUrl ? (
@@ -143,16 +143,16 @@ export function VideoHistoryCard({
         <div className="p-4 space-y-3">
           {/* 顶部行：标题 + 时间 + 复制提示词 */}
           <div className="flex items-center justify-between">
-            <p className="text-sm text-white font-medium line-clamp-1 flex-1">
+            <p className="text-sm text-slate-800 font-medium line-clamp-1 flex-1">
               {video.prompt || "Untitled"}
             </p>
-            <div className="flex items-center gap-2 text-zinc-500">
+            <div className="flex items-center gap-2 text-slate-400">
               <span className="text-xs">{formatTime(video.createdAt)}</span>
               {video.prompt && (
                 <button
                   type="button"
                   onClick={handleCopyPrompt}
-                  className="p-1 hover:text-zinc-300 transition-colors"
+                  className="p-1 hover:text-slate-700 transition-colors"
                   title="Copy prompt"
                 >
                   <Copy className="w-4 h-4" />
@@ -171,13 +171,13 @@ export function VideoHistoryCard({
   // 失败状态
   if (isFailed) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+      <div className="rounded-xl border border-rose-100 bg-white p-4 space-y-3 shadow-sm">
         {/* 失败图标和提示 */}
-        <div className="flex items-center gap-3 text-rose-400">
+        <div className="flex items-center gap-3 text-rose-500">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">{t("generationFailed")}</p>
-            <p className="text-xs text-zinc-500 truncate mt-0.5">
+            <p className="text-xs text-slate-500 truncate mt-0.5">
               {video.prompt || "Unknown error"}
             </p>
           </div>

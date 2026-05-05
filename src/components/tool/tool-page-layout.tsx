@@ -45,7 +45,7 @@ const VideoHistoryPanel = dynamic(
   () => import("@/components/tool/video-history-panel").then((mod) => mod.VideoHistoryPanel),
   {
     loading: () => (
-      <div className="h-full min-h-[360px] rounded-2xl border border-zinc-800 bg-zinc-900/70" />
+      <div className="h-full min-h-[360px] rounded-2xl border border-sky-100 bg-white/80 shadow-sm" />
     ),
     ssr: false,
   }
@@ -807,7 +807,7 @@ export function ToolPageLayout({
             </div>
           </div>
 
-          <div className="hidden lg:block h-full min-h-[360px] rounded-2xl border border-zinc-800 bg-zinc-900/70" />
+          <div className="hidden lg:block h-full min-h-[360px] rounded-2xl border border-sky-100 bg-white/80 shadow-sm" />
         </div>
       </div>
     );

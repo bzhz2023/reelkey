@@ -445,7 +445,7 @@ export function GeneratorPanel({
                     <DropdownMenuTrigger asChild disabled={isLoading}>
                       <button
                         type="button"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white"
+                        className="flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-sky-50 px-3 py-1.5 text-sm text-slate-800 shadow-sm transition-colors hover:bg-sky-100"
                       >
                         {renderModelIcon(
                           currentModel.id,
@@ -453,14 +453,14 @@ export function GeneratorPanel({
                           "sm",
                         )}
                         <span>{currentModel.name}</span>
-                        <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-zinc-900 border-zinc-800 w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
-                      <DropdownMenuLabel className="text-zinc-400 text-xs">
+                    <DropdownMenuContent className="w-80 max-h-[400px] overflow-y-scroll custom-scrollbar border-sky-100 bg-white/95 shadow-xl backdrop-blur-md">
+                      <DropdownMenuLabel className="text-slate-500 text-xs">
                         {text.videoModels}
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-zinc-800" />
+                      <DropdownMenuSeparator className="bg-slate-100" />
                       {availableModels.map((model) => (
                         <DropdownMenuItem
                           key={model.id}
@@ -473,7 +473,7 @@ export function GeneratorPanel({
                             setSelectedModel(model.id);
                           }}
                           className={cn(
-                            "text-white hover:bg-zinc-800 flex flex-col items-start py-3",
+                            "flex flex-col items-start rounded-md py-3 text-slate-800 transition-colors hover:bg-sky-50 focus:bg-sky-50",
                             model.accessTier === "paid" &&
                               !isPro &&
                               "opacity-70",
@@ -484,7 +484,7 @@ export function GeneratorPanel({
                               {renderModelIcon(model.id, model.name, "md")}
                               <span className="font-medium">{model.name}</span>
                               {model.accessTier === "paid" && !isPro && (
-                                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700">
                                   PRO
                                 </span>
                               )}
@@ -494,11 +494,11 @@ export function GeneratorPanel({
                             )}
                           </div>
                           {model.description && (
-                            <div className="text-xs text-zinc-500 mt-1 ml-8">
+                            <div className="text-xs text-slate-500 mt-1 ml-8">
                               {model.description}
                             </div>
                           )}
-                          <div className="text-xs text-zinc-400 mt-1 ml-8 flex items-center gap-2">
+                          <div className="text-xs text-slate-500 mt-1 ml-8 flex items-center gap-2">
                             {model.maxDuration && (
                               <>
                                 <span className="flex items-center gap-1">
