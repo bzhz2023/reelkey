@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { Copy, AlertCircle, Clock } from "lucide-react";
 import { cn } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { getModelDisplayName } from "@/config/credits";
 import type { VideoHistoryItem } from "@/lib/video-history-storage";
 import { toast } from "sonner";
 
@@ -68,7 +69,7 @@ export function VideoHistoryCard({
     return (
       <div className="flex items-center flex-wrap gap-2 text-xs text-zinc-500 mt-2">
         <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-          {video.model}
+          {getModelDisplayName(video.model)}
         </span>
         {video.aspectRatio && (
           <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">

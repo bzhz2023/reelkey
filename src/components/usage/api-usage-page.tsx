@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getModelDisplayName } from "@/config/credits";
 import { cn } from "@/components/ui";
 import { useRefreshProcessingVideos, useVideos } from "@/hooks/use-videos";
 import {
@@ -31,15 +32,6 @@ const statusStyles: Record<VideoStatus, string> = {
   generating: "border-blue-500/20 bg-blue-500/10 text-blue-600",
   pending: "border-amber-500/20 bg-amber-500/10 text-amber-600",
   uploading: "border-violet-500/20 bg-violet-500/10 text-violet-600",
-};
-
-const modelNames: Record<string, string> = {
-  "kling-2.5-turbo": "Kling 2.5 Turbo Pro",
-  "wan-2.5": "Wan 2.5",
-  "seedance-1.5-pro": "Seedance 1.5 Pro",
-  "sora-2": "Sora 2",
-  "wan2.6": "Wan 2.6",
-  "veo-3.1": "Veo 3.1",
 };
 
 export function ApiUsagePage() {
@@ -235,9 +227,7 @@ function UsageRow({
         </div>
       </td>
       <td className="px-5 py-4">
-        <div className="font-medium">
-          {modelNames[video.model] || video.model}
-        </div>
+        <div className="font-medium">{getModelDisplayName(video.model)}</div>
         <div className="text-xs text-muted-foreground">{video.provider}</div>
       </td>
       <td className="px-5 py-4">

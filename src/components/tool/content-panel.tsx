@@ -3,6 +3,8 @@
 import { Play, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/components/ui";
+import { BYOK_MODE } from "@/config/byok-mode";
+import { getAvailableModels } from "@/config/credits";
 
 interface ContentPanelProps {
   lang?: string;
@@ -34,6 +36,12 @@ const features = [
   "Various aspect ratios supported",
 ];
 
+const currentModelNames = getAvailableModels({
+  provider: BYOK_MODE ? "falai" : undefined,
+})
+  .map((model) => model.name)
+  .join(", ");
+
 export function ContentPanel({ lang = "en" }: ContentPanelProps) {
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -44,7 +52,7 @@ export function ContentPanel({ lang = "en" }: ContentPanelProps) {
             Transform Your Images into Stunning Videos
           </h2>
           <p className="text-muted-foreground">
-            Powered by the latest AI models: Sora 2, Veo 3.1, Seedance 1.5, and Wan 2.6
+            Powered by the latest AI models: {currentModelNames}
           </p>
         </div>
 

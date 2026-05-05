@@ -326,6 +326,18 @@
   },
   "Sidebar": {
     "title": "Navigation",
+    "groups": {
+      "video": "VIDEO"
+    },
+    "items": {
+      "txt2vid": "Text to Video",
+      "img2vid": "Image to Video",
+      "ref2vid": "Reference Video",
+      "creations": "My Creations",
+      "credits": "Credits",
+      "creditsByok": "API Usage",
+      "settings": "Account"
+    },
     "upgradeTitle": "Upgrade to Pro",
     "upgradeSubtitle": "Unlock faster generation and more credits"
   },
@@ -456,6 +468,9 @@
   "dashboard": {
     "myCreations": {
       "title": "My Creations",
+      "count": "{count, plural, =1 {# creation} other {# creations}}",
+      "filtering": "Filtering...",
+      "loadingMore": "Loading...",
       "filter": {
         "allStatus": "All Status",
         "all": "All",
@@ -478,6 +493,7 @@
       "actions": {
         "play": "Play",
         "download": "Download",
+        "close": "Close",
         "delete": "Delete",
         "retry": "Retry",
         "viewDetails": "View Details",
@@ -606,6 +622,8 @@
     "badge": "BYOK pricing",
     "title": "Pay ReelKey once. Pay fal.ai directly.",
     "subtitle": "ReelKey provides the workspace, model access, and storage. Video generation runs through your own fal.ai API key.",
+    "modalTitle": "Unlock all video models",
+    "modalDescription": "Pay once for the ReelKey workspace, model access, and cloud storage. Generation usage is still billed directly to your fal.ai API key.",
     "earlyBirdBadge": "Early bird",
     "billingLifetime": "one-time",
     "billingFree": "forever",

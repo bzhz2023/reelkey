@@ -9,22 +9,25 @@ import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import type { SubmitData } from "@/components/video-generator/types";
-import { DEFAULT_CONFIG, DEFAULT_DEFAULTS } from "@/components/video-generator/defaults";
+import {
+  DEFAULT_CONFIG,
+  DEFAULT_DEFAULTS,
+  DEFAULT_TEXTS_EN,
+  DEFAULT_TEXTS_ZH,
+} from "@/components/video-generator/defaults";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { Meteors } from "@/components/magicui/meteors";
 import { cn } from "@/components/ui";
 import { authClient } from "@/lib/auth/client";
 import { calculateModelCredits, getAvailableModels } from "@/config/credits";
 import { NEW_USER_GIFT } from "@/config/pricing-user";
+import { BYOK_MODE } from "@/config/byok-mode";
 import { uploadImage } from "@/lib/video-api";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { videoTaskStorage } from "@/lib/video-task-storage";
 import { falKeyStorage } from "@/lib/fal-key";
 import type { ProviderType } from "@/ai/types";
-import {
-  isModelModeSupported,
-  type GenerationMode,
-} from "@/ai/model-mapping";
+import { isModelModeSupported, type GenerationMode } from "@/ai/model-mapping";
 
 import {
   AlertDialog,
@@ -38,22 +41,29 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const FalKeyDialog = dynamic(
+  () => import("@/components/fal-key-dialog").then((mod) => mod.FalKeyDialog),
+  { ssr: false },
+);
+
+const ByokLifetimePricingModal = dynamic(
   () =>
-    import("@/components/fal-key-dialog").then((mod) => mod.FalKeyDialog),
-  { ssr: false }
+    import("@/components/price/byok-lifetime-pricing-modal").then(
+      (mod) => mod.ByokLifetimePricingModal,
+    ),
+  { ssr: false },
 );
 
 const VideoGeneratorInput = dynamic(
   () =>
     import("@/components/video-generator/video-generator-input").then(
-      (mod) => mod.VideoGeneratorInput
+      (mod) => mod.VideoGeneratorInput,
     ),
   {
     ssr: false,
     loading: () => (
       <div className="min-h-[360px] rounded-3xl border border-border bg-card/80 p-8 shadow-sm" />
     ),
-  }
+  },
 );
 
 const PENDING_PROMPT_KEY = "reel_key_pending_prompt";
@@ -76,7 +86,36 @@ function normalizeGeneratorMode(mode?: string): GenerationMode {
 
 interface HeroSectionProps {
   currentProvider?: ProviderType;
+  hasLifetimeAccess?: boolean;
 }
+
+const ZH_MODE_LABELS: Record<string, { name: string; description: string }> = {
+  "text-image-to-video": {
+    name: "图文生成视频",
+    description: "通过文字提示词生成视频，也可上传参考图片",
+  },
+  "frames-to-video": {
+    name: "首尾帧生成视频",
+    description: "上传起始帧和结束帧生成视频",
+  },
+  "reference-to-video": {
+    name: "参考生成视频",
+    description: "使用人物参考图或参考视频生成视频",
+  },
+};
+
+const ZH_PROMPT_TEMPLATE_LABELS: Record<string, string> = {
+  "1": "温馨圣诞房间",
+  "2": "职场打工人",
+  "3": "安静的决心",
+  "4": "电影感剧情",
+  "5": "自然纪录片",
+  "6": "城市街拍",
+  "7": "空灵奇幻世界",
+  "8": "复古 80 年代",
+  "9": "极简产品镜头",
+  "10": "史诗风景视角",
+};
 
 /**
  * Hero Section - 视频生成器优先设计
@@ -86,7 +125,10 @@ interface HeroSectionProps {
  * - Glassmorphism 风格: 背景模糊、透明层、微妙边框
  * - Magic UI 动画组件增强交互体验
  */
-export function HeroSection({ currentProvider }: HeroSectionProps) {
+export function HeroSection({
+  currentProvider,
+  hasLifetimeAccess = false,
+}: HeroSectionProps) {
   const t = useTranslations("Hero");
   const tNotify = useTranslations("Notifications");
   const locale = useLocale();
@@ -96,43 +138,90 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifyDialog, setShowNotifyDialog] = useState(false);
   const [showKeyDialog, setShowKeyDialog] = useState(false);
-  const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(null);
+  const [showLifetimePricing, setShowLifetimePricing] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(
+    null,
+  );
 
   const generatorConfig = useMemo(() => {
+    const effectiveProvider = BYOK_MODE ? "falai" : currentProvider;
     const availableModels = getAvailableModels({
-      provider: currentProvider,
+      provider: effectiveProvider,
+      access: "paid",
     });
     const availableIds = new Set(availableModels.map((model) => model.id));
     const providerByModel = new Map(
-      availableModels.map((model) => [model.id, currentProvider || model.provider])
+      availableModels.map((model) => [
+        model.id,
+        effectiveProvider || model.provider,
+      ]),
     );
     const videoModels = DEFAULT_CONFIG.videoModels ?? [];
-    const filteredVideoModels = videoModels.filter((model) => availableIds.has(model.id));
+    const filteredVideoModels = videoModels.filter((model) =>
+      availableIds.has(model.id),
+    );
     const filteredVideoModes = (DEFAULT_CONFIG.videoModes ?? [])
       .map((mode) => {
         const normalizedMode = normalizeGeneratorMode(mode.id);
-        const supportedModels = (mode.supportedModels ?? []).filter((modelId) => {
+        const candidateModelIds =
+          BYOK_MODE && mode.id === "text-image-to-video"
+            ? filteredVideoModels.map((model) => model.id)
+            : (mode.supportedModels ??
+              filteredVideoModels.map((model) => model.id));
+        const supportedModels = candidateModelIds.filter((modelId) => {
           if (!availableIds.has(modelId)) return false;
           const provider = providerByModel.get(modelId);
           if (!provider) return false;
           return isModelModeSupported(modelId, provider, normalizedMode);
         });
+        const localizedMode = locale === "zh" ? ZH_MODE_LABELS[mode.id] : null;
         return {
           ...mode,
+          ...(localizedMode ?? {}),
           supportedModels,
         };
       })
       .filter((mode) => mode.supportedModels.length > 0);
+    const promptTemplates =
+      locale === "zh"
+        ? (DEFAULT_CONFIG.promptTemplates ?? []).map((template) => ({
+            ...template,
+            text: ZH_PROMPT_TEMPLATE_LABELS[template.id] ?? template.text,
+          }))
+        : DEFAULT_CONFIG.promptTemplates;
 
     return {
       ...DEFAULT_CONFIG,
       videoModels: filteredVideoModels,
       videoModes: filteredVideoModes,
+      promptTemplates,
     };
-  }, [currentProvider]);
+  }, [currentProvider, locale]);
+
+  const generatorTexts = useMemo(() => {
+    const baseTexts = locale === "zh" ? DEFAULT_TEXTS_ZH : DEFAULT_TEXTS_EN;
+    return {
+      ...baseTexts,
+      credits: baseTexts.credits,
+    };
+  }, [locale]);
+
+  const formatGeneratorCost = useCallback(
+    (amountInCents: number) => {
+      if (!BYOK_MODE) {
+        return `${amountInCents} ${locale === "zh" ? DEFAULT_TEXTS_ZH.credits : DEFAULT_TEXTS_EN.credits}`;
+      }
+      const amountInDollars = amountInCents / 100;
+      return locale === "zh"
+        ? `$${amountInDollars.toFixed(2)} 预估`
+        : `$${amountInDollars.toFixed(2)} est.`;
+    },
+    [locale],
+  );
 
   const generatorDefaults = useMemo(() => {
-    const preferredModel = (generatorConfig.videoModels ?? [])[0]?.id ?? DEFAULT_DEFAULTS.videoModel;
+    const preferredModel =
+      (generatorConfig.videoModels ?? [])[0]?.id ?? DEFAULT_DEFAULTS.videoModel;
     return {
       ...DEFAULT_DEFAULTS,
       videoModel: preferredModel,
@@ -140,7 +229,8 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
   }, [generatorConfig.videoModels]);
 
   const defaultDuration = useMemo(() => {
-    const rawDuration = generatorDefaults.duration ?? generatorConfig.durations?.[0];
+    const rawDuration =
+      generatorDefaults.duration ?? generatorConfig.durations?.[0];
     if (!rawDuration) return 10;
     const parsed = Number.parseInt(String(rawDuration), 10);
     return Number.isNaN(parsed) ? 10 : parsed;
@@ -153,21 +243,24 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
     return Number.isNaN(parsed) ? undefined : parsed;
   };
 
-  const calculateCredits = useCallback((params: {
-    type: "video" | "image";
-    model: string;
-    outputNumber: number;
-    duration?: string;
-    resolution?: string;
-  }) => {
-    if (params.type !== "video") return 0;
-    const parsedDuration = parseDuration(params.duration) ?? defaultDuration;
-    const baseCredits = calculateModelCredits(params.model, {
-      duration: parsedDuration,
-      quality: params.resolution,
-    });
-    return baseCredits * params.outputNumber;
-  }, [defaultDuration, parseDuration]);
+  const calculateCredits = useCallback(
+    (params: {
+      type: "video" | "image";
+      model: string;
+      outputNumber: number;
+      duration?: string;
+      resolution?: string;
+    }) => {
+      if (params.type !== "video") return 0;
+      const parsedDuration = parseDuration(params.duration) ?? defaultDuration;
+      const baseCredits = calculateModelCredits(params.model, {
+        duration: parsedDuration,
+        quality: params.resolution,
+      });
+      return baseCredits * params.outputNumber;
+    },
+    [defaultDuration, parseDuration],
+  );
 
   const resolveImageUrls = async (data: SubmitData) => {
     if (data.images && data.images.length > 0) {
@@ -191,9 +284,15 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
     setIsSubmitting(true);
     try {
       const normalizedMode = normalizeGeneratorMode(data.mode);
-      const hasImages = (data.images && data.images.length > 0) || (data.imageUrls && data.imageUrls.length > 0);
-      const resolvedImageUrls = hasImages ? await resolveImageUrls(data) : undefined;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const hasImages =
+        (data.images && data.images.length > 0) ||
+        (data.imageUrls && data.imageUrls.length > 0);
+      const resolvedImageUrls = hasImages
+        ? await resolveImageUrls(data)
+        : undefined;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
       const falKey = falKeyStorage.get();
       if (falKey) {
         headers["x-fal-key"] = falKey;
@@ -218,7 +317,7 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       if (!response.ok) {
         const error = await response.json();
         throw new Error(
-          error?.error?.message || error?.message || "Failed to generate video"
+          error?.error?.message || error?.message || "Failed to generate video",
         );
       }
 
@@ -237,7 +336,7 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
               aspectRatio: data.aspectRatio,
               quality: data.quality ?? data.resolution,
               imageUrl: resolvedImageUrls?.[0],
-            })
+            }),
           );
         }
       } catch (storageError) {
@@ -259,11 +358,21 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       router.push(`/${locale}/${toolRoute}?id=${result.data.videoUuid}`);
     } catch (error) {
       console.error("Generation error:", error);
-      const message = error instanceof Error ? error.message : "Failed to generate video. Please try again.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate video. Please try again.";
       // Check for common errors and provide helpful messages
       if (message.includes("credits") || message.includes("Credit")) {
-        toast.error("Insufficient credits. Please top up and try again.");
-      } else if (message.includes("database") || message.includes("DATABASE_URL")) {
+        toast.error(
+          BYOK_MODE
+            ? "Insufficient fal.ai balance. Please check your fal.ai account and try again."
+            : "Insufficient credits. Please top up and try again.",
+        );
+      } else if (
+        message.includes("database") ||
+        message.includes("DATABASE_URL")
+      ) {
         toast.error("Service temporarily unavailable. Please try again later.");
       } else {
         toast.error(message || "Failed to generate video. Please try again.");
@@ -273,6 +382,10 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       setPendingSubmitData(null);
     }
   };
+
+  const openLifetimePricing = useCallback(() => {
+    setShowLifetimePricing(true);
+  }, []);
 
   const handleAllowNotify = () => {
     setShowNotifyDialog(false);
@@ -349,12 +462,18 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
           radial-gradient(ellipse 80% 50% at 50% -20%, oklch(from var(--primary) l c h / 0.15), transparent),
           radial-gradient(ellipse 60% 40% at 30% 10%, oklch(from var(--primary) l c h / 0.08), transparent),
           radial-gradient(ellipse 60% 40% at 70% 10%, oklch(from var(--primary) calc(l - 0.1) c calc(h + 40) / 0.08), transparent)
-        `.replace(/\s+/g, ' '),
+        `.replace(/\s+/g, " "),
       }}
     >
       {/* 动画流星效果 */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <Meteors number={15} minDelay={0.5} maxDelay={2} minDuration={3} maxDuration={8} />
+        <Meteors
+          number={15}
+          minDelay={0.5}
+          maxDelay={2}
+          minDuration={3}
+          maxDuration={8}
+        />
       </div>
 
       <div className="container mx-auto px-4 py-12 md:py-16">
@@ -391,11 +510,27 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
             </BlurFade>
 
             {/* 特性标签 */}
-            <BlurFade delay={0.3} inView className="flex flex-wrap justify-center gap-3">
+            <BlurFade
+              delay={0.3}
+              inView
+              className="flex flex-wrap justify-center gap-3"
+            >
               {[
-                { icon: Zap, label: t("features.fast"), color: "text-yellow-500" },
-                { icon: Play, label: t("features.easy"), color: "text-primary" },
-                { icon: Sparkles, label: t("features.ai"), color: "text-primary" },
+                {
+                  icon: Zap,
+                  label: t("features.fast"),
+                  color: "text-yellow-500",
+                },
+                {
+                  icon: Play,
+                  label: t("features.easy"),
+                  color: "text-primary",
+                },
+                {
+                  icon: Sparkles,
+                  label: t("features.ai"),
+                  color: "text-primary",
+                },
               ].map((feature, idx) => {
                 const Icon = feature.icon;
                 return (
@@ -422,7 +557,13 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
             className="w-full max-w-4xl mx-auto relative"
           >
             {/* 装饰性光晕效果 */}
-            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
+            <div
+              className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-10"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))",
+              }}
+            />
 
             {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
             {generatorConfig.videoModels.length > 0 ? (
@@ -431,12 +572,17 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
                 defaults={generatorDefaults}
                 isLoading={isSubmitting}
                 disabled={isSubmitting}
+                isPro={hasLifetimeAccess}
                 calculateCredits={calculateCredits}
+                formatCredits={formatGeneratorCost}
+                texts={generatorTexts}
+                onProFeatureClick={openLifetimePricing}
                 onSubmit={handleSubmit}
               />
             ) : (
               <div className="rounded-3xl border border-border bg-card/80 p-8 text-center text-sm text-muted-foreground">
-                No enabled models are available for the current AI provider configuration.
+                No enabled models are available for the current AI provider
+                configuration.
               </div>
             )}
 
@@ -457,14 +603,20 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
       <AlertDialog open={showNotifyDialog} onOpenChange={setShowNotifyDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{tNotify("enableNotifications")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {tNotify("enableNotifications")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {tNotify("notificationDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleSkipNotify}>{tNotify("maybeLater")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAllowNotify}>{tNotify("allow")}</AlertDialogAction>
+            <AlertDialogCancel onClick={handleSkipNotify}>
+              {tNotify("maybeLater")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleAllowNotify}>
+              {tNotify("allow")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -488,11 +640,17 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
 
             if (!activeUser) {
               try {
-                sessionStorage.setItem(PENDING_PROMPT_KEY, pendingSubmitData.prompt);
+                sessionStorage.setItem(
+                  PENDING_PROMPT_KEY,
+                  pendingSubmitData.prompt,
+                );
                 if (pendingSubmitData.images?.[0]) {
                   const reader = new FileReader();
                   reader.onloadend = () => {
-                    sessionStorage.setItem(PENDING_IMAGE_KEY, reader.result as string);
+                    sessionStorage.setItem(
+                      PENDING_IMAGE_KEY,
+                      reader.result as string,
+                    );
                   };
                   reader.readAsDataURL(pendingSubmitData.images[0]);
                 }
@@ -515,6 +673,12 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
             processSubmission(pendingSubmitData);
           }
         }}
+      />
+      <ByokLifetimePricingModal
+        hasLifetimeEntitlement={hasLifetimeAccess}
+        onOpenChange={setShowLifetimePricing}
+        open={showLifetimePricing}
+        userId={session?.user?.id}
       />
     </section>
   );

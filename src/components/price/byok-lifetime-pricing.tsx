@@ -26,7 +26,9 @@ import { authClient } from "@/lib/auth/client";
 
 interface ByokLifetimePricingProps {
   hasLifetimeEntitlement?: boolean;
+  showHeader?: boolean;
   userId?: string;
+  variant?: "page" | "modal";
 }
 
 function formatPrice(priceUsd: number): string {
@@ -41,10 +43,12 @@ function getLocalePrefix(pathname: string): string {
 function PlanCard({
   hasLifetimeEntitlement,
   plan,
+  variant = "page",
   userId,
 }: {
   hasLifetimeEntitlement: boolean;
   plan: ByokPricingPlan;
+  variant?: "page" | "modal";
   userId?: string;
 }) {
   const t = useTranslations("ByokPricing");
@@ -138,33 +142,47 @@ function PlanCard({
   const planFeatures = t.raw(`plans.${plan.id}.features` as Parameters<typeof t>[0]) as string[];
   const billingLabel =
     plan.billingKind === "lifetime" ? t("billingLifetime") : t("billingFree");
+  const isModal = variant === "modal";
 
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col rounded-lg border bg-background p-6 shadow-sm",
+        "relative flex h-full flex-col rounded-lg border bg-background shadow-sm",
+        isModal ? "p-4" : "p-6",
         plan.highlight && "border-primary shadow-md",
       )}
     >
       {plan.highlight ? (
-        <Badge className="absolute right-5 top-5">{t("earlyBirdBadge")}</Badge>
+        <Badge className="absolute right-4 top-4">{t("earlyBirdBadge")}</Badge>
       ) : null}
 
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold">{planTitle}</h3>
-        <p className="mt-2 min-h-10 text-sm leading-5 text-muted-foreground">
+      <div className={cn(isModal ? "mb-4 pr-16" : "mb-6")}>
+        <h3 className={cn("font-semibold", isModal ? "text-lg" : "text-xl")}>
+          {planTitle}
+        </h3>
+        <p
+          className={cn(
+            "mt-2 text-sm leading-5 text-muted-foreground",
+            !isModal && "min-h-10",
+          )}
+        >
           {planSubtitle}
         </p>
       </div>
 
-      <div className="mb-6 flex items-end gap-2">
-        <span className="text-5xl font-bold tracking-normal">
+      <div className={cn("flex items-end gap-2", isModal ? "mb-4" : "mb-6")}>
+        <span
+          className={cn(
+            "font-bold tracking-normal",
+            isModal ? "text-4xl" : "text-5xl",
+          )}
+        >
           {formatPrice(plan.priceUsd)}
         </span>
         <span className="pb-2 text-sm text-muted-foreground">{billingLabel}</span>
       </div>
 
-      <div className="mb-6 grid gap-3 text-sm">
+      <div className={cn("grid gap-3 text-sm", isModal ? "mb-4" : "mb-6")}>
         <div className="flex items-center gap-2">
           <InfinityIcon className="size-4 text-primary" />
           <span>
@@ -187,7 +205,12 @@ function PlanCard({
         </div>
       </div>
 
-      <ul className="mb-8 grid gap-3 text-sm text-muted-foreground">
+      <ul
+        className={cn(
+          "grid gap-3 text-sm text-muted-foreground",
+          isModal ? "mb-5" : "mb-8",
+        )}
+      >
         {planFeatures.map((feature) => (
           <li className="flex gap-2" key={feature}>
             <Check className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -211,6 +234,8 @@ function PlanCard({
 
 export function ByokLifetimePricing({
   hasLifetimeEntitlement = false,
+  showHeader = true,
+  variant = "page",
   userId,
 }: ByokLifetimePricingProps) {
   const t = useTranslations("ByokPricing");
@@ -219,36 +244,62 @@ export function ByokLifetimePricing({
   const plans = getByokPricingPlans();
   const localePrefix = getLocalePrefix(pathname);
   const activeUserId = userId ?? session?.user?.id;
+  const isModal = variant === "modal";
 
   return (
     <div>
-      <div className="mx-auto mb-12 max-w-3xl text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1 text-sm text-muted-foreground">
-          <KeyRound className="size-4" />
-          {t("badge")}
+      {showHeader ? (
+        <div
+          className={cn(
+            "mx-auto max-w-3xl text-center",
+            isModal ? "mb-6" : "mb-12",
+          )}
+        >
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1 text-sm text-muted-foreground">
+            <KeyRound className="size-4" />
+            {t("badge")}
+          </div>
+          <h2
+            className={cn(
+              "font-bold tracking-normal",
+              isModal ? "text-2xl md:text-3xl" : "text-3xl md:text-5xl",
+            )}
+          >
+            {t("title")}
+          </h2>
+          <p
+            className={cn(
+              "mx-auto mt-3 max-w-2xl text-muted-foreground",
+              isModal ? "text-sm leading-6" : "text-lg",
+            )}
+          >
+            {t("subtitle")}
+          </p>
         </div>
-        <h2 className="text-3xl font-bold md:text-5xl">{t("title")}</h2>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-          {t("subtitle")}
-        </p>
-      </div>
+      ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className={cn("grid gap-4", isModal ? "md:grid-cols-3" : "lg:grid-cols-3")}>
         {plans.map((plan) => (
           <PlanCard
             hasLifetimeEntitlement={hasLifetimeEntitlement}
             key={plan.id}
             plan={plan}
+            variant={variant}
             userId={activeUserId}
           />
         ))}
       </div>
 
-      <div className="mx-auto mt-8 max-w-3xl rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+      <div
+        className={cn(
+          "mx-auto max-w-3xl rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground",
+          isModal ? "mt-5" : "mt-8",
+        )}
+      >
         {t("bottomNote")}
       </div>
 
-      <div className="mt-6 text-center text-sm text-muted-foreground">
+      <div className={cn("text-center text-sm text-muted-foreground", isModal ? "mt-4" : "mt-6")}>
         {t.rich("manageKey", {
           link: (chunks) => (
             <Link

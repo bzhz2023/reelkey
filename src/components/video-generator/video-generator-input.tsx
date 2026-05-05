@@ -113,6 +113,7 @@ export function VideoGeneratorInput({
   isPro = false,
   estimatedCredits,
   calculateCredits,
+  formatCredits,
   disabled = false,
   isLoading = false,
   loadingText,
@@ -141,6 +142,22 @@ export function VideoGeneratorInput({
   const config = useMemo(() => mergeConfig(userConfig), [userConfig]);
   const defaults = useMemo(() => mergeDefaults(userDefaults), [userDefaults]);
   const texts = useMemo(() => getTexts(undefined, userTexts), [userTexts]);
+  const formatCreditAmount = useCallback(
+    (amount: number) => formatCredits?.(amount) ?? `${amount} ${texts.credits}`,
+    [formatCredits, texts.credits]
+  );
+  const formatModelCreditAmount = useCallback(
+    (model: VideoModel | ImageModel) => {
+      if (model.creditDisplay) {
+        return `${model.creditDisplay} ${texts.credits?.toLowerCase()}`;
+      }
+      if (formatCredits) {
+        return `${formatCredits(model.creditCost)}+`;
+      }
+      return `${model.creditCost}+ ${texts.credits?.toLowerCase()}`;
+    },
+    [formatCredits, texts.credits]
+  );
 
   // Extract config values
   const videoModels = config.videoModels ?? [];
@@ -739,6 +756,10 @@ export function VideoGeneratorInput({
   };
 
   const handleModelChangeInternal = (model: VideoModel | ImageModel) => {
+    if (model.isPro && !isPro) {
+      onProFeatureClick?.(`model_${model.id}`);
+      return;
+    }
     if (generationType === "video") {
       setSelectedVideoModel(model as VideoModel);
     } else {
@@ -1095,12 +1116,20 @@ export function VideoGeneratorInput({
                         key={model.id}
                         data-model-id={model.id}
                         onClick={() => handleModelChangeInternal(model)}
-                        className="text-foreground hover:bg-accent flex flex-col items-start py-3"
+                        className={cn(
+                          "text-foreground hover:bg-accent flex flex-col items-start py-3",
+                          model.isPro && !isPro && "opacity-70"
+                        )}
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-2">
                             {renderModelIcon(model, "md")}
                             <span className="font-medium">{model.name}</span>
+                            {model.isPro && !isPro && (
+                              <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400">
+                                PRO
+                              </span>
+                            )}
                           </div>
                           {currentModel.id === model.id && (
                             <Check className="w-4 h-4 text-green-500" />
@@ -1119,7 +1148,7 @@ export function VideoGeneratorInput({
                               <span>•</span>
                             </>
                           )}
-                          <span>{model.creditDisplay ?? `${model.creditCost}+`} {texts.credits?.toLowerCase()}</span>
+                          <span>{formatModelCreditAmount(model)}</span>
                         </div>
                       </DropdownMenuItem>
                     ))}
@@ -1377,7 +1406,7 @@ export function VideoGeneratorInput({
             {/* Credits & Submit */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
-                {calculatedCredits} {texts.credits}
+                {formatCreditAmount(calculatedCredits)}
               </span>
               <button
                 onClick={handleSubmit}

@@ -326,6 +326,18 @@
   },
   "Sidebar": {
     "title": "导航菜单",
+    "groups": {
+      "video": "视频"
+    },
+    "items": {
+      "txt2vid": "文字生成视频",
+      "img2vid": "图片生成视频",
+      "ref2vid": "参考视频",
+      "creations": "我的创作",
+      "credits": "积分",
+      "creditsByok": "API 使用",
+      "settings": "账户"
+    },
     "upgradeTitle": "升级专业版",
     "upgradeSubtitle": "解锁更快生成与更多额度"
   },
@@ -456,6 +468,9 @@
   "dashboard": {
     "myCreations": {
       "title": "我的创作",
+      "count": "{count} 个创作",
+      "filtering": "筛选中...",
+      "loadingMore": "加载中...",
       "filter": {
         "allStatus": "全部状态",
         "all": "全部",
@@ -478,6 +493,7 @@
       "actions": {
         "play": "播放",
         "download": "下载",
+        "close": "关闭",
         "delete": "删除",
         "retry": "重试",
         "viewDetails": "查看详情",
@@ -606,6 +622,8 @@
     "badge": "BYOK 定价",
     "title": "ReelKey 一次付费，fal.ai 直接计费。",
     "subtitle": "ReelKey 提供工作台、模型接入与存储。视频生成通过您自己的 fal.ai API Key 完成，用量直接计入您的 fal.ai 账户。",
+    "modalTitle": "解锁全部视频模型",
+    "modalDescription": "一次买断 ReelKey 工作台、模型接入和云端存储；视频生成费用仍由您的 fal.ai API Key 直接结算。",
     "earlyBirdBadge": "早鸟价",
     "billingLifetime": "一次性",
     "billingFree": "永久免费",

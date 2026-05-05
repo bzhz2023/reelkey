@@ -57,6 +57,26 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
   // 判断是否为免费用户（可根据实际业务调整）
   const isFreeUser = useMemo(() => !isByokMode, [isByokMode]);
 
+  const getGroupTitle = (groupId: string, fallback?: string) => {
+    const key = `groups.${groupId}` as Parameters<typeof t>[0];
+    return t.has(key) ? t(key) : fallback;
+  };
+
+  const getItemTitle = (item: any) => {
+    const key = `items.${item.id}` as Parameters<typeof t>[0];
+    const byokKey = `items.${item.id}Byok` as Parameters<typeof t>[0];
+
+    if (isByokMode && t.has(byokKey)) {
+      return t(byokKey);
+    }
+
+    if (t.has(key)) {
+      return t(key);
+    }
+
+    return isByokMode && item.byokTitle ? item.byokTitle : item.title;
+  };
+
   // 处理升级按钮点击
   const handleUpgradeClick = () => {
     console.log("Upgrade button clicked");
@@ -71,7 +91,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
   // 渲染导航项
   const renderNavItem = (item: any, isActive: boolean) => {
     const Icon = iconMap[item.icon as keyof typeof iconMap];
-    const title = isByokMode && item.byokTitle ? item.byokTitle : item.title;
+    const title = getItemTitle(item);
 
     return (
       <Link
@@ -99,7 +119,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
           <div key={group.id} className="space-y-1">
             {group.title && (
               <div className="px-2 mb-2 text-xs font-medium text-muted-foreground">
-                {group.title}
+                {getGroupTitle(group.id, group.title)}
               </div>
             )}
             <div className="space-y-0.5">
@@ -151,7 +171,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
           <div key={group.id} className="space-y-1">
             {group.title && (
               <div className="px-2 mb-2 text-xs font-medium text-muted-foreground">
-                {group.title}
+                {getGroupTitle(group.id, group.title)}
               </div>
             )}
             <div className="space-y-0.5">
@@ -173,11 +193,7 @@ export function Sidebar({ lang = "en", mobileOpen, onMobileClose }: SidebarProps
                         const Icon = iconMap[item.icon as keyof typeof iconMap];
                         return Icon && <Icon className="h-4 w-4 shrink-0" />;
                       })()}
-                      <span className="truncate">
-                        {isByokMode && item.byokTitle
-                          ? item.byokTitle
-                          : item.title}
-                      </span>
+                      <span className="truncate">{getItemTitle(item)}</span>
                     </Link>
                   </SheetClose>
                 );
