@@ -14,7 +14,9 @@ import { CreationGrid } from "@/components/creation/creation-grid";
 import { CreationFilter } from "@/components/creation/creation-filter";
 import { CreationEmpty } from "@/components/creation/creation-empty";
 import { CreationSkeleton } from "@/components/creation/creation-skeleton";
+import { authClient } from "@/lib/auth/client";
 import type { Video, VideoFilterOptions } from "@/lib/types/dashboard";
+import { videoHistoryStorage } from "@/lib/video-history-storage";
 
 const VideoDetailDialog = dynamic(
   () =>
@@ -60,6 +62,8 @@ function filterVideosLocally(videos: Video[], filter: VideoFilterOptions) {
 
 export function MyCreationsPage({ locale }: MyCreationsPageProps) {
   const t = useTranslations("dashboard.myCreations");
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
 
   // Filter state
   const [filter, setFilter] = useState<VideoFilterOptions>({
@@ -70,6 +74,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
 
   // Selected video for detail dialog
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [localHistoryVideos, setLocalHistoryVideos] = useState<Video[]>([]);
 
   // Fetch videos
   const {
@@ -86,6 +91,38 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
 
   // Auto-refresh processing videos
   useRefreshProcessingVideos(videos, refetch);
+
+  useEffect(() => {
+    if (!userId) {
+      setLocalHistoryVideos([]);
+      return;
+    }
+
+    const localVideos = videoHistoryStorage
+      .getHistory(userId)
+      .map((item): Video => ({
+        uuid: item.uuid,
+        userId: item.userId,
+        prompt: item.prompt,
+        model: item.model,
+        provider: "",
+        status: item.status,
+        videoUrl: item.videoUrl ?? null,
+        thumbnailUrl: item.thumbnailUrl ?? null,
+        duration: item.duration ?? 0,
+        aspectRatio: item.aspectRatio ?? "",
+        parameters: {},
+        creditsUsed: item.creditsUsed,
+        errorMessage: null,
+        createdAt: new Date(item.createdAt),
+        updatedAt: new Date(item.updatedAt),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    setLocalHistoryVideos(localVideos);
+  }, [userId]);
 
   // Infinite scroll observer
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -155,7 +192,12 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
     () => filterVideosLocally(localFilterSource, filter),
     [localFilterSource, filter],
   );
-  const visibleVideos = isFilterChanging ? locallyFilteredVideos : videos;
+  const isShowingLocalFallback = isLoading && localHistoryVideos.length > 0;
+  const visibleVideos = isShowingLocalFallback
+    ? filterVideosLocally(localHistoryVideos, filter)
+    : isFilterChanging
+      ? locallyFilteredVideos
+      : videos;
 
   return (
     <div className="space-y-6">
@@ -183,7 +225,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
       </div>
 
       {/* Content */}
-      {isLoading ? (
+      {isLoading && !isShowingLocalFallback ? (
         <CreationSkeleton />
       ) : visibleVideos.length === 0 ? (
         <CreationEmpty />
@@ -220,7 +262,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
           </CreationGrid>
 
           {/* Infinite scroll sentinel */}
-          {hasMore && (
+          {hasMore && !isShowingLocalFallback && (
             <div
               ref={observerTarget}
               className="py-4 text-center text-sm text-muted-foreground"

@@ -4,21 +4,18 @@ import { HeaderSimple } from "@/components/layout/header-simple";
 import { Sidebar } from "@/components/layout/sidebar";
 import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
 import { authClient } from "@/lib/auth/client";
-import type { User } from "@/lib/auth/client";
 
 interface DashboardLayoutContentProps {
   children?: React.ReactNode;
   lang: string;
-  initialUser?: Pick<User, "name" | "image" | "email"> | null;
 }
 
 export function DashboardLayoutContent({
   children,
   lang,
-  initialUser = null,
 }: DashboardLayoutContentProps) {
   const { data: session } = authClient.useSession();
-  const user = session?.user ?? initialUser;
+  const user = session?.user ?? null;
 
   return (
     <div className="min-h-screen bg-background">
