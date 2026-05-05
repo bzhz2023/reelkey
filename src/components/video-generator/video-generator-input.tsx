@@ -291,6 +291,11 @@ export function VideoGeneratorInput({
 
   const availableModels = generationType === "video" ? availableVideoModels : availableImageModels;
   const currentModel = generationType === "video" ? selectedVideoModel : selectedImageModel;
+  const canUseModel = useCallback(
+    (model: VideoModel | ImageModel | null | undefined) =>
+      Boolean(model && (isPro || !model.isPro)),
+    [isPro],
+  );
 
   // Get effective options based on current mode AND model (model takes highest precedence)
   // Priority: Model > Mode > Global Config
@@ -398,23 +403,27 @@ export function VideoGeneratorInput({
   useEffect(() => {
     if (selectedVideoModel && availableVideoModels.length > 0) {
       const isCurrentModelAvailable = availableVideoModels.some((m) => m.id === selectedVideoModel.id);
-      if (!isCurrentModelAvailable) {
-        setSelectedVideoModel(availableVideoModels[0] ?? null);
-        onModelChange?.(availableVideoModels[0]?.id ?? "", "video");
+      if (!isCurrentModelAvailable || !canUseModel(selectedVideoModel)) {
+        const nextModel =
+          availableVideoModels.find((model) => canUseModel(model)) ?? null;
+        setSelectedVideoModel(nextModel);
+        onModelChange?.(nextModel?.id ?? "", "video");
       }
     }
-  }, [availableVideoModels, selectedVideoModel]);
+  }, [availableVideoModels, selectedVideoModel, canUseModel, onModelChange]);
 
   // Auto-switch image model when mode changes and current model is not supported
   useEffect(() => {
     if (selectedImageModel && availableImageModels.length > 0) {
       const isCurrentModelAvailable = availableImageModels.some((m) => m.id === selectedImageModel.id);
-      if (!isCurrentModelAvailable) {
-        setSelectedImageModel(availableImageModels[0] ?? null);
-        onModelChange?.(availableImageModels[0]?.id ?? "", "image");
+      if (!isCurrentModelAvailable || !canUseModel(selectedImageModel)) {
+        const nextModel =
+          availableImageModels.find((model) => canUseModel(model)) ?? null;
+        setSelectedImageModel(nextModel);
+        onModelChange?.(nextModel?.id ?? "", "image");
       }
     }
-  }, [availableImageModels, selectedImageModel]);
+  }, [availableImageModels, selectedImageModel, canUseModel, onModelChange]);
 
   // Auto-switch duration when mode changes and current duration is not available
   useEffect(() => {
@@ -745,6 +754,20 @@ export function VideoGeneratorInput({
   };
 
   const handleModeChange = (mode: GeneratorMode) => {
+    if (generationType === "video" && !isPro) {
+      const supportedModels =
+        mode.supportedModels && mode.supportedModels.length > 0
+          ? videoModels.filter((model) => mode.supportedModels!.includes(model.id))
+          : videoModels;
+      const hasFreeSupportedModel = supportedModels.some((model) =>
+        canUseModel(model),
+      );
+      if (!hasFreeSupportedModel) {
+        onProFeatureClick?.(`mode_${mode.id}`);
+        return;
+      }
+    }
+
     if (generationType === "video") {
       setSelectedVideoMode(mode);
     } else {

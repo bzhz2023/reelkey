@@ -197,10 +197,23 @@ export function GeneratorPanel({
 
   const currentModel = useMemo(
     () =>
-      availableModels.find((m) => m.id === selectedModel) || availableModels[0],
-    [selectedModel, availableModels],
+      availableModels.find(
+        (m) =>
+          m.id === selectedModel &&
+          (isPro || m.accessTier !== "paid"),
+      ) ||
+      availableModels.find((m) => isPro || m.accessTier !== "paid") ||
+      availableModels[0],
+    [selectedModel, availableModels, isPro],
   );
   const hasAvailableModels = availableModels.length > 0;
+
+  useEffect(() => {
+    if (!currentModel) return;
+    if (selectedModel !== currentModel.id) {
+      setSelectedModel(currentModel.id);
+    }
+  }, [currentModel, selectedModel]);
 
   const modelMetadata = useMemo(() => {
     return new Map(DEFAULT_VIDEO_MODELS.map((model) => [model.id, model]));
