@@ -307,6 +307,9 @@ export function HeroSection({
     if (normalized === "reference-to-video") {
       return "reference-to-video";
     }
+    if (normalized === "frames-to-video") {
+      return "frames-to-video";
+    }
     return "text-to-video";
   };
 

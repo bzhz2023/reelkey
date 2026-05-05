@@ -33,6 +33,12 @@ import { GeneratorPanel, type GeneratorData } from "@/components/tool/generator-
 import { uploadImage } from "@/lib/video-api";
 import { toast } from "sonner";
 
+type ToolGenerationType =
+  | "image-to-video"
+  | "text-to-video"
+  | "frames-to-video"
+  | "reference-to-video";
+
 const ToolLandingPage = dynamic(
   () => import("@/components/tool/tool-landing-page").then((mod) => mod.ToolLandingPage),
   {
@@ -614,10 +620,24 @@ export function ToolPageLayout({
 
     try {
       const selectedMode = config.generator.mode || toolRoute;
-      const imageUrl = data.imageFile
-        ? await uploadImage(data.imageFile)
-        : data.imageUrl;
-      const imageUrls = imageUrl ? [imageUrl] : undefined;
+      const imageFiles = data.imageFiles?.length
+        ? data.imageFiles
+        : data.imageFile
+          ? [data.imageFile]
+          : [];
+      const uploadedImageUrls =
+        imageFiles.length > 0
+          ? await Promise.all(imageFiles.map((file) => uploadImage(file)))
+          : [];
+      const imageUrls =
+        uploadedImageUrls.length > 0
+          ? uploadedImageUrls
+          : data.imageUrls?.length
+            ? data.imageUrls
+            : data.imageUrl
+              ? [data.imageUrl]
+              : undefined;
+      const imageUrl = imageUrls?.[0];
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       headers["x-fal-key"] = falKey;
       const response = await fetch("/api/v1/video/generate", {
@@ -791,7 +811,7 @@ export function ToolPageLayout({
           <div className="flex flex-col h-full min-h-0">
             <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
               <GeneratorPanel
-                toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                toolType={toolRoute as ToolGenerationType}
                 isLoading
                 availableModelIds={config.generator.models.available}
                 defaultModelId={config.generator.models.default}
@@ -854,7 +874,7 @@ export function ToolPageLayout({
                 {/* Generator Panel Side */}
                 <div className={`${activeTab === "generator" ? "block" : "hidden"} lg:block w-full lg:w-[380px] shrink-0`}>
                   <GeneratorPanel
-                    toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                    toolType={toolRoute as ToolGenerationType}
                     isLoading={isSubmitting}
                     onSubmit={handleSubmit}
                     availableModelIds={config.generator.models.available}
@@ -947,7 +967,7 @@ export function ToolPageLayout({
           >
             <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
               <GeneratorPanel
-                toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                toolType={toolRoute as ToolGenerationType}
                 isLoading={isSubmitting}
                 onSubmit={handleSubmit}
                 availableModelIds={config.generator.models.available}

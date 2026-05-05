@@ -232,6 +232,7 @@
     "madeWith": "由 ReelKey 团队用 <heart></heart> 制作",
     "imageToVideo": "图片生成视频",
     "textToVideo": "文字生成视频",
+    "framesToVideo": "首尾帧生成视频",
     "referenceToVideo": "参考图生成视频",
     "pricing": "定价",
     "privacy": "隐私政策",
@@ -332,6 +333,7 @@
     "items": {
       "txt2vid": "文字生成视频",
       "img2vid": "图片生成视频",
+      "frames2vid": "首尾帧生成视频",
       "ref2vid": "参考视频",
       "creations": "我的创作",
       "credits": "积分",

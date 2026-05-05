@@ -232,6 +232,7 @@
     "madeWith": "Made with <heart></heart> by ReelKey Team",
     "imageToVideo": "Image to Video",
     "textToVideo": "Text to Video",
+    "framesToVideo": "First/Last Frame to Video",
     "referenceToVideo": "Reference to Video",
     "pricing": "Pricing",
     "privacy": "Privacy Policy",
@@ -332,6 +333,7 @@
     "items": {
       "txt2vid": "Text to Video",
       "img2vid": "Image to Video",
+      "frames2vid": "First/Last Frame to Video",
       "ref2vid": "Reference Video",
       "creations": "My Creations",
       "credits": "Credits",

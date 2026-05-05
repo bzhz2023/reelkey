@@ -89,6 +89,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
       ...accountPrefetchHrefs,
       `/${locale}/text-to-video`,
       `/${locale}/image-to-video`,
+      `/${locale}/frames-to-video`,
       `/${locale}/reference-to-video`,
       `/${locale}/pricing`,
       `/${locale}/login`,

@@ -52,6 +52,7 @@ const PANEL_TEXT = {
     title: {
       "image-to-video": "IMAGE TO VIDEO",
       "text-to-video": "TEXT TO VIDEO",
+      "frames-to-video": "FIRST/LAST FRAME TO VIDEO",
       "reference-to-video": "REFERENCE TO VIDEO",
       fallback: "AI GENERATOR",
     },
@@ -64,6 +65,8 @@ const PANEL_TEXT = {
       "Describe the video you want to create, e.g., A cat playing in a sunny garden with natural lighting and fresh atmosphere...",
     referenceImage: "REFERENCE IMAGE",
     imageSource: "IMAGE SOURCE",
+    firstFrame: "FIRST FRAME",
+    lastFrame: "LAST FRAME",
     uploadImage: "Upload image",
     uploadHint: "JPG, PNG, WEBP • Max 10MB",
     aspectRatio: "ASPECT RATIO",
@@ -81,6 +84,7 @@ const PANEL_TEXT = {
     title: {
       "image-to-video": "图片生成视频",
       "text-to-video": "文字生成视频",
+      "frames-to-video": "首尾帧生成视频",
       "reference-to-video": "参考视频",
       fallback: "AI 生成器",
     },
@@ -92,6 +96,8 @@ const PANEL_TEXT = {
       "描述你想生成的视频，例如：一只猫在阳光明媚的花园里玩耍，自然光照，氛围清新...",
     referenceImage: "参考图片",
     imageSource: "图片来源",
+    firstFrame: "起始帧",
+    lastFrame: "结束帧",
     uploadImage: "上传图片",
     uploadHint: "JPG、PNG、WEBP • 最大 10MB",
     aspectRatio: "画面比例",
@@ -121,8 +127,14 @@ function SectionLabel({ children, required, className }: SectionLabelProps) {
   );
 }
 
+type ToolGenerationType =
+  | "image-to-video"
+  | "text-to-video"
+  | "frames-to-video"
+  | "reference-to-video";
+
 interface GeneratorPanelProps {
-  toolType: "image-to-video" | "text-to-video" | "reference-to-video";
+  toolType: ToolGenerationType;
   isLoading?: boolean;
   onSubmit?: (data: GeneratorData) => void;
   availableModelIds?: string[];
@@ -147,7 +159,9 @@ export interface GeneratorData {
   outputNumber?: number;
   generateAudio?: boolean;
   imageFile?: File;
+  imageFiles?: File[];
   imageUrl?: string;
+  imageUrls?: string[];
   estimatedCredits: number;
 }
 
@@ -180,6 +194,8 @@ export function GeneratorPanel({
   const [imageUrl, setImageUrl] = useState<string | null>(
     initialImageUrl || null,
   );
+  const [endImageFile, setEndImageFile] = useState<File | null>(null);
+  const [endImageUrl, setEndImageUrl] = useState<string | null>(null);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
 
   // Filter models based on tool type
@@ -189,7 +205,7 @@ export function GeneratorPanel({
     let filtered = allowList
       ? models.filter((m) => availableModelIds!.includes(m.id))
       : models;
-    if (toolType === "image-to-video" || toolType === "reference-to-video") {
+    if (toolType !== "text-to-video") {
       filtered = filtered.filter((m) => m.supportImageToVideo);
     }
     return filtered;
@@ -350,8 +366,17 @@ export function GeneratorPanel({
     const hasPrompt = prompt.trim().length > 0;
     const requiresImage = toolType !== "text-to-video";
     const hasImage = Boolean(imageFile || imageUrl);
+    const hasEndFrame = Boolean(endImageFile || endImageUrl);
     if (!hasPrompt || isLoading) return;
     if (requiresImage && !hasImage) return;
+    if (toolType === "frames-to-video" && !hasEndFrame) return;
+
+    const imageFiles = [imageFile, endImageFile].filter(
+      (file): file is File => Boolean(file),
+    );
+    const imageUrls = [imageUrl, endImageUrl].filter(
+      (url): url is string => Boolean(url),
+    );
 
     const data: GeneratorData = {
       toolType,
@@ -363,6 +388,8 @@ export function GeneratorPanel({
       outputNumber: 1,
       imageFile: imageFile || undefined,
       imageUrl: imageUrl || undefined,
+      imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       estimatedCredits,
     };
 
@@ -375,6 +402,8 @@ export function GeneratorPanel({
     quality,
     imageFile,
     imageUrl,
+    endImageFile,
+    endImageUrl,
     estimatedCredits,
     isLoading,
     toolType,
@@ -384,29 +413,109 @@ export function GeneratorPanel({
     onProFeatureClick,
   ]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    slot: "start" | "end" = "start",
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (slot === "end") {
+        setEndImageFile(file);
+        setEndImageUrl(null);
+        return;
+      }
+
       setImageFile(file);
       setImageUrl(null);
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = (slot: "start" | "end" = "start") => {
+    if (slot === "end") {
+      setEndImageFile(null);
+      setEndImageUrl(null);
+      return;
+    }
+
     setImageFile(null);
     setImageUrl(null);
   };
 
+  const hasStartFrame = Boolean(imageFile || imageUrl);
+  const hasEndFrame = Boolean(endImageFile || endImageUrl);
   const canSubmit =
     hasAvailableModels &&
     Boolean(currentModel) &&
     prompt.trim().length > 0 &&
-    !(toolType !== "text-to-video" && !imageFile && !imageUrl) &&
+    !(toolType !== "text-to-video" && !hasStartFrame) &&
+    !(toolType === "frames-to-video" && !hasEndFrame) &&
     !isLoading;
 
   // Get page title
   const getPageTitle = () => {
     return text.title[toolType] ?? text.title.fallback;
+  };
+
+  const renderImageUpload = ({
+    label,
+    required,
+    slot = "start",
+  }: {
+    label: string;
+    required?: boolean;
+    slot?: "start" | "end";
+  }) => {
+    const selectedFile = slot === "end" ? endImageFile : imageFile;
+    const selectedUrl = slot === "end" ? endImageUrl : imageUrl;
+
+    return (
+      <div>
+        <SectionLabel required={required}>{label}</SectionLabel>
+        {selectedFile || selectedUrl ? (
+          <div className="relative group h-32 rounded-lg overflow-hidden border-2 border-zinc-700">
+            {selectedUrl ? (
+              <img
+                src={selectedUrl}
+                alt={label}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center p-3">
+                <span className="text-xs font-medium truncate bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
+                  {selectedFile?.name}
+                </span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => handleRemoveImage(slot)}
+              className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/80 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3.5 h-3.5 text-foreground" />
+            </button>
+          </div>
+        ) : (
+          <label className="flex flex-col items-center justify-center w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors group">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-colors">
+              <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">
+              {text.uploadImage}
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              {text.uploadHint}
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => handleImageChange(event, slot)}
+              className="hidden"
+              disabled={isLoading}
+            />
+          </label>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -535,61 +644,31 @@ export function GeneratorPanel({
                 />
               </div>
 
-              {/* Image Upload (for image-to-video) */}
-              {(toolType === "image-to-video" ||
-                toolType === "reference-to-video") &&
+              {toolType === "frames-to-video" &&
                 currentModel?.supportImageToVideo && (
-                  <div>
-                    <SectionLabel required={toolType === "image-to-video"}>
-                      {toolType === "reference-to-video"
-                        ? text.referenceImage
-                        : text.imageSource}
-                    </SectionLabel>
-                    {imageFile || imageUrl ? (
-                      <div className="relative group h-32 rounded-lg overflow-hidden border-2 border-zinc-700">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt="Selected"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center p-3">
-                            <span className="text-xs font-medium truncate bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                              {imageFile?.name}
-                            </span>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={handleRemoveImage}
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/80 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3.5 h-3.5 text-foreground" />
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors group">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-colors">
-                          <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-3">
-                          {text.uploadImage}
-                        </p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
-                          {text.uploadHint}
-                        </p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                          disabled={isLoading}
-                        />
-                      </label>
-                    )}
+                  <div className="space-y-4">
+                    {renderImageUpload({
+                      label: text.firstFrame,
+                      required: true,
+                    })}
+                    {renderImageUpload({
+                      label: text.lastFrame,
+                      required: true,
+                      slot: "end",
+                    })}
                   </div>
                 )}
+
+              {(toolType === "image-to-video" ||
+                toolType === "reference-to-video") &&
+                currentModel?.supportImageToVideo &&
+                renderImageUpload({
+                  label:
+                    toolType === "reference-to-video"
+                      ? text.referenceImage
+                      : text.imageSource,
+                  required: toolType === "image-to-video",
+                })}
 
               {/* Settings Group */}
               <div className="space-y-5">

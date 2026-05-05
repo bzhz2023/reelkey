@@ -17,6 +17,7 @@ export function LandingFooter() {
       links: [
         { title: t('imageToVideo'), href: "/image-to-video" },
         { title: t('textToVideo'), href: "/text-to-video" },
+        { title: t('framesToVideo'), href: "/frames-to-video" },
         { title: t('referenceToVideo'), href: "/reference-to-video" },
         { title: t('pricing'), href: "/pricing" },
       ],
