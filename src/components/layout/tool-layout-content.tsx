@@ -32,7 +32,7 @@ export function ToolLayoutContent({
         ?.items.map((item) => `/${lang}${item.href}`) ?? [];
 
     if (process.env.NODE_ENV === "development") {
-      return toolHrefs;
+      return [...toolHrefs, `/${lang}`];
     }
 
     const sidebarHrefs = sidebarNavigation.flatMap((group) =>

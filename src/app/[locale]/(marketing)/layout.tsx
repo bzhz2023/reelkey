@@ -3,15 +3,12 @@ import { Suspense } from "react";
 import { ModalProvider } from "@/components/modal-provider";
 import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
-import { getCurrentUser } from "@/lib/auth";
 
 export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-
   return (
     <div className="flex min-h-screen flex-col">
       {/* 全局渐变背景 - 所有营销页面共享 */}
@@ -34,7 +31,7 @@ export default async function MarketingLayout({
       </div>
 
       <Suspense fallback={<div className="h-16 border-b" />}>
-        <LandingHeader user={user} />
+        <LandingHeader />
       </Suspense>
 
       <ModalProvider>
