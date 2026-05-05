@@ -77,6 +77,9 @@ const ByokLifetimePricingModal = dynamic(
 
 const TOOL_PREFILL_KEY = "reel_key_tool_prefill";
 const HISTORY_SYNC_CACHE_MS = 60 * 1000;
+const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
+const GENERATION_NOTIFY_TOAST_ID = "generation-notification-permission";
+let generationNotificationPromptShown = false;
 
 const historySyncState = {
   userId: null as string | null,
@@ -147,7 +150,6 @@ export function ToolPageLayout({
   const { showDialog, setShowDialog } = useFalKeyPrompt();
   const [showLifetimePricing, setShowLifetimePricing] = useState(false);
   const videoIdFromQuery = searchParams.get("id");
-  const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
   const tNotify = useTranslations("Notifications");
   const tTool = useTranslations("ToolPage");
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
@@ -640,9 +642,15 @@ export function ToolPageLayout({
     try {
       if (typeof window !== "undefined" && "Notification" in window) {
         const asked = localStorage.getItem(NOTIFICATION_ASKED_KEY);
-        if (!asked && Notification.permission === "default") {
+        if (
+          !asked &&
+          !generationNotificationPromptShown &&
+          Notification.permission === "default"
+        ) {
+          generationNotificationPromptShown = true;
           localStorage.setItem(NOTIFICATION_ASKED_KEY, "1");
           toast.info(tNotify("generationWillNotify"), {
+            id: GENERATION_NOTIFY_TOAST_ID,
             description: tNotify("notificationDescription"),
             duration: Number.POSITIVE_INFINITY, // 保持显示直到用户操作
             closeButton: true,  // 显示关闭按钮
