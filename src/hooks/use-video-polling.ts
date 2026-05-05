@@ -10,6 +10,10 @@ interface UseVideoPollingOptions {
   onFailed?: (args: { videoId: string; error?: string }) => void;
 }
 
+function getPollingErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function useVideoPolling(options: UseVideoPollingOptions = {}) {
   const {
     pollInterval = 15000,
@@ -20,11 +24,11 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
   } = options;
 
   const pollingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
-    new Map()
+    new Map(),
   );
-  const pollingState = useRef<Map<string, { consecutiveErrors: number; nextDelay: number }>>(
-    new Map()
-  );
+  const pollingState = useRef<
+    Map<string, { consecutiveErrors: number; nextDelay: number }>
+  >(new Map());
 
   const fetchVideoDetail = useCallback(async (videoId: string) => {
     const detailResponse = await fetch(`/api/v1/video/${videoId}`);
@@ -77,13 +81,20 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
           const status = result?.data?.status;
           const error = result?.data?.error;
 
+          if (error === "PROVIDER_STATUS_TIMEOUT") {
+            throw new Error("Provider status timed out");
+          }
+
           if (status === "COMPLETED") {
             try {
               const video = await fetchVideoDetail(videoId);
               stopPolling(videoId);
               onCompleted?.(video);
             } catch (detailError) {
-              console.error("Failed to fetch completed video:", detailError);
+              console.warn(
+                "Failed to fetch completed video:",
+                getPollingErrorMessage(detailError),
+              );
               stopPolling(videoId);
               onFailed?.({ videoId, error: "Failed to fetch video detail" });
             }
@@ -98,17 +109,19 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
             }
           }
         } catch (pollError) {
-          console.error("Polling error:", pollError);
+          console.warn("Polling retry:", getPollingErrorMessage(pollError));
           const state = pollingState.current.get(videoId);
           if (state) {
             state.consecutiveErrors += 1;
             const backoff = Math.min(
               maxBackoffMs,
-              pollInterval * 2 ** state.consecutiveErrors
+              pollInterval * 2 ** state.consecutiveErrors,
             );
             state.nextDelay = backoff;
             if (state.consecutiveErrors >= maxConsecutiveErrors) {
-              console.warn(`Polling stopped for ${videoId} after repeated errors`);
+              console.warn(
+                `Polling stopped for ${videoId} after repeated errors`,
+              );
               stopPolling(videoId);
               return;
             }
@@ -131,7 +144,7 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
       onFailed,
       fetchVideoDetail,
       stopPolling,
-    ]
+    ],
   );
 
   const stopAllPolling = useCallback(() => {

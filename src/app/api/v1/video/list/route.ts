@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
       limit: Number.parseInt(searchParams.get("limit") || "20"),
       cursor: searchParams.get("cursor") || undefined,
       status: searchParams.get("status") || undefined,
+      model: searchParams.get("model") || undefined,
+      sortBy: searchParams.get("sortBy") || undefined,
     });
     timer.mark("listVideos");
     timer.done();

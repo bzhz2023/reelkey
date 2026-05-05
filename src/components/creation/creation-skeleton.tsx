@@ -12,18 +12,24 @@ interface CreationSkeletonProps {
   className?: string;
 }
 
-export function CreationSkeleton({ count = 8, className }: CreationSkeletonProps) {
+export function CreationSkeleton({
+  count = 8,
+  className,
+}: CreationSkeletonProps) {
   return (
     <div
       className={cn(
         "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-        className
+        className,
       )}
     >
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-lg border border-border bg-card overflow-hidden">
+        <div
+          key={i}
+          className="rounded-lg border border-border bg-card overflow-hidden"
+        >
           {/* Thumbnail skeleton */}
-          <Skeleton className="aspect-[9/16] w-full" />
+          <Skeleton className="aspect-video w-full" />
 
           {/* Info skeleton */}
           <div className="p-3 space-y-2">

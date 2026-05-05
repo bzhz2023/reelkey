@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth/client";
+import type { User } from "@/lib/auth/client";
 import { useCredits } from "@/stores/credits-store";
 import { useVideoPolling } from "@/hooks/use-video-polling";
 import { useNotificationDeduplication } from "@/hooks/use-notification-deduplication";
@@ -60,6 +61,14 @@ const FalKeySetupDialog = dynamic(
   { ssr: false }
 );
 
+const ByokLifetimePricingModal = dynamic(
+  () =>
+    import("@/components/price/byok-lifetime-pricing-modal").then(
+      (mod) => mod.ByokLifetimePricingModal,
+    ),
+  { ssr: false }
+);
+
 const TOOL_PREFILL_KEY = "reel_key_tool_prefill";
 const HISTORY_SYNC_CACHE_MS = 60 * 1000;
 
@@ -68,6 +77,8 @@ const historySyncState = {
   lastSyncedAt: 0,
   inFlight: false,
 };
+const lifetimeAccessCache = new Map<string, boolean>();
+let lastKnownToolUser: Pick<User, "id" | "name" | "image" | "email"> | null = null;
 
 // ============================================================================
 // Types
@@ -88,6 +99,8 @@ export interface ToolPageLayoutProps {
    * 当前语言
    */
   locale: string;
+  hasLifetimeAccess?: boolean;
+  initialUser?: Pick<User, "id" | "name" | "image" | "email"> | null;
 }
 
 // ============================================================================
@@ -117,6 +130,8 @@ export function ToolPageLayout({
   config,
   toolRoute,
   locale,
+  hasLifetimeAccess = false,
+  initialUser = null,
 }: ToolPageLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -124,11 +139,15 @@ export function ToolPageLayout({
   const { openModal } = useUpgradeModal();
   const { shouldNotify, markNotified, resetNotification } = useNotificationDeduplication();
   const { showDialog, setShowDialog } = useFalKeyPrompt();
+  const [showLifetimePricing, setShowLifetimePricing] = useState(false);
   const videoIdFromQuery = searchParams.get("id");
   const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
   const tNotify = useTranslations("Notifications");
   const tTool = useTranslations("ToolPage");
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const openLifetimePricing = useCallback(() => {
+    setShowLifetimePricing(true);
+  }, []);
   const { balance, optimisticFreeze, optimisticRelease, invalidate } = useCredits({
     enabled: !isByokMode,
   });
@@ -139,6 +158,8 @@ export function ToolPageLayout({
   const [generatingIds, setGeneratingIds] = useState<string[]>([]);
   const [historyItems, setHistoryItems] = useState<VideoHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "result">("generator");
+  const [resolvedLifetimeAccess, setResolvedLifetimeAccess] =
+    useState(hasLifetimeAccess);
   const [prefillData, setPrefillData] = useState<{
     prompt?: string;
     model?: string;
@@ -147,7 +168,59 @@ export function ToolPageLayout({
     quality?: string;
     imageUrl?: string;
   } | null>(null);
-  const user = session?.user ?? null;
+  const user = session?.user ?? initialUser ?? lastKnownToolUser;
+
+  useEffect(() => {
+    if (session?.user) {
+      lastKnownToolUser = {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image,
+        email: session.user.email,
+      };
+    }
+  }, [session?.user]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setResolvedLifetimeAccess(false);
+      return;
+    }
+
+    if (!isByokMode) {
+      setResolvedLifetimeAccess(hasLifetimeAccess);
+      return;
+    }
+
+    if (hasLifetimeAccess) {
+      lifetimeAccessCache.set(user.id, true);
+      setResolvedLifetimeAccess(true);
+      return;
+    }
+
+    const cached = lifetimeAccessCache.get(user.id);
+    if (cached !== undefined) {
+      setResolvedLifetimeAccess(cached);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch("/api/v1/user/byok-entitlement", {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const nextHasLifetime = Boolean(data?.data?.hasLifetimeAccess);
+        lifetimeAccessCache.set(user.id, nextHasLifetime);
+        setResolvedLifetimeAccess(nextHasLifetime);
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        console.warn("Failed to load BYOK entitlement:", error);
+      });
+
+    return () => controller.abort();
+  }, [user?.id, hasLifetimeAccess, isByokMode]);
 
   useEffect(() => {
     const handleMissingKey = () => setShowDialog(true);
@@ -325,6 +398,10 @@ export function ToolPageLayout({
     const history = videoHistoryStorage.getHistory(user.id);
     setHistoryItems(history);
 
+    if (activeTab !== "result") {
+      return;
+    }
+
     const now = Date.now();
     const recentlySynced =
       historySyncState.userId === user.id &&
@@ -363,24 +440,21 @@ export function ToolPageLayout({
     };
 
     if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(syncServerHistory, { timeout: 2000 });
+      const idleId = window.requestIdleCallback(syncServerHistory, { timeout: 5000 });
       return () => window.cancelIdleCallback(idleId);
     }
 
-    const timeoutId = setTimeout(syncServerHistory, 800);
+    const timeoutId = setTimeout(syncServerHistory, 3000);
     return () => clearTimeout(timeoutId);
-  }, [user?.id]);
+  }, [user?.id, activeTab]);
 
   useEffect(() => {
     if (!user?.id) return;
     const localTasks = videoTaskStorage.getGeneratingTasks(user.id);
     localTasks.forEach((task) => {
       addGeneratingId(task.videoId);
-      if (!isPolling(task.videoId)) {
-        startPolling(task.videoId);
-      }
     });
-  }, [user?.id, isPolling, startPolling, addGeneratingId]);
+  }, [user?.id, addGeneratingId]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -390,6 +464,23 @@ export function ToolPageLayout({
     const existingItem = videoHistoryStorage.getHistory(user.id).find(item => item.uuid === videoIdFromQuery);
     const existingStatus = existingItem?.status?.toLowerCase();
     const isTerminalStatus = existingStatus === "completed" || existingStatus === "failed";
+    const localTask = videoTaskStorage.getTask(videoIdFromQuery, user.id);
+    const existingCreatedAt = existingItem?.createdAt
+      ? new Date(existingItem.createdAt).getTime()
+      : 0;
+    const isRecentHistoryItem =
+      Number.isFinite(existingCreatedAt) &&
+      Date.now() - existingCreatedAt < 60 * 60 * 1000;
+    const canAutoPollQueryTask =
+      videoTaskStorage.isFreshTask(localTask) || isRecentHistoryItem;
+
+    if (!isTerminalStatus && !canAutoPollQueryTask) {
+      removeGeneratingId(videoIdFromQuery);
+      stopPolling(videoIdFromQuery);
+      videoTaskStorage.removeTask(videoIdFromQuery, user.id);
+      return;
+    }
+
     if (!existingItem) {
       const newItem: VideoHistoryItem = {
         uuid: videoIdFromQuery,
@@ -422,6 +513,7 @@ export function ToolPageLayout({
   // SSE: listen for backend completion events
   useEffect(() => {
     if (!user?.id) return;
+    if (generatingIds.length === 0) return;
     if (typeof window === "undefined" || !("EventSource" in window)) return;
 
     const source = new EventSource("/api/v1/video/events");
@@ -459,7 +551,7 @@ export function ToolPageLayout({
       source.removeEventListener("error", handleError);
       source.close();
     };
-  }, [user?.id, handleCompleted, handleFailed, stopPolling]);
+  }, [user?.id, generatingIds.length, handleCompleted, handleFailed, stopPolling]);
 
   // 处理生成提交
   const handleSubmit = useCallback(async (data: GeneratorData) => {
@@ -673,7 +765,7 @@ export function ToolPageLayout({
   // 移动端：显示标签导航
   const showMobileTabs = true;
 
-  if (isSessionPending) {
+  if (isSessionPending && !user) {
     return (
       <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
         {showMobileTabs && (
@@ -709,6 +801,8 @@ export function ToolPageLayout({
                 initialAspectRatio={prefillData?.aspectRatio}
                 initialQuality={prefillData?.quality}
                 initialImageUrl={prefillData?.imageUrl}
+                isPro={resolvedLifetimeAccess}
+                onProFeatureClick={openLifetimePricing}
               />
             </div>
           </div>
@@ -771,6 +865,8 @@ export function ToolPageLayout({
                     initialAspectRatio={prefillData?.aspectRatio}
                     initialQuality={prefillData?.quality}
                     initialImageUrl={prefillData?.imageUrl}
+                    isPro={resolvedLifetimeAccess}
+                    onProFeatureClick={openLifetimePricing}
                   />
                 </div>
 
@@ -799,8 +895,12 @@ export function ToolPageLayout({
           </div>
         </div>
 
-        {/* 全局升级弹窗 */}
-        <UpgradeModal />
+        <ByokLifetimePricingModal
+          hasLifetimeEntitlement={resolvedLifetimeAccess}
+          onOpenChange={setShowLifetimePricing}
+          open={showLifetimePricing}
+        />
+        {!isByokMode ? <UpgradeModal /> : null}
       </>
     );
   }
@@ -854,6 +954,8 @@ export function ToolPageLayout({
                 initialAspectRatio={prefillData?.aspectRatio}
                 initialQuality={prefillData?.quality}
                 initialImageUrl={prefillData?.imageUrl}
+                isPro={resolvedLifetimeAccess}
+                onProFeatureClick={openLifetimePricing}
               />
             </div>
           </div>
@@ -883,8 +985,13 @@ export function ToolPageLayout({
         }}
       />
 
-      {/* 全局升级弹窗 */}
-      <UpgradeModal />
+      <ByokLifetimePricingModal
+        hasLifetimeEntitlement={resolvedLifetimeAccess}
+        onOpenChange={setShowLifetimePricing}
+        open={showLifetimePricing}
+        userId={user.id}
+      />
+      {!isByokMode ? <UpgradeModal /> : null}
     </>
   );
 }

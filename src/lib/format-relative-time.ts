@@ -1,8 +1,11 @@
-export function formatRelativeTime(value: string | Date): string {
+export function formatRelativeTime(
+  value: string | Date,
+  locale = "en",
+): string {
   const date = value instanceof Date ? value : new Date(value);
   const diffMs = date.getTime() - Date.now();
   const absMs = Math.abs(diffMs);
-  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
 
   const minute = 60 * 1000;
   const hour = 60 * minute;

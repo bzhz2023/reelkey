@@ -36,6 +36,8 @@ export interface ListVideosParams {
   limit?: number;
   cursor?: string;
   status?: VideoStatus;
+  model?: string;
+  sortBy?: "newest" | "oldest";
 }
 
 // ============================================

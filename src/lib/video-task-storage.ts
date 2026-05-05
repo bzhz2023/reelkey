@@ -12,7 +12,7 @@ export interface VideoTask {
 
 class VideoTaskStorage {
   private readonly STORAGE_KEY = "reel_key_video_tasks";
-  private readonly EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
   private getStorageKey(userId?: string) {
     return `${this.STORAGE_KEY}:${userId ?? "anon"}`;
@@ -45,10 +45,19 @@ class VideoTaskStorage {
     this.saveTasks(tasks, userId);
   }
 
+  getTask(videoId: string, userId?: string): VideoTask | null {
+    return this.getAllTasks(userId).find((t) => t.videoId === videoId) ?? null;
+  }
+
   getGeneratingTasks(userId?: string): VideoTask[] {
+    this.clearExpiredTasks(userId);
     return this.getAllTasks(userId).filter(
       (t) => t.status === "generating" || t.status === "pending"
     );
+  }
+
+  isFreshTask(task?: VideoTask | null): boolean {
+    return Boolean(task && Date.now() - task.createdAt < this.EXPIRY_MS);
   }
 
   clearExpiredTasks(userId?: string): void {

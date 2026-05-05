@@ -12,20 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BYOK_MODE } from "@/config/byok-mode";
+import { getAvailableModels } from "@/config/credits";
 import type { VideoFilterOptions, VideoStatus } from "@/lib/types/dashboard";
 
 interface CreationFilterProps {
   filter: VideoFilterOptions;
   onFilterChange: (filter: Partial<VideoFilterOptions>) => void;
+  disabled?: boolean;
 }
 
-const availableModels = [
-  { value: "all", label: "All Models" },
-  { value: "sora-2", label: "Sora 2" },
-  { value: "veo-3-1", label: "Veo 3.1" },
-  { value: "seedance-1-5", label: "Seedance 1.5" },
-  { value: "wan-2-6", label: "Wan 2.6" },
-];
+const availableModels = getAvailableModels({
+  provider: BYOK_MODE ? "falai" : undefined,
+}).map((model) => ({ value: model.id, label: model.name }));
 
 const statusOptions = [
   { value: "all", label: "All Status" },
@@ -39,7 +38,11 @@ const sortOptions = [
   { value: "oldest", label: "Oldest" },
 ];
 
-export function CreationFilter({ filter, onFilterChange }: CreationFilterProps) {
+export function CreationFilter({
+  filter,
+  onFilterChange,
+  disabled = false,
+}: CreationFilterProps) {
   const t = useTranslations("dashboard.myCreations.filter");
 
   return (
@@ -47,7 +50,10 @@ export function CreationFilter({ filter, onFilterChange }: CreationFilterProps) 
       {/* Status Filter */}
       <Select
         value={filter.status || "all"}
-        onValueChange={(value) => onFilterChange({ status: value as VideoStatus | "all" })}
+        onValueChange={(value) =>
+          onFilterChange({ status: value as VideoStatus | "all" })
+        }
+        disabled={disabled}
       >
         <SelectTrigger className="w-[140px]">
           <SelectValue placeholder={t("allStatus")} />
@@ -64,12 +70,16 @@ export function CreationFilter({ filter, onFilterChange }: CreationFilterProps) 
       {/* Model Filter */}
       <Select
         value={filter.model || "all"}
-        onValueChange={(value) => onFilterChange({ model: value as string | "all" })}
+        onValueChange={(value) =>
+          onFilterChange({ model: value as string | "all" })
+        }
+        disabled={disabled}
       >
         <SelectTrigger className="w-[140px]">
           <SelectValue placeholder={t("allModels")} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="all">{t("allModels")}</SelectItem>
           {availableModels.map((model) => (
             <SelectItem key={model.value} value={model.value}>
               {model.label}
@@ -81,7 +91,10 @@ export function CreationFilter({ filter, onFilterChange }: CreationFilterProps) 
       {/* Sort Order */}
       <Select
         value={filter.sortBy || "newest"}
-        onValueChange={(value) => onFilterChange({ sortBy: value as "newest" | "oldest" })}
+        onValueChange={(value) =>
+          onFilterChange({ sortBy: value as "newest" | "oldest" })
+        }
+        disabled={disabled}
       >
         <SelectTrigger className="w-[120px]">
           <SelectValue placeholder={t("newest")} />

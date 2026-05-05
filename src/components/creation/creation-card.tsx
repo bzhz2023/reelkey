@@ -7,19 +7,20 @@
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Play, Clock, AlertCircle, MoreHorizontal } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/components/ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getModelDisplayName } from "@/config/credits";
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import type { Video } from "@/lib/types/dashboard";
 
 const CreationCardActions = dynamic(
   () =>
     import("@/components/creation/creation-card-actions").then(
-      (mod) => mod.CreationCardActions
+      (mod) => mod.CreationCardActions,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
 interface CreationCardProps {
@@ -69,11 +70,14 @@ export function CreationCard({
   isDeleting,
 }: CreationCardProps) {
   const t = useTranslations("dashboard.myCreations");
+  const locale = useLocale();
   const [isMenuLoaded, setIsMenuLoaded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const normalizedStatus = (video.status || "pending").toLowerCase() as keyof typeof statusConfig;
+  const normalizedStatus = (
+    video.status || "pending"
+  ).toLowerCase() as keyof typeof statusConfig;
   const config = statusConfig[normalizedStatus] ?? statusConfig.pending;
   const StatusIcon = config.icon;
   const statusLabel = t(config.labelKey as "status.completed");
@@ -84,6 +88,7 @@ export function CreationCard({
     normalizedStatus === "uploading";
   const isFailed = normalizedStatus === "failed";
   const isCompleted = normalizedStatus === "completed";
+  const mediaSrc = video.thumbnailUrl;
 
   const handleDelete = async () => {
     await onDelete?.(video.uuid);
@@ -109,14 +114,25 @@ export function CreationCard({
       <div
         className={cn(
           "group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg cursor-pointer",
-          isDeleting && "opacity-50 pointer-events-none"
+          isDeleting && "opacity-50 pointer-events-none",
         )}
         onClick={() => onClick(video.uuid)}
         onMouseEnter={handlePreviewStart}
         onMouseLeave={handlePreviewStop}
       >
         {/* Thumbnail / Preview */}
-        <div className="aspect-[4/3] w-full overflow-hidden bg-muted relative">
+        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          {mediaSrc && (
+            <img
+              src={mediaSrc}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-25 blur-xl"
+            />
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10" />
+
           {isCompleted && video.videoUrl ? (
             <video
               ref={videoRef}
@@ -126,23 +142,27 @@ export function CreationCard({
               loop
               playsInline
               preload="metadata"
-              className="h-full w-full object-contain"
+              className="relative z-10 h-full w-full object-contain"
             />
           ) : video.thumbnailUrl ? (
             <img
               src={video.thumbnailUrl}
               alt={video.prompt}
-              className="h-full w-full object-contain"
+              className="relative z-10 h-full w-full object-contain"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
+            <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
               <StatusIcon className="h-12 w-12 text-muted-foreground" />
               {isFailed && video.errorMessage && (
                 <p className="text-[11px] text-destructive line-clamp-3">
                   {(() => {
                     try {
                       const parsed = JSON.parse(video.errorMessage);
-                      return parsed.error?.message || parsed.message || video.errorMessage;
+                      return (
+                        parsed.error?.message ||
+                        parsed.message ||
+                        video.errorMessage
+                      );
                     } catch {
                       return video.errorMessage;
                     }
@@ -154,7 +174,7 @@ export function CreationCard({
 
           {/* Overlay for completed videos */}
           {isCompleted && (
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/20">
               <div className="h-12 w-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Play className="h-5 w-5 text-primary-foreground fill-primary-foreground" />
               </div>
@@ -162,7 +182,7 @@ export function CreationCard({
           )}
 
           {/* Status badge */}
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 z-30">
             <Badge className={config.labelColor} variant="outline">
               {statusLabel}
             </Badge>
@@ -170,15 +190,18 @@ export function CreationCard({
 
           {/* Duration badge (completed only) */}
           {isCompleted && video.duration > 0 && (
-            <div className="absolute bottom-2 right-2">
-              <Badge variant="secondary" className="bg-black/70 text-white border-0">
+            <div className="absolute bottom-2 right-2 z-30">
+              <Badge
+                variant="secondary"
+                className="bg-black/70 text-white border-0"
+              >
                 {Math.floor(video.duration)}s
               </Badge>
             </div>
           )}
 
           {/* Action menu */}
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 z-30">
             {isMenuLoaded ? (
               <CreationCardActions
                 isCompleted={isCompleted}
@@ -206,27 +229,28 @@ export function CreationCard({
         </div>
 
         {/* Card info */}
-        <div className="p-2 space-y-1.5">
+        <div className="space-y-1.5 p-3">
           {/* Model & Aspect Ratio */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="font-medium capitalize">{video.model}</span>
-            <span>{video.aspectRatio}</span>
+          <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span className="min-w-0 truncate font-medium">
+              {getModelDisplayName(video.model)}
+            </span>
+            <span className="shrink-0">{video.aspectRatio}</span>
           </div>
 
           {/* Prompt */}
-          <div className="text-xs text-foreground/90 line-clamp-2">
+          <div className="min-h-[32px] text-xs leading-4 text-foreground/90 line-clamp-2">
             {video.prompt}
           </div>
 
           {/* Date */}
           <div className="text-xs text-muted-foreground">
-            {formatRelativeTime(video.createdAt)}
+            {formatRelativeTime(video.createdAt, locale)}
           </div>
 
           {/* Error is displayed in the preview area for failed videos */}
         </div>
       </div>
-
     </>
   );
 }

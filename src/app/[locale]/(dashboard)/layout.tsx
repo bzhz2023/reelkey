@@ -1,5 +1,6 @@
 import { DashboardLayoutContent } from "@/components/layout/dashboard-layout-content";
 import { i18n } from "@/config/i18n-config";
+import { getCurrentUser } from "@/lib/auth";
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -17,5 +18,10 @@ export default async function DashboardLayout({
   params,
 }: DashboardLayoutProps) {
   const { locale } = await params;
-  return <DashboardLayoutContent lang={locale}>{children}</DashboardLayoutContent>;
+  const user = await getCurrentUser();
+  return (
+    <DashboardLayoutContent lang={locale} initialUser={user}>
+      {children}
+    </DashboardLayoutContent>
+  );
 }

@@ -1,6 +1,7 @@
 // Server-only exports - these should only be imported in server components
 // For client components, import from "@/lib/auth/client" instead
 
+import { cache } from "react";
 import type { User } from "./auth";
 
 // Re-export auth instance (server-only)
@@ -12,14 +13,7 @@ export { auth, type Session, type User } from "./auth";
  * @see https://www.better-auth.com/docs/integrations/next
  */
 export async function getCurrentUser(): Promise<User | null> {
-  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
-    return null;
-  }
-  const { headers } = await import("next/headers");
-  const { auth } = await import("./auth");
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getServerSession();
   return (session?.user as User) ?? null;
 }
 
@@ -27,17 +21,16 @@ export async function getCurrentUser(): Promise<User | null> {
  * Get current session on the server side
  * Must be called from App Router (uses next/headers)
  */
-export async function getServerSession() {
+export const getServerSession = cache(async () => {
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return null;
   }
   const { headers } = await import("next/headers");
   const { auth } = await import("./auth");
-  const session = await auth.api.getSession({
+  return auth.api.getSession({
     headers: await headers(),
   });
-  return session;
-}
+});
 
 /**
  * Server-side auth guard - redirects if not logged in

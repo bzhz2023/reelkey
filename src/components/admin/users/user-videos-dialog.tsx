@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getModelDisplayName } from "@/config/credits";
 import {
   Select,
   SelectContent,
@@ -258,7 +259,7 @@ export function UserVideosDialog({
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {video.model}
+                      {getModelDisplayName(video.model)}
                     </TableCell>
                     <TableCell>{getStatusBadge(video.status)}</TableCell>
                     <TableCell>

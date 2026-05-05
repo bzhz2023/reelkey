@@ -5,13 +5,21 @@
 // ============================================
 
 import { useCallback, useEffect, useRef } from "react";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { apiClient } from "@/lib/api/dashboard-client";
 import { falKeyStorage } from "@/lib/fal-key";
 import { useVideosStore } from "@/stores/videos-store";
 import type { VideoFilterOptions } from "@/lib/types/dashboard";
+
+const PROCESSING_REFRESH_MAX_AGE_MS = 60 * 60 * 1000;
 
 /**
  * Fetch videos with infinite scroll
@@ -23,6 +31,7 @@ export function useVideos(filter?: VideoFilterOptions) {
   const {
     data,
     isLoading,
+    isFetching,
     error,
     fetchNextPage,
     hasNextPage,
@@ -34,10 +43,16 @@ export function useVideos(filter?: VideoFilterOptions) {
       return apiClient.getVideos({
         limit: 20,
         cursor: pageParam,
+        status:
+          filter?.status && filter.status !== "all" ? filter.status : undefined,
+        model:
+          filter?.model && filter.model !== "all" ? filter.model : undefined,
+        sortBy: filter?.sortBy,
       });
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     staleTime: 30 * 1000,
@@ -55,19 +70,16 @@ export function useVideos(filter?: VideoFilterOptions) {
     onMutate: (uuid) => {
       // 乐观删除
       const previousVideos = queryClient.getQueryData(["videos", filter]);
-      queryClient.setQueryData(
-        ["videos", filter],
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              videos: page.videos.filter((v: any) => v.uuid !== uuid),
-            })),
-          };
-        }
-      );
+      queryClient.setQueryData(["videos", filter], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            videos: page.videos.filter((v: any) => v.uuid !== uuid),
+          })),
+        };
+      });
 
       return { previousVideos };
     },
@@ -102,7 +114,7 @@ export function useVideos(filter?: VideoFilterOptions) {
     async (uuid: string) => {
       await deleteMutation.mutateAsync(uuid);
     },
-    [deleteMutation]
+    [deleteMutation],
   );
 
   // 重试单个视频
@@ -110,12 +122,13 @@ export function useVideos(filter?: VideoFilterOptions) {
     async (uuid: string) => {
       await retryMutation.mutateAsync(uuid);
     },
-    [retryMutation]
+    [retryMutation],
   );
 
   return {
     videos,
     isLoading,
+    isFetching,
     error,
     hasMore,
     fetchNextPage,
@@ -145,23 +158,26 @@ export function useVideo(uuid: string) {
 export function useDownloadVideo() {
   const t = useTranslations("dashboard.myCreations");
 
-  const download = useCallback(async (videoUrl: string, filename: string) => {
-    try {
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success(t("actions.downloadSuccess") || "Download started");
-    } catch (error) {
-      toast.error(t("actions.downloadError") || "Failed to download video");
-    }
-  }, [t]);
+  const download = useCallback(
+    async (videoUrl: string, filename: string) => {
+      try {
+        const response = await fetch(videoUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success(t("actions.downloadSuccess") || "Download started");
+      } catch (error) {
+        toast.error(t("actions.downloadError") || "Failed to download video");
+      }
+    },
+    [t],
+  );
 
   return { download };
 }
@@ -170,18 +186,29 @@ export function useDownloadVideo() {
  * Auto-refresh processing videos
  */
 export function useRefreshProcessingVideos(
-  videos: Array<{ uuid?: string; status?: string }>,
+  videos: Array<{ uuid?: string; status?: string; createdAt?: string | Date }>,
   refetch: () => void,
-  interval: number = 15000
+  interval = 15000,
 ) {
   const isCheckingRef = useRef(false);
+  const providerTimeoutCountsRef = useRef<Map<string, number>>(new Map());
 
   const processingVideoIds = videos
     .filter((v) => {
       const status = (v.status || "").toLowerCase();
+      const createdAt = v.createdAt ? new Date(v.createdAt).getTime() : 0;
+      const isFresh =
+        Number.isFinite(createdAt) &&
+        Date.now() - createdAt < PROCESSING_REFRESH_MAX_AGE_MS;
+      const providerTimeoutCount =
+        providerTimeoutCountsRef.current.get(v.uuid || "") ?? 0;
       return (
         v.uuid &&
-        (status === "generating" || status === "uploading" || status === "pending")
+        isFresh &&
+        providerTimeoutCount < 3 &&
+        (status === "generating" ||
+          status === "uploading" ||
+          status === "pending")
       );
     })
     .map((v) => v.uuid as string);
@@ -209,13 +236,30 @@ export function useRefreshProcessingVideos(
             });
             if (!response.ok) return null;
             const result = await response.json();
-            return result?.data?.status as string | undefined;
-          })
+            return {
+              uuid,
+              status: result?.data?.status as string | undefined,
+              error: result?.data?.error as string | undefined,
+            };
+          }),
         );
+
+        for (const result of results) {
+          if (result.status !== "fulfilled" || !result.value?.uuid) continue;
+          const { uuid, error } = result.value;
+          if (error === "PROVIDER_STATUS_TIMEOUT") {
+            providerTimeoutCountsRef.current.set(
+              uuid,
+              (providerTimeoutCountsRef.current.get(uuid) ?? 0) + 1,
+            );
+          } else {
+            providerTimeoutCountsRef.current.delete(uuid);
+          }
+        }
 
         const hasTerminalUpdate = results.some((result) => {
           if (result.status !== "fulfilled") return false;
-          const status = (result.value || "").toLowerCase();
+          const status = (result.value?.status || "").toLowerCase();
           return status === "completed" || status === "failed";
         });
 

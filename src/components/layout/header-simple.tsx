@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLocalePathname, useLocaleRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Gem, Globe, Menu, Sun, Moon, Monitor } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
@@ -38,8 +38,8 @@ export function HeaderSimple({
 }: HeaderSimpleProps) {
   const signInModal = useSigninModal();
   const { setTheme } = useTheme();
-  const router = useLocaleRouter();
-  const pathname = useLocalePathname();
+  const router = useRouter();
+  const pathname = usePathname();
   const tCommon = useTranslations("Common");
   const tHeader = useTranslations("Header");
   const currentLocale = lang || "en";
@@ -50,7 +50,15 @@ export function HeaderSimple({
   );
 
   const switchLocale = (nextLocale: string) => {
-    router.push(pathname, { locale: nextLocale });
+    const pathWithoutLocale = pathname.replace(
+      new RegExp(`^/(${i18n.locales.join("|")})(?=/|$)`),
+      "",
+    ) || "/";
+    const nextPath =
+      nextLocale === i18n.defaultLocale
+        ? pathWithoutLocale
+        : `/${nextLocale}${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
+    router.push(nextPath);
   };
 
   const menuLabelMap: Record<string, string> = {

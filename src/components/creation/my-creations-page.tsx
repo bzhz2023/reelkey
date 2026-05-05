@@ -4,7 +4,7 @@
 // My Creations Page
 // ============================================
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useVideos } from "@/hooks/use-videos";
@@ -19,13 +19,43 @@ import type { Video, VideoFilterOptions } from "@/lib/types/dashboard";
 const VideoDetailDialog = dynamic(
   () =>
     import("@/components/creation/video-detail-dialog").then(
-      (mod) => mod.VideoDetailDialog
+      (mod) => mod.VideoDetailDialog,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
 interface MyCreationsPageProps {
   locale: string;
+}
+
+function getFilterKey(filter: VideoFilterOptions) {
+  return `${filter.status || "all"}:${filter.model || "all"}:${filter.sortBy || "newest"}`;
+}
+
+function isUnfilteredVideoList(filter: VideoFilterOptions) {
+  return (
+    (!filter.status || filter.status === "all") &&
+    (!filter.model || filter.model === "all")
+  );
+}
+
+function filterVideosLocally(videos: Video[], filter: VideoFilterOptions) {
+  const status =
+    filter.status && filter.status !== "all" ? filter.status : null;
+  const model = filter.model && filter.model !== "all" ? filter.model : null;
+  const sortBy = filter.sortBy === "oldest" ? "oldest" : "newest";
+
+  return videos
+    .filter((video) => {
+      if (status && (video.status || "").toLowerCase() !== status) return false;
+      if (model && video.model !== model) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
+      return sortBy === "oldest" ? aTime - bTime : bTime - aTime;
+    });
 }
 
 export function MyCreationsPage({ locale }: MyCreationsPageProps) {
@@ -45,6 +75,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
   const {
     videos,
     isLoading,
+    isFetching,
     hasMore,
     fetchNextPage,
     isFetchingNextPage,
@@ -66,7 +97,7 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
           fetchNextPage();
         }
       },
-      { threshold: 1.0 }
+      { threshold: 1.0 },
     );
 
     const current = observerTarget.current;
@@ -96,6 +127,36 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
     setSelectedVideo(null);
   };
 
+  const settledFilterKeyRef = useRef(getFilterKey(filter));
+  const currentFilterKey = getFilterKey(filter);
+  const isFilterChanging = currentFilterKey !== settledFilterKeyRef.current;
+  const isFiltering =
+    isFilterChanging && isFetching && !isLoading && !isFetchingNextPage;
+  const unfilteredVideosRef = useRef<Video[]>([]);
+
+  useEffect(() => {
+    if (!isFetching) {
+      settledFilterKeyRef.current = currentFilterKey;
+    }
+  }, [currentFilterKey, isFetching]);
+
+  useEffect(() => {
+    if (!isLoading && !isFilterChanging && isUnfilteredVideoList(filter)) {
+      unfilteredVideosRef.current = videos;
+    }
+  }, [filter, isFilterChanging, isLoading, videos]);
+
+  const localFilterSource =
+    isFilterChanging && unfilteredVideosRef.current.length > 0
+      ? unfilteredVideosRef.current
+      : videos;
+
+  const locallyFilteredVideos = useMemo(
+    () => filterVideosLocally(localFilterSource, filter),
+    [localFilterSource, filter],
+  );
+  const visibleVideos = isFilterChanging ? locallyFilteredVideos : videos;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,23 +164,51 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
         <div>
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {videos.length} {videos.length === 1 ? "creation" : "creations"}
+            {t("count", { count: visibleVideos.length })}
           </p>
         </div>
 
-        {/* Filter */}
-        <CreationFilter filter={filter} onFilterChange={handleFilterChange} />
+        <div className="flex items-center gap-3">
+          {isFiltering && (
+            <span className="hidden text-sm text-muted-foreground sm:inline">
+              {t("filtering")}
+            </span>
+          )}
+          <CreationFilter
+            filter={filter}
+            onFilterChange={handleFilterChange}
+            disabled={isFiltering}
+          />
+        </div>
       </div>
 
       {/* Content */}
       {isLoading ? (
         <CreationSkeleton />
-      ) : videos.length === 0 ? (
+      ) : visibleVideos.length === 0 ? (
         <CreationEmpty />
       ) : (
-        <>
-          <CreationGrid>
-            {videos.map((video) => (
+        <div className="relative">
+          {isFiltering && (
+            <>
+              <div className="absolute -top-3 left-0 right-0 h-px overflow-hidden bg-border">
+                <div className="h-full w-full animate-pulse bg-primary/60" />
+              </div>
+              <div
+                className="absolute inset-0 z-20 cursor-wait"
+                aria-hidden="true"
+              />
+            </>
+          )}
+
+          <CreationGrid
+            className={
+              isFiltering
+                ? "pointer-events-none select-none opacity-70 transition-opacity duration-150"
+                : "opacity-100 transition-opacity duration-150"
+            }
+          >
+            {visibleVideos.map((video) => (
               <CreationCard
                 key={video.uuid}
                 video={video}
@@ -132,11 +221,14 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
 
           {/* Infinite scroll sentinel */}
           {hasMore && (
-            <div ref={observerTarget} className="py-4 text-center text-sm text-muted-foreground">
-              {isFetchingNextPage ? "Loading..." : ""}
+            <div
+              ref={observerTarget}
+              className="py-4 text-center text-sm text-muted-foreground"
+            >
+              {isFetchingNextPage ? t("loadingMore") : ""}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* Video Detail Dialog */}
