@@ -394,6 +394,29 @@ export function ToolPageLayout({
     onFailed: handleFailed,
   });
 
+  const reconcileServerVideos = useCallback(
+    (videos: Video[]) => {
+      if (!user?.id || videos.length === 0) return;
+
+      videoHistoryStorage.syncFromServer(videos);
+      setHistoryItems(videoHistoryStorage.getHistory(user.id));
+
+      videos.forEach((video) => {
+        const status = String(video.status).toLowerCase();
+        if (status === "completed" || status === "failed") {
+          removeGeneratingId(video.uuid);
+          stopPolling(video.uuid);
+          videoTaskStorage.updateTask(
+            video.uuid,
+            { status: status === "completed" ? "completed" : "failed" },
+            user.id,
+          );
+        }
+      });
+    },
+    [user?.id, removeGeneratingId, stopPolling],
+  );
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -450,8 +473,7 @@ export function ToolPageLayout({
           }
 
           if (data.data?.videos) {
-            videoHistoryStorage.syncFromServer(data.data.videos);
-            setHistoryItems(videoHistoryStorage.getHistory(user.id));
+            reconcileServerVideos(data.data.videos as Video[]);
           }
         })
         .catch((error) => {
@@ -470,15 +492,18 @@ export function ToolPageLayout({
 
     const timeoutId = setTimeout(syncServerHistory, 3000);
     return () => clearTimeout(timeoutId);
-  }, [user?.id, activeTab]);
+  }, [user?.id, activeTab, reconcileServerVideos]);
 
   useEffect(() => {
     if (!user?.id) return;
     const localTasks = videoTaskStorage.getGeneratingTasks(user.id);
     localTasks.forEach((task) => {
       addGeneratingId(task.videoId);
+      if (!isPolling(task.videoId)) {
+        startPolling(task.videoId);
+      }
     });
-  }, [user?.id, addGeneratingId]);
+  }, [user?.id, addGeneratingId, isPolling, startPolling]);
 
   useEffect(() => {
     if (!user?.id) return;

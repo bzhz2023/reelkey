@@ -206,7 +206,9 @@ function buildFalInput(
   };
 
   if (duration !== undefined) base.duration = duration;
-  if (params.aspectRatio) base.aspect_ratio = params.aspectRatio;
+  if (params.aspectRatio && supportsAspectRatio(modelId, mode)) {
+    base.aspect_ratio = params.aspectRatio;
+  }
   if (resolution) base.resolution = resolution;
   if (params.generateAudio !== undefined) {
     base.generate_audio = params.generateAudio;
@@ -236,6 +238,15 @@ function buildFalInput(
   }
 
   return removeUndefined(base);
+}
+
+function supportsAspectRatio(modelId: string, mode: string): boolean {
+  // The fal-ai/kling-video/v2.5-turbo/standard/image-to-video endpoint rejects
+  // aspect_ratio with HTTP 422. Text-to-video and other Kling endpoints keep it.
+  if (modelId === "kling-2.5-turbo" && mode === "image-to-video") {
+    return false;
+  }
+  return true;
 }
 
 function removeUndefined(input: Record<string, any>): Record<string, any> {
