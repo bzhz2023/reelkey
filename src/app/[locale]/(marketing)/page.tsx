@@ -6,8 +6,6 @@ import { siteConfig } from "@/config/site";
 import { i18n } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
 import { getConfiguredAIProvider } from "@/ai/provider-config";
-import { getCurrentUser } from "@/lib/auth";
-import { byokEntitlementService } from "@/services/byok-entitlement";
 
 interface HomePageProps {
   params: Promise<{
@@ -64,15 +62,10 @@ export async function generateMetadata({ params }: PageMetadataProps) {
 }
 
 export default async function HomePage({ params }: HomePageProps) {
-  const user = await getCurrentUser();
-  const hasLifetime = user
-    ? await byokEntitlementService.hasLifetime(user.id)
-    : false;
   return (
     <>
       <HeroSection
         currentProvider={getConfiguredAIProvider()}
-        hasLifetimeAccess={hasLifetime}
       />
       <DeferredHomeSections />
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Sparkles, Zap, Play } from "lucide-react";
@@ -135,10 +135,13 @@ export function HeroSection({
   const router = useRouter();
   const signInModal = useSigninModal();
   const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifyDialog, setShowNotifyDialog] = useState(false);
   const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [showLifetimePricing, setShowLifetimePricing] = useState(false);
+  const [resolvedLifetimeAccess, setResolvedLifetimeAccess] =
+    useState(hasLifetimeAccess);
   const [pendingSubmitData, setPendingSubmitData] = useState<SubmitData | null>(
     null,
   );
@@ -205,6 +208,33 @@ export function HeroSection({
       credits: baseTexts.credits,
     };
   }, [locale]);
+
+  useEffect(() => {
+    if (!userId) {
+      setResolvedLifetimeAccess(false);
+      return;
+    }
+
+    if (hasLifetimeAccess) {
+      setResolvedLifetimeAccess(true);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch("/api/v1/user/byok-entitlement", {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setResolvedLifetimeAccess(Boolean(data?.data?.hasLifetimeAccess));
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        console.warn("Failed to load BYOK entitlement:", error);
+      });
+
+    return () => controller.abort();
+  }, [userId, hasLifetimeAccess]);
 
   const formatGeneratorCost = useCallback(
     (amountInCents: number) => {
@@ -572,7 +602,7 @@ export function HeroSection({
                 defaults={generatorDefaults}
                 isLoading={isSubmitting}
                 disabled={isSubmitting}
-                isPro={hasLifetimeAccess}
+                isPro={resolvedLifetimeAccess}
                 calculateCredits={calculateCredits}
                 formatCredits={formatGeneratorCost}
                 texts={generatorTexts}
@@ -675,10 +705,10 @@ export function HeroSection({
         }}
       />
       <ByokLifetimePricingModal
-        hasLifetimeEntitlement={hasLifetimeAccess}
+        hasLifetimeEntitlement={resolvedLifetimeAccess}
         onOpenChange={setShowLifetimePricing}
         open={showLifetimePricing}
-        userId={session?.user?.id}
+        userId={userId}
       />
     </section>
   );
