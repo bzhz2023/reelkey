@@ -60,6 +60,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export function LandingHeader({ user }: { user?: User | null }) {
   const signInModal = useSigninModal();
   const { data: session } = authClient.useSession();
+  const [isMounted, setIsMounted] = useState(false);
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
@@ -68,7 +69,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const [isPending, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
-  const currentUser = session?.user ?? user ?? null;
+  const currentUser = isMounted ? (session?.user ?? user ?? null) : (user ?? null);
   const isByokMode = BYOK_MODE;
   const showCreditBalance = shouldShowCreditBalanceInHeader({
     isByokMode,
@@ -99,6 +100,10 @@ export function LandingHeader({ user }: { user?: User | null }) {
     initialDelayMs: 250,
     staggerMs: 200,
   });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!currentUser?.id) return;
