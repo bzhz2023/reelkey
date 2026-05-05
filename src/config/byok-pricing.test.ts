@@ -14,7 +14,7 @@ assert.deepEqual(
 
 const freePlan = getActiveByokPricingPlan("free");
 assert.equal(freePlan.priceUsd, 0);
-assert.equal(freePlan.monthlyGenerations, 10);
+assert.equal(freePlan.monthlyGenerations, 5);
 assert.equal(freePlan.modelAccess, "2 models");
 assert.equal(freePlan.historyRetentionDays, 7);
 

@@ -212,6 +212,12 @@ function UsageRow({
       : costDisplay.state === "pending"
         ? t("costPending")
         : t("costNotBilled");
+  const costSourceLabel =
+    costDisplay.state === "billed"
+      ? costDisplay.source === "actual"
+        ? t("costActual")
+        : t("costEstimated")
+      : null;
 
   const statusLabel = statusKeyMap[status]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -254,7 +260,12 @@ function UsageRow({
           costDisplay.state !== "billed" && "text-muted-foreground"
         )}
       >
-        {costLabel}
+        <div>{costLabel}</div>
+        {costSourceLabel ? (
+          <div className="mt-0.5 text-xs font-normal text-muted-foreground">
+            {costSourceLabel}
+          </div>
+        ) : null}
       </td>
     </tr>
   );

@@ -618,7 +618,9 @@
     "statusPending": "等待中",
     "statusUploading": "上传中",
     "costPending": "等待中",
-    "costNotBilled": "未计费"
+    "costNotBilled": "未计费",
+    "costEstimated": "估算",
+    "costActual": "实际"
   },
   "ByokPricing": {
     "badge": "BYOK 定价",
@@ -643,7 +645,7 @@
         "modelAccess": "2 个模型",
         "ctaLabel": "免费开始",
         "features": [
-          "每月 10 次生成",
+          "每月 5 次生成",
           "2 个入门模型",
           "7 天生成历史",
           "使用您自己的 fal.ai 计费"

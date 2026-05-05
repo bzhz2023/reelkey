@@ -45,6 +45,14 @@ export function normalizeVideoStatus(status: string): string {
 }
 
 export function estimateProviderCostCents(video: Video): number {
+  const providerCost = getProviderCost(video);
+  if (providerCost?.actualCents !== undefined) {
+    return providerCost.actualCents;
+  }
+  if (providerCost?.estimatedCents !== undefined) {
+    return providerCost.estimatedCents;
+  }
+
   if (video.provider === "falai" && video.model === "kling-2.5-turbo") {
     return Math.max(0, video.duration || 0) * 7;
   }
@@ -52,16 +60,39 @@ export function estimateProviderCostCents(video: Video): number {
   return Math.max(0, video.creditsUsed || 0);
 }
 
+function getProviderCost(video: Video): {
+  actualCents?: number;
+  estimatedCents?: number;
+  source?: "actual" | "estimated";
+} | null {
+  const providerCost = video.parameters?.providerCost;
+  if (!providerCost || typeof providerCost !== "object") return null;
+
+  const cost = providerCost as Record<string, unknown>;
+  return {
+    actualCents:
+      typeof cost.actualCents === "number" ? Math.max(0, cost.actualCents) : undefined,
+    estimatedCents:
+      typeof cost.estimatedCents === "number"
+        ? Math.max(0, cost.estimatedCents)
+        : undefined,
+    source: cost.source === "actual" ? "actual" : "estimated",
+  };
+}
+
 export function getUsageCostDisplay(video: Video): {
   label: string;
   state: UsageCostState;
+  source?: "actual" | "estimated";
 } {
   const status = normalizeVideoStatus(video.status);
 
   if (status === "completed") {
+    const providerCost = getProviderCost(video);
     return {
       label: formatProviderCost(estimateProviderCostCents(video)),
       state: "billed",
+      source: providerCost?.source ?? "estimated",
     };
   }
 

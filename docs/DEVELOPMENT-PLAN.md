@@ -777,7 +777,7 @@ export const CREDITS_CONFIG = {
 - 新增 `src/components/price/byok-lifetime-pricing.tsx`
 - 改为买断制：
   ```
-  免费版：10次/月 + 2模型 + 7天历史
+  免费版：5次/月 + 2模型 + 7天历史
   买断版（早鸟）：$29 无限次 + 全模型 + 云端存储
   买断版（正式）：$49（早鸟期后）
   ```

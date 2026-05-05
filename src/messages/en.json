@@ -618,7 +618,9 @@
     "statusPending": "Pending",
     "statusUploading": "Uploading",
     "costPending": "Pending",
-    "costNotBilled": "Not billed"
+    "costNotBilled": "Not billed",
+    "costEstimated": "Estimated",
+    "costActual": "Actual"
   },
   "ByokPricing": {
     "badge": "BYOK pricing",
@@ -643,7 +645,7 @@
         "modelAccess": "2 models",
         "ctaLabel": "Start free",
         "features": [
-          "10 generations per month",
+          "5 generations per month",
           "Access to 2 starter models",
           "7-day generation history",
           "Use your own fal.ai billing"
