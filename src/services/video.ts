@@ -1,8 +1,9 @@
 import { VideoStatus, db, videos } from "@/db";
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lt, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
+import { getActiveByokPricingPlan } from "@/config/byok-pricing";
 import {
   getProvider,
   getProviderWithKey,
@@ -23,6 +24,10 @@ import { FalAiProvider, parseFalAiCallback } from "@/ai/providers/falai";
 import { byokEntitlementService } from "@/services/byok-entitlement";
 
 const PROVIDER_STATUS_TIMEOUT_MS = 8000;
+const FREE_MONTHLY_GENERATION_LIMIT =
+  getActiveByokPricingPlan("free").monthlyGenerations ?? 5;
+
+type VideoParameters = Record<string, unknown>;
 
 function withTimeout<T>(
   promise: Promise<T>,
@@ -39,6 +44,53 @@ function withTimeout<T>(
       .catch(reject)
       .finally(() => clearTimeout(timeoutId));
   });
+}
+
+function getCurrentMonthStartUtc(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+function toVideoParameters(
+  parameters: typeof videos.$inferSelect.parameters,
+): VideoParameters {
+  if (!parameters || typeof parameters !== "object" || Array.isArray(parameters)) {
+    return {};
+  }
+  return { ...(parameters as VideoParameters) };
+}
+
+function findNestedNumberByKey(
+  input: unknown,
+  keyNames: Set<string>,
+): number | undefined {
+  if (!input || typeof input !== "object") return undefined;
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    const normalizedKey = key.toLowerCase();
+    if (keyNames.has(normalizedKey) && typeof value === "number") {
+      return value;
+    }
+    if (value && typeof value === "object") {
+      const nested = findNestedNumberByKey(value, keyNames);
+      if (nested !== undefined) return nested;
+    }
+  }
+  return undefined;
+}
+
+function extractActualProviderCostCents(raw: unknown): number | undefined {
+  const cents = findNestedNumberByKey(
+    raw,
+    new Set(["cost_cents", "total_cost_cents", "amount_cents"]),
+  );
+  if (cents !== undefined) return Math.max(0, Math.round(cents));
+
+  const usd = findNestedNumberByKey(
+    raw,
+    new Set(["cost_usd", "total_cost_usd", "price_usd"]),
+  );
+  if (usd !== undefined) return Math.max(0, Math.round(usd * 100));
+
+  return undefined;
 }
 
 export interface GenerateVideoParams {
@@ -140,6 +192,34 @@ export class VideoService {
     return provider.getTaskStatus(externalTaskId);
   }
 
+  private async assertFreeMonthlyLimit(userId: string): Promise<void> {
+    const monthStart = getCurrentMonthStartUtc();
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(videos)
+      .where(
+        and(
+          eq(videos.userId, userId),
+          eq(videos.isDeleted, false),
+          gte(videos.createdAt, monthStart),
+          sql`${videos.status} <> ${VideoStatus.FAILED}`,
+        ),
+      );
+
+    const used = row?.count ?? 0;
+    if (used >= FREE_MONTHLY_GENERATION_LIMIT) {
+      throw new ApiError(
+        `Free plan allows ${FREE_MONTHLY_GENERATION_LIMIT} generations per month. Upgrade to Lifetime for unlimited generation.`,
+        403,
+        {
+          code: "FREE_MONTHLY_LIMIT_REACHED",
+          limit: FREE_MONTHLY_GENERATION_LIMIT,
+          used,
+        },
+      );
+    }
+  }
+
   /**
    * Create video generation task
    */
@@ -152,8 +232,9 @@ export class VideoService {
       });
     }
 
+    const hasLifetime = await byokEntitlementService.hasLifetime(params.userId);
+
     if (params.userApiKey && modelConfig.accessTier === "paid") {
-      const hasLifetime = await byokEntitlementService.hasLifetime(params.userId);
       if (!hasLifetime) {
         throw new ApiError(
           "This model is available with ReelKey Lifetime access.",
@@ -164,6 +245,10 @@ export class VideoService {
           }
         );
       }
+    }
+
+    if (params.userApiKey && !hasLifetime) {
+      await this.assertFreeMonthlyLimit(params.userId);
     }
 
     const effectiveDuration = params.duration || modelConfig.durations[0] || 5;
@@ -264,6 +349,10 @@ export class VideoService {
           imageUrl: params.imageUrl,
           imageUrls: params.imageUrls,
           generateAudio: params.generateAudio,
+          providerCost: {
+            estimatedCents: creditsRequired,
+            source: "estimated",
+          },
         },
         status: VideoStatus.PENDING,
         startImageUrl: params.imageUrls?.[0] || params.imageUrl || null,
@@ -362,6 +451,10 @@ export class VideoService {
             imageUrl: params.imageUrl,
             imageUrls: params.imageUrls,
             generateAudio: params.generateAudio,
+            providerCost: {
+              estimatedCents: creditsRequired,
+              source: "estimated",
+            },
             falEndpoint:
               actualProvider === "falai"
                 ? (result.raw as { endpoint?: string } | undefined)?.endpoint
@@ -516,6 +609,13 @@ export class VideoService {
         }
 
         if (result.status === "failed") {
+          if (result.error?.code === "FAL_KEY_INVALID") {
+            throw new ApiError(
+              "Your fal.ai API key is invalid or expired. Please update your key and retry status refresh.",
+              401,
+              { code: "FAL_KEY_INVALID" },
+            );
+          }
           const updated = await this.tryFailGeneration(
             video.uuid,
             result.error?.message,
@@ -546,6 +646,13 @@ export class VideoService {
             status: video.status,
             error: "PROVIDER_STATUS_TIMEOUT",
           };
+        }
+        if (
+          error instanceof ApiError &&
+          (error.details as { code?: string } | undefined)?.code ===
+            "FAL_KEY_INVALID"
+        ) {
+          throw error;
         }
         console.error("Failed to refresh status from provider:", error);
       }
@@ -578,71 +685,115 @@ export class VideoService {
     videoUuid: string,
     result: VideoTaskResponse,
   ): Promise<{ status: string; videoUrl?: string | null }> {
-    return db.transaction(async (trx) => {
-      const [video] = await trx
-        .select()
-        .from(videos)
-        .where(eq(videos.uuid, videoUuid))
-        .limit(1);
+    const [video] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.uuid, videoUuid))
+      .limit(1);
 
-      if (!video) {
-        throw new Error("Video not found");
-      }
+    if (!video) {
+      throw new Error("Video not found");
+    }
 
-      if (video.status === VideoStatus.COMPLETED) {
-        return { status: video.status, videoUrl: video.videoUrl };
-      }
-      if (video.status === VideoStatus.FAILED) {
-        return { status: video.status, videoUrl: null };
-      }
+    if (video.status === VideoStatus.COMPLETED) {
+      return { status: video.status, videoUrl: video.videoUrl };
+    }
+    if (video.status === VideoStatus.FAILED) {
+      return { status: video.status, videoUrl: null };
+    }
 
-      if (
-        video.status !== VideoStatus.GENERATING &&
-        video.status !== VideoStatus.UPLOADING
-      ) {
-        return { status: video.status, videoUrl: video.videoUrl };
-      }
+    if (
+      video.status !== VideoStatus.GENERATING &&
+      video.status !== VideoStatus.UPLOADING
+    ) {
+      return { status: video.status, videoUrl: video.videoUrl };
+    }
 
-      await trx
-        .update(videos)
-        .set({
-          status: VideoStatus.UPLOADING,
-          originalVideoUrl: result.videoUrl,
-          updatedAt: new Date(),
-        })
-        .where(eq(videos.uuid, videoUuid));
+    await db
+      .update(videos)
+      .set({
+        status: VideoStatus.UPLOADING,
+        originalVideoUrl: result.videoUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(videos.uuid, videoUuid));
 
-      const storage = getStorage();
+    const hasLifetime = await byokEntitlementService.hasLifetime(video.userId);
+    const parameters = toVideoParameters(video.parameters);
+    const actualCostCents = extractActualProviderCostCents(result.raw);
+    const providerCost: VideoParameters = {
+      estimatedCents:
+        typeof (parameters.providerCost as { estimatedCents?: unknown } | undefined)
+          ?.estimatedCents === "number"
+          ? (parameters.providerCost as { estimatedCents: number }).estimatedCents
+          : video.creditsUsed,
+      source: actualCostCents === undefined ? "estimated" : "actual",
+    };
+    if (actualCostCents !== undefined) {
+      providerCost.actualCents = actualCostCents;
+    }
+    let finalVideoUrl = result.videoUrl!;
+    let storageMetadata: VideoParameters;
+
+    if (hasLifetime) {
       const key = `videos/${videoUuid}/${Date.now()}.mp4`;
-      const uploaded = await storage.downloadAndUpload({
-        sourceUrl: result.videoUrl!,
-        key,
-        contentType: "video/mp4",
-      });
+      try {
+        const uploaded = await getStorage().downloadAndUpload({
+          sourceUrl: result.videoUrl!,
+          key,
+          contentType: "video/mp4",
+        });
+        finalVideoUrl = uploaded.url;
+        storageMetadata = {
+          status: "uploaded",
+          provider: "r2",
+          key,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[tryCompleteGeneration] R2 upload failed for ${videoUuid}:`, error);
+        storageMetadata = {
+          status: "upload_failed",
+          provider: "falai",
+          attemptedProvider: "r2",
+          error: message,
+        };
+      }
+    } else {
+      storageMetadata = {
+        status: "provider_temporary",
+        provider: "falai",
+        reason: "free_plan",
+      };
+    }
 
-      await creditService.settle(videoUuid);
+    await creditService.settle(videoUuid);
 
-      await trx
-        .update(videos)
-        .set({
-          status: VideoStatus.COMPLETED,
-          videoUrl: uploaded.url,
-          thumbnailUrl: result.thumbnailUrl || null,
-          completedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(videos.uuid, videoUuid));
-
-      emitVideoEvent({
-        userId: video.userId,
-        videoUuid,
-        status: "COMPLETED",
-        videoUrl: uploaded.url,
+    await db
+      .update(videos)
+      .set({
+        status: VideoStatus.COMPLETED,
+        videoUrl: finalVideoUrl,
         thumbnailUrl: result.thumbnailUrl || null,
-      });
+        parameters: {
+          ...parameters,
+          providerCost,
+          storage: storageMetadata,
+        },
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(videos.uuid, videoUuid));
 
-      return { status: VideoStatus.COMPLETED, videoUrl: uploaded.url };
+    emitVideoEvent({
+      userId: video.userId,
+      videoUuid,
+      status: "COMPLETED",
+      videoUrl: finalVideoUrl,
+      thumbnailUrl: result.thumbnailUrl || null,
     });
+
+    return { status: VideoStatus.COMPLETED, videoUrl: finalVideoUrl };
   }
 
   /**

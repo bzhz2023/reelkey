@@ -234,7 +234,18 @@ export function useRefreshProcessingVideos(
             const response = await fetch(`/api/v1/video/${uuid}/status`, {
               headers,
             });
-            if (!response.ok) return null;
+            if (!response.ok) {
+              const errorResult = await response.json().catch(() => null);
+              const code = errorResult?.error?.details?.code;
+              if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+                window.dispatchEvent(
+                  new CustomEvent("fal-key-invalid", {
+                    detail: { videoId: uuid },
+                  }),
+                );
+              }
+              return null;
+            }
             const result = await response.json();
             return {
               uuid,

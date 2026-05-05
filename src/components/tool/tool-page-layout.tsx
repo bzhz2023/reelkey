@@ -12,7 +12,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -162,6 +162,11 @@ export function ToolPageLayout({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentVideos, setCurrentVideos] = useState<Video[]>([]);
   const [generatingIds, setGeneratingIds] = useState<string[]>([]);
+  const pendingFalRetryRef = useRef<
+    | { type: "submit"; data: GeneratorData }
+    | { type: "poll"; videoId: string }
+    | null
+  >(null);
   const [historyItems, setHistoryItems] = useState<VideoHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "result">("generator");
   const [resolvedLifetimeAccess, setResolvedLifetimeAccess] =
@@ -229,9 +234,22 @@ export function ToolPageLayout({
   }, [user?.id, hasLifetimeAccess, isByokMode]);
 
   useEffect(() => {
-    const handleMissingKey = () => setShowDialog(true);
+    const handleMissingKey = (event: Event) => {
+      const videoId =
+        event instanceof CustomEvent && typeof event.detail?.videoId === "string"
+          ? event.detail.videoId
+          : undefined;
+      pendingFalRetryRef.current = videoId
+        ? { type: "poll", videoId }
+        : pendingFalRetryRef.current;
+      setShowDialog(true);
+    };
     window.addEventListener("fal-key-missing", handleMissingKey);
-    return () => window.removeEventListener("fal-key-missing", handleMissingKey);
+    window.addEventListener("fal-key-invalid", handleMissingKey);
+    return () => {
+      window.removeEventListener("fal-key-missing", handleMissingKey);
+      window.removeEventListener("fal-key-invalid", handleMissingKey);
+    };
   }, [setShowDialog]);
 
   const addGeneratingId = useCallback((videoId: string) => {
@@ -661,7 +679,11 @@ export function ToolPageLayout({
         const error = await response.json();
         const code = error?.error?.details?.code;
         if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+          pendingFalRetryRef.current = { type: "submit", data };
           setShowDialog(true);
+        }
+        if (code === "FREE_MONTHLY_LIMIT_REACHED") {
+          openLifetimePricing();
         }
         throw new Error(error?.error?.message || error?.message || "Failed to generate video");
       }
@@ -726,6 +748,7 @@ export function ToolPageLayout({
     isByokMode,
     setShowDialog,
     tNotify,
+    openLifetimePricing,
   ]);
 
   // 处理重新生成
@@ -1006,6 +1029,15 @@ export function ToolPageLayout({
         onOpenChange={setShowDialog}
         onSuccess={() => {
           toast.success("API key saved successfully!");
+          const pendingRetry = pendingFalRetryRef.current;
+          pendingFalRetryRef.current = null;
+          if (pendingRetry?.type === "poll") {
+            addGeneratingId(pendingRetry.videoId);
+            startPolling(pendingRetry.videoId);
+          }
+          if (pendingRetry?.type === "submit") {
+            void handleSubmit(pendingRetry.data);
+          }
         }}
       />
 

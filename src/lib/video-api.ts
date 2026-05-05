@@ -130,7 +130,7 @@ export async function generateVideo(
     const code = data.error?.details?.code;
     if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("fal-key-missing"));
+        window.dispatchEvent(new CustomEvent("fal-key-invalid"));
       }
     }
     throw new Error(data.error?.message || "Failed to generate video");
@@ -154,6 +154,14 @@ export async function getVideoStatus(
   const data = await res.json();
 
   if (!data.success) {
+    const code = data.error?.details?.code;
+    if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("fal-key-invalid", { detail: { videoId: videoUuid } }),
+        );
+      }
+    }
     throw new Error(data.error?.message || "Failed to get video status");
   }
 

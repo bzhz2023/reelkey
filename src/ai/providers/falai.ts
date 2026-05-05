@@ -120,16 +120,11 @@ export class FalAiProvider implements AIVideoProvider {
       } catch (error: any) {
         const status = error?.status as number | undefined;
         if (status === 401 || status === 403) {
-          return {
-            taskId,
-            provider: "falai",
-            status: "failed",
-            error: {
-              code: "FAL_KEY_INVALID",
-              message:
-                "Your fal.ai API key is invalid or expired. Please update your key.",
-            },
-          };
+          throw new ApiError(
+            "Your fal.ai API key is invalid or expired. Please update your key.",
+            401,
+            { code: "FAL_KEY_INVALID" },
+          );
         }
         // Fall through and try the next endpoint when this one does not own
         // the request id, or when fal.ai has a transient status lookup error.

@@ -74,7 +74,20 @@ export function useVideoPolling(options: UseVideoPollingOptions = {}) {
             headers,
           });
           if (!response.ok) {
-            throw new Error("Failed to fetch video status");
+            const errorResult = await response.json().catch(() => null);
+            const code = errorResult?.error?.details?.code;
+            if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
+              window.dispatchEvent(
+                new CustomEvent("fal-key-invalid", {
+                  detail: { videoId },
+                }),
+              );
+              stopPolling(videoId);
+              return;
+            }
+            throw new Error(
+              errorResult?.error?.message || "Failed to fetch video status",
+            );
           }
 
           const result = await response.json();
