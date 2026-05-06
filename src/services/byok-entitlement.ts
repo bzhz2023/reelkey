@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 
 import { byokEntitlements, db, type ByokEntitlement } from "@/db";
 
@@ -13,6 +13,15 @@ export interface ByokEntitlementGrantInput {
   checkoutId?: string;
   customerId?: string;
   source?: "creem" | "manual";
+  metadata?: Record<string, unknown>;
+}
+
+export interface ByokEntitlementRevokeInput {
+  userId?: string;
+  orderId?: string;
+  checkoutId?: string;
+  productId?: string;
+  reason: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -207,5 +216,57 @@ export const byokEntitlementService = {
       .returning();
 
     return entitlement;
+  },
+
+  async revokeLifetime(
+    input: ByokEntitlementRevokeInput
+  ): Promise<ByokEntitlement | null> {
+    const predicates = [
+      input.userId ? eq(byokEntitlements.userId, input.userId) : null,
+      input.orderId ? eq(byokEntitlements.orderId, input.orderId) : null,
+      input.checkoutId ? eq(byokEntitlements.checkoutId, input.checkoutId) : null,
+    ].filter((predicate): predicate is NonNullable<typeof predicate> =>
+      Boolean(predicate)
+    );
+
+    if (predicates.length === 0) return null;
+
+    const [existing] = await db
+      .select()
+      .from(byokEntitlements)
+      .where(
+        and(
+          eq(byokEntitlements.tier, "lifetime"),
+          eq(byokEntitlements.status, "active"),
+          predicates.length === 1 ? predicates[0] : or(...predicates)
+        )
+      )
+      .limit(1);
+
+    if (!existing) return null;
+
+    const now = new Date();
+    const previousMetadata =
+      existing.metadata && typeof existing.metadata === "object"
+        ? (existing.metadata as Record<string, unknown>)
+        : {};
+
+    const [entitlement] = await db
+      .update(byokEntitlements)
+      .set({
+        status: "revoked",
+        revokedAt: now,
+        updatedAt: now,
+        metadata: {
+          ...previousMetadata,
+          ...(input.metadata ?? {}),
+          revokeReason: input.reason,
+          ...(input.productId ? { revokedProductId: input.productId } : {}),
+        },
+      })
+      .where(eq(byokEntitlements.id, existing.id))
+      .returning();
+
+    return entitlement ?? null;
   },
 };

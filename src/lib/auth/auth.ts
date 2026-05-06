@@ -69,6 +69,80 @@ const debugLogger =
     }
     : undefined;
 
+function getString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function getRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function getEntityId(value: unknown): string | undefined {
+  if (typeof value === "string") return getString(value);
+  return getString(getRecord(value)?.id);
+}
+
+async function revokeByokLifetimeAccess({
+  checkout,
+  customer,
+  metadata,
+  order,
+  product,
+  reason,
+  webhookId,
+}: {
+  checkout?: unknown;
+  customer?: unknown;
+  metadata?: Record<string, unknown>;
+  order?: unknown;
+  product?: unknown;
+  reason: string;
+  webhookId?: string;
+}) {
+  const checkoutRecord = getRecord(checkout);
+  const checkoutMetadata = getRecord(checkoutRecord?.metadata);
+  const revokeMetadata: Record<string, unknown> = {
+    ...(metadata ?? {}),
+    ...(checkoutMetadata ?? {}),
+    ...(webhookId ? { webhookId } : {}),
+  };
+  const productId =
+    getEntityId(product) ?? getEntityId(checkoutRecord?.product);
+  const orderId = getEntityId(order) ?? getEntityId(checkoutRecord?.order);
+  const checkoutId = getEntityId(checkout);
+  const userId = getString(revokeMetadata.referenceId);
+
+  if (
+    productId &&
+    !isByokLifetimeCheckout({
+      productId,
+      metadata: revokeMetadata,
+    })
+  ) {
+    return;
+  }
+
+  const revoked = await byokEntitlementService.revokeLifetime({
+    ...(userId ? { userId } : {}),
+    ...(orderId ? { orderId } : {}),
+    ...(checkoutId ? { checkoutId } : {}),
+    ...(productId ? { productId } : {}),
+    reason,
+    metadata: revokeMetadata,
+  });
+
+  if (revoked) {
+    console.log(`[Creem] BYOK lifetime entitlement revoked: ${reason}`, {
+      userId: revoked.userId,
+      orderId: revoked.orderId,
+      checkoutId: revoked.checkoutId,
+      productId: revoked.productId,
+    });
+  }
+}
+
 type AuthPlugin =
   | ReturnType<typeof nextCookies>
   | ReturnType<typeof magicLink>
@@ -123,11 +197,13 @@ const plugins: AuthPlugin[] = [
 ];
 
 if (env.CREEM_API_KEY) {
+  const isCreemTestMode = env.CREEM_API_KEY.startsWith("creem_test_");
+
   plugins.push(
     creem({
       apiKey: env.CREEM_API_KEY,
       webhookSecret: env.CREEM_WEBHOOK_SECRET,
-      testMode: process.env.NODE_ENV !== "production",
+      testMode: isCreemTestMode,
       persistSubscriptions: true,
       defaultSuccessUrl: "/dashboard",
 
@@ -218,8 +294,34 @@ if (env.CREEM_API_KEY) {
         console.log(`[Creem] Subscription processed: ${orderNo}`);
       },
 
-      onRevokeAccess: async ({ customer, product }) => {
-        console.log("Creem access revoked:", { customer, product });
+      onRevokeAccess: async ({ customer, product, metadata, reason }) => {
+        await revokeByokLifetimeAccess({
+          customer,
+          metadata: metadata as Record<string, unknown>,
+          product,
+          reason,
+        });
+        console.log("Creem access revoked:", { customer, product, reason });
+      },
+
+      onRefundCreated: async (refundData) => {
+        await revokeByokLifetimeAccess({
+          checkout: refundData.checkout,
+          customer: refundData.customer,
+          order: refundData.order,
+          reason: "refund.created",
+          webhookId: refundData.webhookId,
+        });
+      },
+
+      onDisputeCreated: async (disputeData) => {
+        await revokeByokLifetimeAccess({
+          checkout: disputeData.checkout,
+          customer: disputeData.customer,
+          order: disputeData.order,
+          reason: "dispute.created",
+          webhookId: disputeData.webhookId,
+        });
       },
 
       // 处理一次性购买（checkout.completed 事件不触发 onGrantAccess）

@@ -562,6 +562,10 @@
         "pending": "待支付",
         "failed": "失败"
       },
+      "paymentSuccess": {
+        "title": "支付成功",
+        "description": "终身版权益已同步。现在可以使用所有已接入的视频模型。"
+      },
       "falKey": {
         "cardTitle": "fal.ai API Key",
         "cardDescription": "管理用于 fal.ai 视频生成的密钥。ReelKey 在保存前验证密钥，验证后仅保存在本浏览器中。",

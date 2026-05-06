@@ -562,6 +562,10 @@
         "pending": "Pending",
         "failed": "Failed"
       },
+      "paymentSuccess": {
+        "title": "Payment successful",
+        "description": "Lifetime access has been synced. You can now use every supported video model."
+      },
       "falKey": {
         "cardTitle": "fal.ai API Key",
         "cardDescription": "Manage the key used for fal.ai video generation. ReelKey validates it before saving, then keeps it in this browser only.",

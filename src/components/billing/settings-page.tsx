@@ -5,8 +5,10 @@
 // ============================================
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Mail, IdCard, Calendar } from "lucide-react";
+import { toast } from "sonner";
 import { useBilling } from "@/hooks/use-billing";
 import { AvatarFallback } from "@/components/user/avatar-fallback";
 import { BillingList } from "@/components/billing";
@@ -24,8 +26,10 @@ interface SettingsPageProps {
 
 export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
   const t = useTranslations("dashboard.settings");
+  const searchParams = useSearchParams();
   const { data: session } = authClient.useSession();
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const paymentStatus = searchParams.get("payment");
 
   const {
     user,
@@ -59,6 +63,15 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
       }
     };
   }, [hasMore, isLoading, fetchNextPage]);
+
+  useEffect(() => {
+    if (paymentStatus !== "success") return;
+
+    toast.success(t("paymentSuccess.title"), {
+      id: "byok-payment-success",
+      description: t("paymentSuccess.description"),
+    });
+  }, [paymentStatus, t]);
 
   // Use data from hook if available, otherwise use props
   const displayEmail = user?.email || session?.user?.email || userEmail;
