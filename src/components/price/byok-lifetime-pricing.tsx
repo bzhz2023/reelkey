@@ -102,37 +102,39 @@ function PlanCard({
     }
 
     startTransition(async () => {
-      const [{ creem }, { toast }] = await Promise.all([
-        import("@/lib/auth/client"),
-        import("sonner"),
-      ]);
+      const { toast } = await import("sonner");
       const origin = window.location.origin;
       const successUrl = `${origin}${localePrefix}/settings?payment=success`;
 
-      const { data, error } = await creem.createCheckout({
-        productId,
-        successUrl,
-        metadata: {
-          plan: plan.id,
-          billingKind: plan.billingKind,
-        },
-      });
-
-      if (error) {
-        toast.error("Checkout error", {
-          description: error.message ?? "Failed to create checkout session.",
+      try {
+        const res = await fetch("/api/v1/payment/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productId,
+            successUrl,
+            metadata: {
+              plan: plan.id,
+              billingKind: plan.billingKind,
+            },
+          }),
         });
-        return;
-      }
 
-      if (!data || !("url" in data) || !data.url) {
+        const json = await res.json() as { data?: { url?: string }; error?: string };
+
+        if (!res.ok || !json.data?.url) {
+          toast.error("Checkout error", {
+            description: json.error ?? "Failed to create checkout session.",
+          });
+          return;
+        }
+
+        window.location.href = json.data.url;
+      } catch {
         toast.error("Checkout error", {
-          description: "Missing checkout URL from Creem.",
+          description: "Failed to connect to payment service.",
         });
-        return;
       }
-
-      window.location.href = data.url;
     });
   };
 
