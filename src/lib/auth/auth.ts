@@ -223,14 +223,34 @@ if (env.CREEM_API_KEY) {
           console.log(
             `[Creem] BYOK lifetime subscription-style grant detected for product ${product.id}`
           );
-          await byokEntitlementService.grantLifetime(
-            buildByokEntitlementGrantInput({
-              productId: product.id,
-              productName: product.name,
-              metadata: metadata as Record<string, unknown>,
-              customerId: (customer as { id?: string })?.id,
-            })
-          );
+
+          // 先检查是否已存在授权（onCheckoutCompleted 可能已经写入带 orderId 的记录）
+          // 直接覆盖会清空 orderId，破坏幂等性保护，因此已存在时跳过
+          const meta = (metadata ?? {}) as Record<string, unknown>;
+          const existingUserId = getString(meta.referenceId);
+          if (existingUserId) {
+            const existing = await byokEntitlementService.getLifetime(existingUserId);
+            if (existing) {
+              console.log(
+                `[Creem] BYOK lifetime already granted for user ${existingUserId}, skipping onGrantAccess to preserve orderId`
+              );
+              return;
+            }
+          }
+
+          try {
+            await byokEntitlementService.grantLifetime(
+              buildByokEntitlementGrantInput({
+                productId: product.id,
+                productName: product.name,
+                metadata: metadata as Record<string, unknown>,
+                customerId: (customer as { id?: string })?.id,
+              })
+            );
+          } catch (err) {
+            // referenceId 缺失等异常：记录日志后正常返回，避免 Creem 因 500 无限重试
+            console.error(`[Creem] Failed to grant BYOK lifetime in onGrantAccess`, err);
+          }
           return;
         }
 
@@ -357,21 +377,25 @@ if (env.CREEM_API_KEY) {
               ? checkoutData.customer?.id
               : checkoutData.customer;
 
-          await byokEntitlementService.grantLifetime(
-            buildByokEntitlementGrantInput({
-              productId: product.id,
-              productName: product.name,
-              metadata,
-              order: checkoutData.order,
-              checkoutId: checkoutData.id,
-              customerId,
-              webhookId: checkoutData.webhookId,
-            })
-          );
-
-          console.log(
-            `[Creem] BYOK lifetime entitlement granted for product ${product.id}`
-          );
+          try {
+            await byokEntitlementService.grantLifetime(
+              buildByokEntitlementGrantInput({
+                productId: product.id,
+                productName: product.name,
+                metadata,
+                order: checkoutData.order,
+                checkoutId: checkoutData.id,
+                customerId,
+                webhookId: checkoutData.webhookId,
+              })
+            );
+            console.log(
+              `[Creem] BYOK lifetime entitlement granted for product ${product.id}`
+            );
+          } catch (err) {
+            // referenceId 缺失等异常：记录日志后正常返回，避免 Creem 因 500 无限重试
+            console.error(`[Creem] Failed to grant BYOK lifetime in onCheckoutCompleted`, err);
+          }
           return;
         }
 
