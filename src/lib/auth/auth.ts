@@ -346,6 +346,9 @@ if (env.CREEM_API_KEY) {
 
       // 处理一次性购买（checkout.completed 事件不触发 onGrantAccess）
       onCheckoutCompleted: async (checkoutData) => {
+        // ⚠️ 诊断日志：验证回调是否被调用（同步，无 await）
+        console.log(`[Creem] onCheckoutCompleted CALLED | product=${checkoutData.product?.id} | billing_type=${checkoutData.product?.billing_type} | metadata=${JSON.stringify(checkoutData.metadata)}`);
+
         // 只处理一次性购买（onetime）
         // billing_type 可能是 "onetime" 或 "one-time" 取决于 API 版本
         const productType = checkoutData.product?.billing_type as string;
