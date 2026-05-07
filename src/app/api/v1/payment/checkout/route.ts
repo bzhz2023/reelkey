@@ -22,10 +22,9 @@ export async function POST(request: NextRequest) {
       throw new ApiError("Creem API key not configured.", 500);
     }
 
-    const isProduction = process.env.NODE_ENV === "production";
-    const serverURL = isProduction
-      ? "https://api.creem.io"
-      : "https://test-api.creem.io";
+    const serverURL = apiKey.startsWith("creem_test_")
+      ? "https://test-api.creem.io"
+      : "https://api.creem.io";
 
     const creem = new Creem({ serverURL });
 

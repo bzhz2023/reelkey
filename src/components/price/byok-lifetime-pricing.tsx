@@ -40,6 +40,16 @@ function getLocalePrefix(pathname: string): string {
   return segment === "zh" || segment === "en" ? `/${segment}` : "";
 }
 
+function getCheckoutErrorMessage(error: unknown): string | undefined {
+  if (!error) return undefined;
+  if (typeof error === "string") return error;
+  if (typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === "string" ? message : undefined;
+  }
+  return undefined;
+}
+
 function PlanCard({
   hasLifetimeEntitlement,
   plan,
@@ -120,11 +130,16 @@ function PlanCard({
           }),
         });
 
-        const json = await res.json() as { data?: { url?: string }; error?: string };
+        const json = (await res.json()) as {
+          data?: { url?: string };
+          error?: unknown;
+        };
 
         if (!res.ok || !json.data?.url) {
           toast.error("Checkout error", {
-            description: json.error ?? "Failed to create checkout session.",
+            description:
+              getCheckoutErrorMessage(json.error) ??
+              "Failed to create checkout session.",
           });
           return;
         }
