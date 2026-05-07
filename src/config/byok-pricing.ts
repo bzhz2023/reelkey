@@ -36,12 +36,16 @@ export interface ByokPricingCtaState {
   action: ByokPricingCtaAction;
 }
 
+function getEnvValue(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
 const lifetimeEarlyBirdProductId =
-  process.env.NEXT_PUBLIC_CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID ??
-  process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID ??
-  "";
-const lifetimeRegularProductId =
-  process.env.NEXT_PUBLIC_CREEM_LIFETIME_REGULAR_PRODUCT_ID ?? "";
+  getEnvValue(process.env.NEXT_PUBLIC_CREEM_LIFETIME_EARLY_BIRD_PRODUCT_ID) ||
+  getEnvValue(process.env.NEXT_PUBLIC_CREEM_LIFETIME_PRODUCT_ID);
+const lifetimeRegularProductId = getEnvValue(
+  process.env.NEXT_PUBLIC_CREEM_LIFETIME_REGULAR_PRODUCT_ID
+);
 
 export const BYOK_PRICING_PLANS: ByokPricingPlan[] = [
   {
