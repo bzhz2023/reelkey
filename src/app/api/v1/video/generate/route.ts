@@ -7,10 +7,11 @@ import { z } from "zod";
 // Import proxy configuration for fetch requests
 import "@/lib/proxy-config";
 
-const CREEM_API_BASE =
-  process.env.NODE_ENV === "production"
-    ? "https://api.creem.io"
-    : "https://test-api.creem.io";
+function getCreemApiBase(apiKey: string) {
+  return apiKey.startsWith("creem_test_")
+    ? "https://test-api.creem.io"
+    : "https://api.creem.io";
+}
 
 async function moderatePrompt(prompt: string, userId: string): Promise<void> {
   const apiKey = process.env.CREEM_API_KEY;
@@ -24,7 +25,7 @@ async function moderatePrompt(prompt: string, userId: string): Promise<void> {
   let decision: string;
   let moderationId: string | undefined;
   try {
-    const res = await fetch(`${CREEM_API_BASE}/v1/moderation/prompt`, {
+    const res = await fetch(`${getCreemApiBase(apiKey)}/v1/moderation/prompt`, {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -33,7 +34,19 @@ async function moderatePrompt(prompt: string, userId: string): Promise<void> {
       body: JSON.stringify({ prompt, external_id: `user_${userId}` }),
       signal: AbortSignal.timeout(8000),
     });
-    const data = await res.json() as { id?: string; decision?: string };
+    const data = await res.json() as { id?: string; decision?: string; message?: string; error?: string };
+    if (!res.ok) {
+      console.error("[Moderation] API returned non-OK response", {
+        status: res.status,
+        message: data.message ?? data.error,
+        user: userId,
+      });
+      throw new ApiError(
+        "Content moderation service unavailable. Please try again.",
+        503,
+        { code: "MODERATION_UNAVAILABLE" }
+      );
+    }
     decision = data.decision ?? "deny";
     moderationId = data.id;
     console.log(`[Moderation] Result: decision=${decision} | id=${moderationId} | user=${userId}`);
