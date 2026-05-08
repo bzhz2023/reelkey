@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
 
     const response = apiSuccess({
       user: {
+        name: user.name,
         email: user.email,
         id: user.id,
         createdAt: user.createdAt,

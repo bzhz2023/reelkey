@@ -4,16 +4,15 @@
 // Settings Page (Billing Only)
 // ============================================
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Mail, IdCard, Calendar } from "lucide-react";
+import { Calendar, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useBilling } from "@/hooks/use-billing";
-import { AvatarFallback } from "@/components/user/avatar-fallback";
+import { UserAvatar } from "@/components/user-avatar";
 import { BillingList } from "@/components/billing";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDistanceToNow } from "date-fns";
 import { FalKeyManager } from "@/components/settings/fal-key-manager";
 import { CREDITS_CONFIG } from "@/config/credits";
 import { authClient } from "@/lib/auth/client";
@@ -24,7 +23,7 @@ interface SettingsPageProps {
   userId?: string;
 }
 
-export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
+export function SettingsPage({ locale, userEmail }: SettingsPageProps) {
   const t = useTranslations("dashboard.settings");
   const searchParams = useSearchParams();
   const { data: session } = authClient.useSession();
@@ -75,63 +74,69 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
 
   // Use data from hook if available, otherwise use props
   const displayEmail = user?.email || session?.user?.email || userEmail;
-  const displayUserId = user?.id || session?.user?.id || userId;
+  const displayName = user?.name || session?.user?.name || displayEmail || t("guest");
+  const displayImage = session?.user?.image || null;
   const joinedDate = user?.createdAt
     ? new Date(user.createdAt)
     : session?.user?.createdAt
       ? new Date(session.user.createdAt)
       : null;
+  const joinedDateText = joinedDate
+    ? new Intl.DateTimeFormat(locale, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(joinedDate)
+    : null;
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
       </div>
 
       {/* Account Info Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-6">
+      <Card className="max-w-full overflow-hidden">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
             {/* Avatar */}
-            <AvatarFallback
-              name={displayEmail}
-              email={displayEmail}
-              className="h-16 w-16 text-xl"
-            />
+            <div className="relative w-fit shrink-0">
+              <UserAvatar
+                user={{ name: displayName, image: displayImage }}
+                className="h-14 w-14 text-lg sm:h-16 sm:w-16 sm:text-xl"
+              />
+            </div>
 
             {/* Info */}
-            <div className="flex-1 space-y-4">
+            <div className="min-w-0 flex-1 space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground mb-1">{t("account")}</div>
-                <h2 className="text-lg font-semibold">{t("account")}</h2>
+                <div className="mb-1 text-sm text-muted-foreground">{t("name")}</div>
+                <h2 className="break-all text-lg font-semibold">{displayName}</h2>
               </div>
 
               <div className="space-y-3">
                 {/* Email */}
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("email")}:</span>
-                  <span className="font-medium">{displayEmail}</span>
-                </div>
-
-                {/* User ID */}
-                {displayUserId && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <IdCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t("userId")}:</span>
-                    <span className="font-medium font-mono">{displayUserId}</span>
+                {displayEmail && (
+                  <div className="flex min-w-0 items-start gap-3 text-sm">
+                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1">
+                      <span className="text-muted-foreground">{t("email")}:</span>
+                      <span className="min-w-0 break-all font-medium">{displayEmail}</span>
+                    </div>
                   </div>
                 )}
 
                 {/* Joined Date */}
-                {joinedDate && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t("joined")}:</span>
-                    <span className="font-medium">
-                      {formatDistanceToNow(joinedDate, { addSuffix: true })}
-                    </span>
+                {joinedDateText && (
+                  <div className="flex min-w-0 items-start gap-3 text-sm">
+                    <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1">
+                      <span className="text-muted-foreground">{t("joined")}:</span>
+                      <span className="min-w-0 font-medium">
+                        {joinedDateText}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>

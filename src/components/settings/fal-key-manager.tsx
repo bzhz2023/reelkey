@@ -82,10 +82,10 @@ export function FalKeyManager() {
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-muted/20">
+    <Card className="max-w-full overflow-hidden">
+      <CardHeader className="border-b bg-muted/20 p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
+          <div className="min-w-0 space-y-2">
             <CardTitle className="flex items-center gap-2">
               {getStatusIcon()}
               {t("cardTitle")}
@@ -96,15 +96,15 @@ export function FalKeyManager() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 p-6">
+      <CardContent className="space-y-5 p-4 sm:p-6">
         {hasStoredKey && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 transition-colors">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-background">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <div className="text-sm font-semibold">{t("connected")}</div>
                   <p className="text-sm text-muted-foreground">
                     {t("connectedDesc")}
@@ -112,7 +112,7 @@ export function FalKeyManager() {
                 </div>
               </div>
 
-              <code className="w-fit rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
+              <code className="max-w-full break-all rounded-md border bg-background px-3 py-1.5 font-mono text-xs text-foreground">
                 {maskedKey}
               </code>
             </div>
@@ -176,9 +176,9 @@ export function FalKeyManager() {
           </div>
         )}
 
-        <div className="rounded-lg border p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
+        <div className="min-w-0 rounded-lg border p-4">
+          <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
+            <div className="min-w-0">
               <Label htmlFor="fal-key">
                 {hasStoredKey ? t("replaceLabel") : t("addLabel")}
               </Label>
@@ -187,8 +187,8 @@ export function FalKeyManager() {
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+            <div className="relative min-w-0 flex-1">
               <Input
                 id="fal-key"
                 type={showKey ? "text" : "password"}

@@ -123,6 +123,7 @@ export interface Invoice {
 
 export interface BillingResponse {
   user: {
+    name: string | null;
     email: string;
     id: string;
     createdAt: Date;
