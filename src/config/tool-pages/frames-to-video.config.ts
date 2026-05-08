@@ -25,15 +25,15 @@ export const framesToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "veo-3.1-fast",
+      model: "veo-3.1",
       duration: 5,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["veo-3.1-fast", "kling-3.0-pro", "hailuo-02-standard"],
-      default: "veo-3.1-fast",
+      available: ["veo-3.1", "kling-3.0-pro", "hailuo-02-standard"],
+      default: "veo-3.1",
     },
 
     features: {
@@ -97,7 +97,7 @@ export const framesToVideoConfig: ToolPageConfig = {
     ],
 
     supportedModels: [
-      { name: "Veo 3.1 Fast", provider: "fal.ai", color: "#4285f4" },
+      { name: "Veo 3.1", provider: "fal.ai", color: "#4285f4" },
       { name: "Kling 3.0 Pro", provider: "fal.ai", color: "#f59e0b" },
       { name: "Hailuo 02 Standard", provider: "fal.ai", color: "#06b6d4" },
     ],

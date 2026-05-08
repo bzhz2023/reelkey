@@ -103,7 +103,7 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
       inputModes: ["text-to-video", "image-to-video"],
       durations: ["5s"],
       aspectRatios: ["16:9", "9:16", "1:1"],
-      resolutions: ["480P", "720P", "1080P"],
+      resolutions: ["480P", "720P"],
       maxImages: 1,
     },
     parameterSchema: [
@@ -117,33 +117,33 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
       note: "$0.05/s estimate; 5s is about $0.25.",
     },
   },
-  "seedance-2.0-fast": {
-    id: "seedance-2.0-fast",
-    displayName: "Seedance 2.0 Fast",
+  "seedance-2.0": {
+    id: "seedance-2.0",
+    displayName: "Seedance 2.0",
     provider: "falai",
-    description: "Fast ByteDance model with text, image, reference video, and audio options.",
+    description: "ByteDance video model with text, image, reference video, and audio options.",
     accessTier: "paid",
     color: "#10b981",
     icon: "S",
     endpoints: {
-      "text-to-video": "bytedance/seedance-2.0/fast/text-to-video",
-      "image-to-video": "bytedance/seedance-2.0/fast/image-to-video",
-      "reference-to-video": "bytedance/seedance-2.0/fast/reference-to-video",
+      "text-to-video": "bytedance/seedance-2.0/text-to-video",
+      "image-to-video": "bytedance/seedance-2.0/image-to-video",
+      "reference-to-video": "bytedance/seedance-2.0/reference-to-video",
     },
     capabilities: {
       inputModes: ["text-to-video", "image-to-video", "reference-to-video"],
-      durations: ["auto", "4s", "5s", "6s", "8s", "10s", "12s", "15s"],
-      aspectRatios: ["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"],
+      durations: ["5s", "10s", "15s"],
+      aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "auto"],
       resolutions: ["480P", "720P"],
-      maxImages: 1,
+      maxImages: 9,
       supportsAudio: true,
       supportsSeed: true,
     },
     parameterSchema: [
       { key: "prompt", type: "string", required: true },
       { key: "resolution", type: "select", default: "720p", options: ["480p", "720p"] },
-      { key: "duration", type: "select", default: "auto", options: ["auto", 4, 5, 6, 8, 10, 12, 15] },
-      { key: "aspect_ratio", type: "select", default: "auto", options: ["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"] },
+      { key: "duration", type: "select", default: "5s", options: [5, 10, 15] },
+      { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "auto"] },
       { key: "generate_audio", type: "boolean", default: true },
       { key: "seed", type: "number" },
       { key: "image_url", type: "file", modes: ["image-to-video"] },
@@ -169,7 +169,7 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
     },
     capabilities: {
       inputModes: ["text-to-video", "image-to-video", "frames-to-video"],
-      durations: ["3s", "5s", "10s", "15s"],
+      durations: ["5s", "10s", "15s"],
       aspectRatios: ["16:9", "9:16", "1:1"],
       maxImages: 2,
       supportsAudio: true,
@@ -177,8 +177,8 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
     },
     parameterSchema: [
       { key: "prompt", type: "string", required: true },
-      { key: "duration", type: "select", default: "5s", options: [3, 5, 10, 15] },
-      { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16", "1:1"] },
+      { key: "duration", type: "select", default: "5s", options: [5, 10, 15] },
+      { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16", "1:1"], modes: ["text-to-video"] },
       { key: "generate_audio", type: "boolean", default: true },
       { key: "negative_prompt", type: "string" },
       { key: "cfg_scale", type: "number", default: 0.5 },
@@ -190,24 +190,24 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
       note: "Depends on selected duration and mode.",
     },
   },
-  "veo-3.1-fast": {
-    id: "veo-3.1-fast",
-    displayName: "Veo 3.1 Fast",
+  "veo-3.1": {
+    id: "veo-3.1",
+    displayName: "Veo 3.1",
     provider: "falai",
-    description: "Google Veo fast model with text, image, first/last frame, and extend modes.",
+    description: "Google Veo model with text, image, first/last frame, and extend modes.",
     accessTier: "paid",
     color: "#4285f4",
     icon: "V",
     endpoints: {
-      "text-to-video": "fal-ai/veo3.1/fast",
-      "image-to-video": "fal-ai/veo3.1/fast/image-to-video",
-      "frames-to-video": "fal-ai/veo3.1/fast/first-last-frame-to-video",
-      "extend-video": "fal-ai/veo3.1/fast/extend",
+      "text-to-video": "fal-ai/veo3.1",
+      "image-to-video": "fal-ai/veo3.1/image-to-video",
+      "frames-to-video": "fal-ai/veo3.1/first-last-frame-to-video",
+      "extend-video": "fal-ai/veo3.1/extend",
     },
     capabilities: {
       inputModes: ["text-to-video", "image-to-video", "frames-to-video", "extend-video"],
       durations: ["4s", "6s", "8s"],
-      aspectRatios: ["auto", "16:9", "9:16"],
+      aspectRatios: ["16:9", "9:16", "auto"],
       resolutions: ["720P", "1080P", "4K"],
       maxImages: 2,
       supportsAudio: true,
@@ -217,7 +217,7 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
     parameterSchema: [
       { key: "prompt", type: "string", required: true },
       { key: "duration", type: "select", default: "8s", options: ["4s", "6s", "8s"] },
-      { key: "aspect_ratio", type: "select", default: "16:9", options: ["auto", "16:9", "9:16"] },
+      { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16", "auto"] },
       { key: "resolution", type: "select", default: "720p", options: ["720p", "1080p", "4k"] },
       { key: "negative_prompt", type: "string" },
       { key: "generate_audio", type: "boolean", default: true },
@@ -232,33 +232,69 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
       note: "Depends on duration, resolution, and endpoint.",
     },
   },
-  "sora-2": {
-    id: "sora-2",
-    displayName: "Sora 2",
+  "sora-2-pro": {
+    id: "sora-2-pro",
+    displayName: "Sora 2 Pro",
     provider: "falai",
-    description: "OpenAI text-to-video model on fal.ai.",
+    description: "OpenAI Sora 2 Pro text and image video generation on fal.ai.",
     accessTier: "paid",
     color: "#111827",
     icon: "S",
     endpoints: {
-      "text-to-video": "fal-ai/sora-2/text-to-video",
+      "text-to-video": "fal-ai/sora-2/text-to-video/pro",
+      "image-to-video": "fal-ai/sora-2/image-to-video/pro",
     },
     capabilities: {
-      inputModes: ["text-to-video"],
-      durations: ["4s", "8s", "12s", "16s", "20s"],
+      inputModes: ["text-to-video", "image-to-video"],
+      durations: ["4s", "12s", "20s"],
       aspectRatios: ["16:9", "9:16"],
-      resolutions: ["720P"],
+      resolutions: ["720P", "1080P"],
+      maxImages: 1,
     },
     parameterSchema: [
       { key: "prompt", type: "string", required: true },
-      { key: "resolution", type: "select", default: "720p", options: ["720p"] },
+      { key: "resolution", type: "select", default: "1080p", options: ["720p", "1080p"] },
       { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16"] },
-      { key: "duration", type: "select", default: "8s", options: [4, 8, 12, 16, 20] },
+      { key: "duration", type: "select", default: "12s", options: [4, 12, 20] },
+      { key: "image_url", type: "file", modes: ["image-to-video"] },
       { key: "delete_video", type: "boolean", default: false },
     ],
     pricingEstimate: {
       unit: "manual",
       note: "Depends on duration and fal.ai current Sora pricing.",
+    },
+  },
+  "happyhorse-1.0": {
+    id: "happyhorse-1.0",
+    displayName: "HappyHorse-1.0",
+    provider: "falai",
+    description: "Alibaba HappyHorse video model for text and reference-guided video.",
+    accessTier: "paid",
+    color: "#ef4444",
+    icon: "H",
+    endpoints: {
+      "text-to-video": "alibaba/happy-horse/text-to-video",
+      "reference-to-video": "alibaba/happy-horse/reference-to-video",
+    },
+    capabilities: {
+      inputModes: ["text-to-video", "reference-to-video"],
+      durations: ["5s", "10s", "15s"],
+      aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+      resolutions: ["720P", "1080P"],
+      maxImages: 9,
+      supportsSeed: true,
+    },
+    parameterSchema: [
+      { key: "prompt", type: "string", required: true },
+      { key: "duration", type: "select", default: "5s", options: [5, 10, 15] },
+      { key: "aspect_ratio", type: "select", default: "16:9", options: ["16:9", "9:16", "1:1", "4:3", "3:4"] },
+      { key: "resolution", type: "select", default: "1080p", options: ["720p", "1080p"] },
+      { key: "seed", type: "number" },
+      { key: "image_urls", type: "file-list", modes: ["reference-to-video"] },
+    ],
+    pricingEstimate: {
+      unit: "manual",
+      note: "Depends on fal.ai current HappyHorse pricing.",
     },
   },
   "hailuo-02-standard": {
@@ -297,8 +333,15 @@ export const VIDEO_MODEL_REGISTRY: Record<string, VideoModelRegistryItem> = {
 
 export const VIDEO_MODEL_REGISTRY_ORDER = Object.keys(VIDEO_MODEL_REGISTRY);
 
+const VIDEO_MODEL_ALIASES: Record<string, string> = {
+  "seedance-2.0-fast": "seedance-2.0",
+  "veo-3.1-fast": "veo-3.1",
+  "sora-2": "sora-2-pro",
+};
+
 export function getVideoModelRegistryItem(modelId: string) {
-  return VIDEO_MODEL_REGISTRY[modelId as keyof typeof VIDEO_MODEL_REGISTRY] ?? null;
+  const canonicalId = VIDEO_MODEL_ALIASES[modelId] ?? modelId;
+  return VIDEO_MODEL_REGISTRY[canonicalId as keyof typeof VIDEO_MODEL_REGISTRY] ?? null;
 }
 
 export function getVideoModelRegistryItems() {

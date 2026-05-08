@@ -309,7 +309,8 @@ export function calculateModelCredits(
 
   // 根据模型使用不同的计算逻辑
   switch (modelId) {
-    case "sora-2": {
+    case "sora-2":
+    case "sora-2-pro": {
       // Sora 2: 固定价格（10s=2积分, 15s=3积分）
       credits = params.duration === 15 ? 3 : 2;
       break;
@@ -324,13 +325,16 @@ export function calculateModelCredits(
       break;
     }
 
-    case "veo-3.1": {
+    case "veo-3.1":
+    case "veo-3.1-fast": {
       // Veo 3.1: 固定 10 积分
       credits = 10;
       break;
     }
 
-    case "seedance-1.5-pro": {
+    case "seedance-1.5-pro":
+    case "seedance-2.0":
+    case "seedance-2.0-fast": {
       // Seedance: 按秒计费，720p 有音频 = 4积分/秒
       let perSecond = 4; // 720p 有音频
       if (isHighQuality) {

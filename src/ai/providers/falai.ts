@@ -215,10 +215,14 @@ function buildFalInput(
   }
 
   if (mode === "image-to-video" && imageUrls[0]) {
-    base.image_url = imageUrls[0];
+    if (modelId === "kling-3.0-pro") {
+      base.start_image_url = imageUrls[0];
+    } else {
+      base.image_url = imageUrls[0];
+    }
   }
   if (mode === "frames-to-video") {
-    if (modelId === "veo-3.1-fast") {
+    if (modelId === "veo-3.1" || modelId === "veo-3.1-fast") {
       if (imageUrls[0]) base.first_frame_url = imageUrls[0];
       if (imageUrls[1]) base.last_frame_url = imageUrls[1];
     } else {
@@ -227,10 +231,14 @@ function buildFalInput(
     }
   }
   if (mode === "reference-to-video" && imageUrls.length > 0) {
-    base.video_urls = imageUrls;
+    if (modelId === "happyhorse-1.0") {
+      base.image_urls = imageUrls;
+    } else {
+      base.video_urls = imageUrls;
+    }
   }
 
-  if (modelId === "sora-2") {
+  if (modelId === "sora-2" || modelId === "sora-2-pro") {
     base.delete_video = false;
   }
   if (modelId === "hailuo-02-standard") {
@@ -244,6 +252,9 @@ function supportsAspectRatio(modelId: string, mode: string): boolean {
   // The fal-ai/kling-video/v2.5-turbo/standard/image-to-video endpoint rejects
   // aspect_ratio with HTTP 422. Text-to-video and other Kling endpoints keep it.
   if (modelId === "kling-2.5-turbo" && mode === "image-to-video") {
+    return false;
+  }
+  if (modelId === "kling-3.0-pro" && mode !== "text-to-video") {
     return false;
   }
   return true;

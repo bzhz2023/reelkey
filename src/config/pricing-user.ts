@@ -276,8 +276,8 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     accessTier: "free",
   },
 
-  /** Seedance 2.0 Fast - fal.ai */
-  "seedance-2.0-fast": {
+  /** Seedance 2.0 - fal.ai */
+  "seedance-2.0": {
     baseCredits: 30,
     perSecond: 6,
     qualityMultiplier: 1.5,
@@ -293,8 +293,8 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     accessTier: "paid",
   },
 
-  /** Veo 3.1 Fast - fal.ai */
-  "veo-3.1-fast": {
+  /** Veo 3.1 - fal.ai */
+  "veo-3.1": {
     baseCredits: 40,
     perSecond: 8,
     qualityMultiplier: 2,
@@ -302,12 +302,21 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     accessTier: "paid",
   },
 
-  /** Sora 2 - fal.ai */
-  "sora-2": {
+  /** Sora 2 Pro - fal.ai */
+  "sora-2-pro": {
     baseCredits: 35,
     perSecond: 7,
     accessTier: "paid",
     enabled: true,
+  },
+
+  /** HappyHorse-1.0 - fal.ai */
+  "happyhorse-1.0": {
+    baseCredits: 35,
+    perSecond: 7,
+    qualityMultiplier: 1,
+    enabled: true,
+    accessTier: "paid",
   },
 
   /** MiniMax Hailuo 02 Standard - fal.ai */
