@@ -79,6 +79,8 @@ const TOOL_PREFILL_KEY = "reel_key_tool_prefill";
 const HISTORY_SYNC_CACHE_MS = 60 * 1000;
 const NOTIFICATION_ASKED_KEY = "reel_key_notification_asked";
 const GENERATION_NOTIFY_TOAST_ID = "generation-notification-permission";
+const LIFETIME_ACCESS_CACHE_PREFIX = "reel_key_lifetime_access:";
+const LAST_TOOL_USER_ID_KEY = "reel_key_last_tool_user_id";
 let generationNotificationPromptShown = false;
 
 const historySyncState = {
@@ -88,6 +90,43 @@ const historySyncState = {
 };
 const lifetimeAccessCache = new Map<string, boolean>();
 let lastKnownToolUser: Pick<User, "id" | "name" | "image" | "email"> | null = null;
+
+function getCachedLifetimeAccess(userId?: string) {
+  if (!userId || typeof window === "undefined") return undefined;
+  if (lifetimeAccessCache.has(userId)) return lifetimeAccessCache.get(userId);
+  try {
+    return localStorage.getItem(`${LIFETIME_ACCESS_CACHE_PREFIX}${userId}`) === "true"
+      ? true
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getLastCachedToolUserId() {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return localStorage.getItem(LAST_TOOL_USER_ID_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function setCachedLifetimeAccess(userId: string, hasLifetimeAccess: boolean) {
+  lifetimeAccessCache.set(userId, hasLifetimeAccess);
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LAST_TOOL_USER_ID_KEY, userId);
+    const key = `${LIFETIME_ACCESS_CACHE_PREFIX}${userId}`;
+    if (hasLifetimeAccess) {
+      localStorage.setItem(key, "true");
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Some privacy modes disable localStorage; the in-memory cache still helps.
+  }
+}
 
 // ============================================================================
 // Types
@@ -171,8 +210,10 @@ export function ToolPageLayout({
   >(null);
   const [historyItems, setHistoryItems] = useState<VideoHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "result">("generator");
-  const [resolvedLifetimeAccess, setResolvedLifetimeAccess] =
-    useState(hasLifetimeAccess);
+  const [resolvedLifetimeAccess, setResolvedLifetimeAccess] = useState(() => {
+    if (hasLifetimeAccess) return true;
+    return getCachedLifetimeAccess(initialUser?.id ?? getLastCachedToolUserId()) ?? false;
+  });
   const [prefillData, setPrefillData] = useState<{
     prompt?: string;
     model?: string;
@@ -185,6 +226,13 @@ export function ToolPageLayout({
 
   useEffect(() => {
     if (session?.user) {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(LAST_TOOL_USER_ID_KEY, session.user.id);
+        } catch {
+          // Ignore storage failures; session state remains authoritative.
+        }
+      }
       lastKnownToolUser = {
         id: session.user.id,
         name: session.user.name,
@@ -196,6 +244,7 @@ export function ToolPageLayout({
 
   useEffect(() => {
     if (!user?.id) {
+      if (isSessionPending) return;
       setResolvedLifetimeAccess(false);
       return;
     }
@@ -206,15 +255,14 @@ export function ToolPageLayout({
     }
 
     if (hasLifetimeAccess) {
-      lifetimeAccessCache.set(user.id, true);
+      setCachedLifetimeAccess(user.id, true);
       setResolvedLifetimeAccess(true);
       return;
     }
 
-    const cached = lifetimeAccessCache.get(user.id);
+    const cached = getCachedLifetimeAccess(user.id);
     if (cached !== undefined) {
       setResolvedLifetimeAccess(cached);
-      return;
     }
 
     const controller = new AbortController();
@@ -224,7 +272,7 @@ export function ToolPageLayout({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const nextHasLifetime = Boolean(data?.data?.hasLifetimeAccess);
-        lifetimeAccessCache.set(user.id, nextHasLifetime);
+        setCachedLifetimeAccess(user.id, nextHasLifetime);
         setResolvedLifetimeAccess(nextHasLifetime);
       })
       .catch((error) => {

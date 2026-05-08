@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Gem, Globe, Menu, Sun, Moon, Monitor } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -20,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { userMenuItems } from "@/config/navigation";
-import { i18n, localeMap } from "@/config/i18n-config";
+import { i18n, localeMap, LOCALE_COOKIE_NAME } from "@/config/i18n-config";
 import { CREDITS_CONFIG } from "@/config/credits";
 
 interface HeaderSimpleProps {
@@ -43,22 +44,43 @@ export function HeaderSimple({
   const tCommon = useTranslations("Common");
   const tHeader = useTranslations("Header");
   const currentLocale = lang || "en";
+  const [optimisticLocale, setOptimisticLocale] = useState(currentLocale);
+  const [, startLocaleTransition] = useTransition();
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
   const { balance } = useCredits({ enabled: Boolean(user) && !isByokMode });
   const visibleUserMenuItems = userMenuItems.filter(
     (item) => !(isByokMode && item.hiddenInByok)
   );
 
-  const switchLocale = (nextLocale: string) => {
+  const getLocalizedPath = useCallback((nextLocale: string) => {
     const pathWithoutLocale = pathname.replace(
       new RegExp(`^/(${i18n.locales.join("|")})(?=/|$)`),
       "",
     ) || "/";
-    const nextPath =
-      nextLocale === i18n.defaultLocale
-        ? pathWithoutLocale
-        : `/${nextLocale}${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
-    router.push(nextPath);
+    return nextLocale === i18n.defaultLocale
+      ? pathWithoutLocale
+      : `/${nextLocale}${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
+  }, [pathname]);
+
+  useEffect(() => {
+    setOptimisticLocale(currentLocale);
+  }, [currentLocale]);
+
+  useEffect(() => {
+    for (const locale of i18n.locales) {
+      if (locale !== currentLocale) {
+        router.prefetch(getLocalizedPath(locale));
+      }
+    }
+  }, [currentLocale, getLocalizedPath, router]);
+
+  const switchLocale = (nextLocale: string) => {
+    if (nextLocale === currentLocale) return;
+    setOptimisticLocale(nextLocale);
+    startLocaleTransition(() => {
+      document.cookie = `${LOCALE_COOKIE_NAME}=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
+      window.location.assign(getLocalizedPath(nextLocale));
+    });
   };
 
   const menuLabelMap: Record<string, string> = {
@@ -96,7 +118,7 @@ export function HeaderSimple({
               >
                 <Globe className="h-4 w-4" />
                 <span className="text-xs font-semibold">
-                  {currentLocale.toUpperCase()}
+                  {optimisticLocale.toUpperCase()}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -110,7 +132,7 @@ export function HeaderSimple({
                   onSelect={() => switchLocale(locale)}
                   className={cn(
                     "cursor-pointer",
-                    locale === currentLocale && "bg-muted"
+                    locale === optimisticLocale && "bg-muted"
                   )}
                 >
                   <span>{localeMap[locale]}</span>

@@ -43,6 +43,7 @@ import { useCredits } from "@/stores/credits-store";
 import { headerModels, headerTools, headerDocs } from "@/config/navigation";
 import { Gem, ImagePlay, Type, Video, BookOpen } from "lucide-react";
 import { LocaleLink } from "@/i18n/navigation";
+import { LOCALE_COOKIE_NAME } from "@/config/i18n-config";
 import type { User } from "@/lib/auth/client";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { authClient } from "@/lib/auth/client";
@@ -218,8 +219,8 @@ export function LandingHeader({ user }: { user?: User | null }) {
         // newPath is already cleaned
       }
 
-      router.push(newPath);
-      router.refresh(); // Force server components to re-render with new locale
+      document.cookie = `${LOCALE_COOKIE_NAME}=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+      window.location.assign(newPath);
     });
   };
 

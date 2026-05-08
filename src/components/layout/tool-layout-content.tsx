@@ -13,7 +13,7 @@ import { useIdleRoutePrefetch } from "@/hooks/use-idle-route-prefetch";
 interface ToolLayoutContentProps {
   children: React.ReactNode;
   lang: string;
-  initialUser?: Pick<User, "name" | "image" | "email"> | null;
+  initialUser?: Pick<User, "id" | "name" | "image" | "email"> | null;
 }
 
 export function ToolLayoutContent({
