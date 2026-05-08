@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "ReelKey - AI 视频生成平台",
-    "description": "用自己的 fal.ai API Key 生成 AI 视频，支持 Kling 2.5 和 Wan 2.5，一次性终身授权 $29 起。"
+    "description": "用自己的 fal.ai API Key 生成 AI 视频，支持 7 款模型包括 Kling、Veo、Sora、Seedance、Hailuo 等，一次性终身授权 $29 起。"
   },
   "Common": {
     "login": "登录",
@@ -29,9 +29,9 @@
   },
   "Hero": {
     "badge": "自带 API Key • 无订阅制",
-    "title": "用自己的 API Key 生成 AI 视频",
+    "title": "AI 视频生成器 — Sora 2、Kling、Veo 3.1、Seedance 等",
     "subtitle": "无订阅，按需使用，费用直付 fal.ai",
-    "description": "使用 Kling 2.5 和 Wan 2.5，自带 fal.ai API Key，直接向 fal.ai 付费，完全掌控。一次购买，终身使用。",
+    "description": "通过自己的 fal.ai API Key 调用 7 款顶级 AI 视频模型，无订阅费，无过期积分，直接向服务商付费，完全掌控。",
     "startCreating": "免费开始",
     "viewExamples": "查看示例",
     "features": {
@@ -84,16 +84,16 @@
   },
   "Showcase": {
     "badge": "亲眼见证",
-    "title": "使用 ReelKey 创作",
-    "subtitle": "AI 生成的精彩视频",
+    "title": "AI 视频作品展示 — Sora、Kling、Veo 生成",
+    "subtitle": "社区用户用 ReelKey 创作的真实 AI 视频",
     "description": "探索我们社区使用 AI 视频生成创作的精彩作品。从电影级风景到产品动画，无所不能。",
     "ctaText": "准备好创作自己的杰作了吗？",
     "ctaButton": "立即开始创作"
   },
   "Features": {
     "badge": "为什么选择 ReelKey",
-    "title": "完全掌控，零锁定",
-    "subtitle": "更聪明的 AI 视频生成方式",
+    "title": "为什么用 ReelKey 作为你的 AI 视频生成器",
+    "subtitle": "无订阅、无锁定，完全掌控你的 AI 视频生成",
     "description": "不再为订阅和过期积分付费。使用自己的 fal.ai API Key，直接向 fal.ai 付费。",
     "learnMore": "了解更多",
     "bottomCTA": {
@@ -117,7 +117,7 @@
     },
     "enhancement": {
       "title": "多模型支持",
-      "description": "Kling 2.5 Turbo Pro 和 Wan 2.5 已上线，更多模型持续添加——均包含在终身许可证中。",
+      "description": "7 款模型已上线：Kling 2.5、Kling 3.0、Veo 3.1、Sora 2、Seedance 2.0、Hailuo 02 等，更多持续添加——均包含在终身许可证中。",
       "stat": "更多即将上线"
     },
     "fast": {
@@ -143,39 +143,39 @@
   },
   "HowItWorks": {
     "badge": "简单设置",
-    "title": "几分钟内开始使用",
-    "subtitle": "4 步开始生成视频",
-    "description": "无复杂设置。只需添加您的 API Key 即可开始创作。",
+    "title": "如何用自己的 API Key 生成 AI 视频",
+    "subtitle": "4 步开始 AI 视频创作",
+    "description": "无复杂设置。连接 fal.ai API Key，选择模型，几分钟内开始生成视频。",
     "bottomHint": "一次性购买 • 终身访问",
     "cta": "立即获取 ReelKey",
     "steps": {
       "prompt": {
-        "title": "获取许可证",
-        "description": "一次性购买。无订阅，无重复费用。终身访问所有功能和更新。",
-        "stat": "付费一次"
+        "title": "免费开始，无需信用卡",
+        "description": "免费注册，每月 5 次生成，使用 2 款入门模型。随时可一次性升级终身版。",
+        "stat": "免费套餐"
       },
       "upload": {
-        "title": "添加 fal.ai Key",
-        "description": "几秒钟内连接您的 fal.ai API Key。密钥仅存储在您的浏览器中——从不发送到我们的服务器。",
+        "title": "连接 fal.ai API Key",
+        "description": "几秒内添加你的 fal.ai API Key，密钥仅存储在浏览器中，从不上传到服务器。",
         "stat": "30 秒"
       },
       "generate": {
-        "title": "开始创作",
-        "description": "使用您自己的 API 配额生成视频。直接按 fal.ai 价格付费——无加价。",
-        "stat": "您的成本"
+        "title": "即刻生成 AI 视频",
+        "description": "从 Sora 2、Kling、Veo 3.1、Seedance 等 7 款模型中选择，直接按 fal.ai 价格付费，零溢价。",
+        "stat": "7 款模型"
       },
       "download": {
-        "title": "下载分享",
-        "description": "导出高清视频，随处分享。您的视频，您的所有权，无平台水印。",
-        "stat": "完全所有权"
+        "title": "高清下载，无水印",
+        "description": "以完整高清画质导出 AI 生成视频，完全归你所有，云端永久存储，随时访问。",
+        "stat": "全高清"
       }
     }
   },
   "CTA": {
     "badge": "一次性购买",
-    "title": "停止支付月度订阅",
-    "subtitle": "永久拥有您的 AI 视频工作流",
-    "description": "加入从昂贵订阅切换到 BYOK 模式的创作者",
+    "title": "一次付费，终身 AI 视频生成",
+    "subtitle": "永久拥有你的 AI 视频工作流，告别月费",
+    "description": "加入已从昂贵订阅切换到直接付费模型方的创作者",
     "getStarted": "立即获取 ReelKey",
     "learnMore": "比较方案",
     "benefits": {
@@ -199,16 +199,20 @@
     "subtitle": "关于 ReelKey 的一切",
     "contact": "还有其他问题？请联系我们",
     "general": {
-      "question": "什么是 ReelKey？",
-      "answer": "ReelKey 是一个 BYOK（自带密钥）AI 视频生成工作台。您连接自己的 fal.ai API Key，通过支持的模型生成视频，并由 fal.ai 直接向您的账号计费。"
+      "question": "什么是 ReelKey？（AI 视频生成器，无需订阅）",
+      "answer": "ReelKey 是一款 BYOK（自带 API Key）AI 视频生成器。你连接自己的 fal.ai API Key，通过 Sora 2、Kling、Veo 3.1 等 7 款模型生成视频，由 fal.ai 直接向你的账号计费——无订阅费，无过期积分。"
+    },
+    "pricing": {
+      "question": "ReelKey 可以免费使用吗？",
+      "answer": "可以——ReelKey 提供免费套餐，每月 5 次生成机会，可访问 2 款入门模型（Kling 2.5 Turbo Pro 和 Wan 2.5）。终身付费版起价 $29 一次性付款，解锁全部 7 款模型、无限次生成（通过你的 API Key）及永久云端存储，无任何周期性费用。"
     },
     "commercial": {
-      "question": "这与其他 AI 视频平台有何不同？",
-      "answer": "ReelKey 把工作台能力和模型方计费拆开。ReelKey 负责界面、生成记录和存储能力；fal.ai 的生成成本由 fal.ai 直接向您的账号计费。"
+      "question": "ReelKey 与其他 AI 视频生成器有何不同？",
+      "answer": "大多数 AI 视频平台按月订阅，并以溢价方式转卖积分。ReelKey 只收取一次性工作台授权费，之后让你直接使用自己的 fal.ai API Key 付费——零溢价。同时支持更多模型（Sora 2、Kling 3.0、Veo 3.1、Seedance、Hailuo），无等级限制。"
     },
     "aiModels": {
-      "question": "支持哪些 AI 模型？",
-      "answer": "ReelKey 目前通过 fal.ai 支持 Kling 2.5 Turbo Pro 和 Wan 2.5，涵盖文本生视频和图片生视频两种模式，支持多种分辨率。后续会持续新增模型，终身许可证用户免费获得所有新增模型，无需额外付费。"
+      "question": "ReelKey 支持哪些 AI 视频模型？",
+      "answer": "ReelKey 目前通过 fal.ai 支持 7 款模型：Kling 2.5 Turbo Pro、Wan 2.5、Seedance 2.0 Fast、Kling 3.0 Pro、Veo 3.1 Fast、Sora 2、Hailuo 02 Standard，涵盖文本生视频、图片生视频、首尾帧生视频等多种模式。后续会持续新增模型，终身许可证用户免费获得所有新增模型，无需额外付费。"
     },
     "providerBilling": {
       "question": "生成费用由谁收取？",
@@ -228,7 +232,7 @@
     "company": "公司",
     "legal": "法律",
     "copyright": "© {year} ReelKey. 保留所有权利。",
-    "tagline": "用 AI 将你的创意变成精彩视频。",
+    "tagline": "AI 视频生成器 — Sora 2、Kling、Veo 3.1 等，无订阅费。",
     "madeWith": "由 ReelKey 团队用 <heart></heart> 制作",
     "imageToVideo": "图片生成视频",
     "textToVideo": "文字生成视频",
@@ -407,7 +411,7 @@
       "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
-        "models": "用自己的 fal.ai API Key 使用 Kling 2.5 和 Wan 2.5",
+        "models": "用自己的 fal.ai API Key 使用 7 款模型（Kling、Veo、Sora、Seedance、Hailuo 等）",
         "share": "随时随地下载和分享您的作品"
       },
       "cta": "开始创作视频",
@@ -446,7 +450,7 @@
       "features": "使用 ReelKey，您可以：",
       "featuresList": {
         "generate": "在几分钟内生成精彩的 AI 视频",
-        "models": "用自己的 fal.ai API Key 使用 Kling 2.5 和 Wan 2.5",
+        "models": "用自己的 fal.ai API Key 使用 7 款模型（Kling、Veo、Sora、Seedance、Hailuo 等）",
         "share": "随时随地下载和分享您的作品"
       },
       "cta": "开始创作视频",
@@ -553,6 +557,8 @@
     "settings": {
       "title": "账单",
       "account": "账户",
+      "name": "名称",
+      "guest": "未登录",
       "email": "邮箱",
       "userId": "用户ID",
       "joined": "加入时间",

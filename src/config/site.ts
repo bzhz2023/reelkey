@@ -24,7 +24,7 @@ export interface SiteConfig {
 
 export const siteConfig: SiteConfig = {
   name: "ReelKey",
-  description: "AI video generation with your own API key. No subscriptions, no expiring credits.",
+  description: "AI video generator supporting Sora 2, Kling, Veo 3.1, Seedance & Hailuo via fal.ai. Use your own API key — no subscriptions, no expiring credits.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://reelkey.app",
   ogImage: "/og.png",
   links: {},

@@ -22,6 +22,10 @@ const faqData: FAQItem[] = [
     answerKey: "general.answer",
   },
   {
+    questionKey: "pricing.question",
+    answerKey: "pricing.answer",
+  },
+  {
     questionKey: "commercial.question",
     answerKey: "commercial.answer",
   },

@@ -23,13 +23,13 @@ export async function generateMetadata({ params }: PageMetadataProps) {
   const { locale } = await params;
 
   const titles = {
-    en: "ReelKey — BYOK AI Video Generation, No Subscriptions",
-    zh: "ReelKey — 自带 API Key 生成 AI 视频，无订阅费",
+    en: "ReelKey — AI Video Generator | Sora 2, Kling, Veo 3.1, No Subscription",
+    zh: "ReelKey — AI 视频生成器 | Sora 2、Kling、Veo 3.1，无订阅费",
   };
 
   const descriptions = {
-    en: "Generate AI videos using your own fal.ai API key. Support Kling 2.5 and Wan 2.5 models. Pay providers directly — no subscriptions, no expiring credits. One-time lifetime license from $29.",
-    zh: "使用你自己的 fal.ai API Key 生成 AI 视频。支持 Kling 2.5 和 Wan 2.5 模型。直接向服务商付费，无订阅费，无过期积分。一次性终身授权，$29 起。",
+    en: "Generate AI videos with Sora 2, Kling 3.0, Veo 3.1 Fast, Seedance 2.0 & Hailuo — using your own fal.ai API key. No subscription, no expiring credits. One-time lifetime license from $29.",
+    zh: "用自己的 fal.ai API Key 调用 Sora 2、Kling 3.0、Veo 3.1、Seedance 2.0、Hailuo 等 7 款模型生成 AI 视频，无订阅费，无过期积分，终身授权 $29 起。",
   };
 
   const canonicalUrl = `${siteConfig.url}${locale === i18n.defaultLocale ? "" : `/${locale}`}`;
