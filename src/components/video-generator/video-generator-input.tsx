@@ -87,6 +87,41 @@ import type {
   SubmitData,
 } from "./types";
 
+function getAspectRatioLabel(ratio: string) {
+  if (ratio === "auto") return "Auto";
+  if (ratio === "21:9") return "21:9 Wide";
+  return ratio;
+}
+
+function AspectRatioPreview({
+  ratio,
+  className,
+}: {
+  ratio: string;
+  className?: string;
+}) {
+  if (ratio === "auto") {
+    return <Sparkles className={cn("w-4 h-4 text-current", className)} />;
+  }
+
+  return (
+    <div
+      className={cn(
+        "border border-current rounded-sm",
+        ratio === "16:9" && "w-6 h-3.5",
+        ratio === "9:16" && "w-3.5 h-6",
+        ratio === "1:1" && "w-5 h-5",
+        ratio === "4:3" && "w-5 h-4",
+        ratio === "3:4" && "w-4 h-5",
+        ratio === "3:2" && "w-6 h-4",
+        ratio === "2:3" && "w-4 h-6",
+        ratio === "21:9" && "w-7 h-3",
+        className,
+      )}
+    />
+  );
+}
+
 import {
   DEFAULT_CONFIG,
   DEFAULT_DEFAULTS,
@@ -1181,9 +1216,9 @@ export function VideoGeneratorInput({
               <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <PopoverTrigger asChild>
                   <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-muted-foreground hover:text-foreground">
-                    <div
+                    <AspectRatioPreview
+                      ratio={currentAspectRatio}
                       className={cn(
-                        "border border-current rounded-sm",
                         currentAspectRatio === "16:9" && "w-4 h-2.5",
                         currentAspectRatio === "9:16" && "w-2.5 h-4",
                         currentAspectRatio === "1:1" && "w-3 h-3",
@@ -1191,10 +1226,10 @@ export function VideoGeneratorInput({
                         currentAspectRatio === "3:4" && "w-2.5 h-3.5",
                         currentAspectRatio === "3:2" && "w-3.5 h-2.5",
                         currentAspectRatio === "2:3" && "w-2.5 h-3.5",
-                        currentAspectRatio === "21:9" && "w-5 h-2"
+                        currentAspectRatio === "21:9" && "w-5 h-2",
                       )}
                     />
-                    <span>{currentAspectRatio}</span>
+                    <span>{getAspectRatioLabel(currentAspectRatio)}</span>
                     {generationType === "video" && showDurationControl && (
                       <>
                         <span className="text-muted-foreground/60 mx-1">|</span>
@@ -1228,21 +1263,9 @@ export function VideoGeneratorInput({
                         >
                           {/* Fixed height container for icon alignment */}
                           <div className="h-6 flex items-center justify-center">
-                            <div
-                              className={cn(
-                                "border border-current rounded-sm",
-                                ratio === "16:9" && "w-6 h-3.5",
-                                ratio === "9:16" && "w-3.5 h-6",
-                                ratio === "1:1" && "w-5 h-5",
-                                ratio === "4:3" && "w-5 h-4",
-                                ratio === "3:4" && "w-4 h-5",
-                                ratio === "3:2" && "w-6 h-4",
-                                ratio === "2:3" && "w-4 h-6",
-                                ratio === "21:9" && "w-7 h-3"
-                              )}
-                            />
+                            <AspectRatioPreview ratio={ratio} />
                           </div>
-                          <span>{ratio}</span>
+                          <span>{getAspectRatioLabel(ratio)}</span>
                         </button>
                       ))}
                     </div>

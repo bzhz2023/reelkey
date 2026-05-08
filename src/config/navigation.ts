@@ -42,13 +42,13 @@ export const sidebarNavigation: NavGroup[] = [
         id: "frames2vid",
         title: "First/Last Frame to Video",
         href: "/frames-to-video",
-        icon: "Video",
+        icon: "Images",
       },
       {
         id: "ref2vid",
         title: "Reference Video",
         href: "/reference-to-video",
-        icon: "Video",
+        icon: "Film",
       },
     ],
   },
@@ -124,13 +124,13 @@ export const headerTools = [
     id: "frames2vid",
     title: "First/Last Frame to Video",
     href: "/frames-to-video",
-    icon: "Video",
+    icon: "Images",
   },
   {
     id: "ref2vid",
     title: "Reference to Video",
     href: "/reference-to-video",
-    icon: "Video",
+    icon: "Film",
   },
 ];
 

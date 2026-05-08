@@ -3,12 +3,11 @@
  *
  * 视频历史记录面板组件
  * - 显示最近 10 条视频记录
- * - 按时间排序：最旧的在最上面，最新的在最下面
+ * - 按时间排序：最新的在最上面
  * - 空状态：显示示例视频占位
  * - 替代现有的 ResultPanel
  */
 
-import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -33,26 +32,10 @@ export function VideoHistoryPanel({
 }: VideoHistoryPanelProps) {
   const t = useTranslations("VideoHistory");
   const router = useRouter();
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // 只显示最近10个视频（最新的10个）
-  // 排序：最旧的在上面，最新的在下面
+  // 只显示最近10个视频，最新生成的排在最上面
   const recentItems = [...historyItems]
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    .slice(-10);  // 取最后10个（最新的10个）
-
-  // 滚动到底部（显示最新的视频）
-  useEffect(() => {
-    if (scrollRef.current && recentItems.length > 0) {
-      // 延迟执行，确保 DOM 已经渲染
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          top: scrollRef.current.scrollHeight,  // 滚动到底部
-          behavior: "smooth",
-        });
-      }, 100);
-    }
-  }, [recentItems.length]);
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10);
 
   const hasItems = historyItems.length > 0;
 
@@ -83,7 +66,7 @@ export function VideoHistoryPanel({
       </div>
 
       {/* 内容区域 */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6">
         {!hasItems ? (
           // 空状态：显示示例视频
           <div className="h-full flex flex-col justify-center">

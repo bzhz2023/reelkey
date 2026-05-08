@@ -76,6 +76,7 @@ const PANEL_TEXT = {
     totalCredits: "Total Credits:",
     falAccount: "fal.ai estimated",
     billedByFal: "Billed by fal.ai",
+    upToDuration: "Up to",
     credits: "credits",
     generating: "Generating...",
     generateVideo: "Generate Video",
@@ -107,6 +108,7 @@ const PANEL_TEXT = {
     totalCredits: "总积分：",
     falAccount: "fal.ai 预估",
     billedByFal: "由 fal.ai 计费",
+    upToDuration: "最长",
     credits: "积分",
     generating: "生成中...",
     generateVideo: "生成视频",
@@ -124,6 +126,46 @@ function SectionLabel({ children, required, className }: SectionLabelProps) {
       {children}
       {required && <span className="text-destructive ml-1">*</span>}
     </div>
+  );
+}
+
+function getAspectRatioLabel(ratio: string, locale?: string) {
+  if (ratio === "auto") return locale === "zh" ? "自动" : "Auto";
+  if (ratio === "21:9") return locale === "zh" ? "21:9 宽屏" : "21:9 Wide";
+  return ratio;
+}
+
+function AspectRatioIcon({
+  ratio,
+  selected,
+}: {
+  ratio: string;
+  selected: boolean;
+}) {
+  if (ratio === "auto") {
+    return (
+      <Sparkles
+        className={cn(
+          "h-5 w-5",
+          selected ? "text-primary" : "text-muted-foreground/60",
+        )}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "border-2 rounded-sm",
+        selected ? "border-primary" : "border-muted-foreground/50",
+        ratio === "21:9" && "w-9 h-3",
+        ratio === "16:9" && "w-8 h-4",
+        ratio === "9:16" && "w-4 h-8",
+        ratio === "1:1" && "w-6 h-6",
+        ratio === "4:3" && "w-6 h-4",
+        ratio === "3:4" && "w-4 h-6",
+      )}
+    />
   );
 }
 
@@ -350,6 +392,8 @@ export function GeneratorPanel({
     });
   }, [selectedModel, duration, quality, currentModel]);
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
+  const hasDurationOptions = Boolean(currentModel?.durations?.length);
+  const hasQualityOptions = Boolean(currentModel?.qualities?.length);
   const estimatedCostLabel = useMemo(() => {
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
 
@@ -610,7 +654,7 @@ export function GeneratorPanel({
                               <>
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
-                                  {model.maxDuration}
+                                  {text.upToDuration} {model.maxDuration}s
                                 </span>
                                 <span>•</span>
                               </>
@@ -682,6 +726,7 @@ export function GeneratorPanel({
                           key={ar}
                           type="button"
                           onClick={() => setAspectRatio(ar)}
+                          title={getAspectRatioLabel(ar, locale)}
                           disabled={isLoading}
                           className={cn(
                             "aspect-square w-full rounded-lg text-xs font-medium transition-all border flex items-center justify-center",
@@ -691,20 +736,11 @@ export function GeneratorPanel({
                           )}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div
-                              className={cn(
-                                "border-2 rounded-sm",
-                                aspectRatio === ar
-                                  ? "border-primary"
-                                  : "border-muted-foreground/50",
-                                ar === "16:9" && "w-8 h-4",
-                                ar === "9:16" && "w-4 h-8",
-                                ar === "1:1" && "w-6 h-6",
-                                ar === "4:3" && "w-6 h-4",
-                                ar === "3:4" && "w-4 h-6",
-                              )}
+                            <AspectRatioIcon
+                              ratio={ar}
+                              selected={aspectRatio === ar}
                             />
-                            <span>{ar}</span>
+                            <span>{getAspectRatioLabel(ar, locale)}</span>
                           </div>
                         </button>
                       ))}
@@ -713,55 +749,64 @@ export function GeneratorPanel({
                 )}
 
                 {/* Duration & Quality */}
-                <div className="grid grid-cols-2 gap-4">
-                  {currentModel?.durations && (
-                    <div>
-                      <SectionLabel>{text.videoLength}</SectionLabel>
-                      <div className="grid grid-cols-3 gap-2">
-                        {currentModel.durations.map((d) => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setDuration(d)}
-                            disabled={isLoading}
-                            className={cn(
-                              "h-10 rounded-lg text-sm font-medium transition-all",
-                              duration === d
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted/40 text-muted-foreground hover:bg-muted/60",
-                            )}
-                          >
-                            {d}s
-                          </button>
-                        ))}
+                {(hasDurationOptions || hasQualityOptions) && (
+                  <div
+                    className={cn(
+                      "grid gap-4",
+                      hasDurationOptions && hasQualityOptions
+                        ? "grid-cols-2"
+                        : "grid-cols-1",
+                    )}
+                  >
+                    {hasDurationOptions && (
+                      <div>
+                        <SectionLabel>{text.videoLength}</SectionLabel>
+                        <div className="grid grid-cols-3 gap-2">
+                          {currentModel.durations?.map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() => setDuration(d)}
+                              disabled={isLoading}
+                              className={cn(
+                                "h-10 rounded-lg text-sm font-medium transition-all",
+                                duration === d
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted/40 text-muted-foreground hover:bg-muted/60",
+                              )}
+                            >
+                              {d}s
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {currentModel?.qualities && (
-                    <div>
-                      <SectionLabel>{text.resolution}</SectionLabel>
-                      <div className="grid grid-cols-3 gap-2">
-                        {currentModel.qualities.map((q) => (
-                          <button
-                            key={q}
-                            type="button"
-                            onClick={() => setQuality(q)}
-                            disabled={isLoading}
-                            className={cn(
-                              "h-10 rounded-lg text-sm font-medium transition-all capitalize",
-                              quality === q
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted/40 text-muted-foreground hover:bg-muted/60",
-                            )}
-                          >
-                            {q}
-                          </button>
-                        ))}
+                    {hasQualityOptions && (
+                      <div>
+                        <SectionLabel>{text.resolution}</SectionLabel>
+                        <div className="grid grid-cols-3 gap-2">
+                          {currentModel.qualities?.map((q) => (
+                            <button
+                              key={q}
+                              type="button"
+                              onClick={() => setQuality(q)}
+                              disabled={isLoading}
+                              className={cn(
+                                "h-10 rounded-lg text-sm font-medium transition-all capitalize",
+                                quality === q
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted/40 text-muted-foreground hover:bg-muted/60",
+                              )}
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           )}
