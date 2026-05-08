@@ -45,6 +45,7 @@ export interface ModelConfig {
   durations: number[];
   aspectRatios: string[];
   qualities?: string[];
+  supportsAudio?: boolean;
   creditCost: {
     base: number;            // 基础积分（10s）
     perExtraSecond?: number; // 每额外秒积分
@@ -178,6 +179,7 @@ export const CREDITS_CONFIG = {
           durations: durations?.length ? durations : [5],
           aspectRatios: registryItem.capabilities.aspectRatios ?? ["16:9"],
           qualities: registryItem.capabilities.resolutions,
+          supportsAudio: registryItem.capabilities.supportsAudio,
         };
 
         const creditCost: {

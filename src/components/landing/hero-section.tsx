@@ -9,6 +9,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import type { SubmitData } from "@/components/video-generator/types";
+import { VideoGeneratorInput } from "@/components/video-generator/video-generator-input";
 import {
   DEFAULT_CONFIG,
   DEFAULT_DEFAULTS,
@@ -51,19 +52,6 @@ const ByokLifetimePricingModal = dynamic(
       (mod) => mod.ByokLifetimePricingModal,
     ),
   { ssr: false },
-);
-
-const VideoGeneratorInput = dynamic(
-  () =>
-    import("@/components/video-generator/video-generator-input").then(
-      (mod) => mod.VideoGeneratorInput,
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[360px] rounded-3xl border border-border bg-card/80 p-8 shadow-sm" />
-    ),
-  },
 );
 
 const PENDING_PROMPT_KEY = "reel_key_pending_prompt";

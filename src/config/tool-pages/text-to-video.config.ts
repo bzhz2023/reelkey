@@ -33,7 +33,16 @@ export const textToVideoConfig: ToolPageConfig = {
     },
 
     models: {
-      available: ["kling-2.5-turbo", "wan-2.5"],
+      available: [
+        "kling-2.5-turbo",
+        "wan-2.5",
+        "seedance-2.0",
+        "kling-3.0-pro",
+        "veo-3.1",
+        "sora-2-pro",
+        "happyhorse-1.0",
+        "hailuo-02-standard",
+      ],
       default: "kling-2.5-turbo",
     },
 

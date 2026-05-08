@@ -27,6 +27,7 @@ import {
   Image as ImageIcon,
   Clock,
   Check,
+  Volume2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 
 // ============================================================================
 // Types
@@ -76,6 +78,8 @@ const PANEL_TEXT = {
     totalCredits: "Total Credits:",
     falAccount: "fal.ai estimated",
     billedByFal: "Billed by fal.ai",
+    generateAudio: "Generate Audio",
+    generateAudioDesc: "Add natural-sounding audio",
     upToDuration: "Up to",
     credits: "credits",
     generating: "Generating...",
@@ -108,6 +112,8 @@ const PANEL_TEXT = {
     totalCredits: "总积分：",
     falAccount: "fal.ai 预估",
     billedByFal: "由 fal.ai 计费",
+    generateAudio: "生成音频",
+    generateAudioDesc: "添加自然音效",
     upToDuration: "最长",
     credits: "积分",
     generating: "生成中...",
@@ -239,6 +245,7 @@ export function GeneratorPanel({
   const [endImageFile, setEndImageFile] = useState<File | null>(null);
   const [endImageUrl, setEndImageUrl] = useState<string | null>(null);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [generateAudio, setGenerateAudio] = useState(true);
 
   // Filter models based on tool type
   const availableModels = useMemo(() => {
@@ -394,6 +401,7 @@ export function GeneratorPanel({
   const isByokMode = CREDITS_CONFIG.BYOK_MODE;
   const hasDurationOptions = Boolean(currentModel?.durations?.length);
   const hasQualityOptions = Boolean(currentModel?.qualities?.length);
+  const modelSupportsAudio = currentModel?.supportsAudio === true;
   const estimatedCostLabel = useMemo(() => {
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
 
@@ -430,6 +438,7 @@ export function GeneratorPanel({
       aspectRatio,
       quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
       outputNumber: 1,
+      generateAudio: modelSupportsAudio ? generateAudio : undefined,
       imageFile: imageFile || undefined,
       imageUrl: imageUrl || undefined,
       imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
@@ -449,6 +458,8 @@ export function GeneratorPanel({
     endImageFile,
     endImageUrl,
     estimatedCredits,
+    generateAudio,
+    modelSupportsAudio,
     isLoading,
     toolType,
     onSubmit,
@@ -805,6 +816,27 @@ export function GeneratorPanel({
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {modelSupportsAudio && (
+                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <Volume2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-foreground">
+                          {text.generateAudio}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {text.generateAudioDesc}
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={generateAudio}
+                      disabled={isLoading}
+                      onCheckedChange={setGenerateAudio}
+                    />
                   </div>
                 )}
               </div>

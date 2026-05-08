@@ -32,8 +32,8 @@ export const referenceToVideoConfig: ToolPageConfig = {
     },
 
     models: {
-      available: ["wan-2.5"],
-      default: "wan-2.5",
+      available: ["seedance-2.0", "happyhorse-1.0"],
+      default: "seedance-2.0",
     },
 
     features: {
