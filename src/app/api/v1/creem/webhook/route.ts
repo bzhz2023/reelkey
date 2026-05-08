@@ -8,7 +8,7 @@
  * 本端点在返回 200 之前 await 所有操作，确保可靠写入。
  */
 
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import {

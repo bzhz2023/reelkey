@@ -203,8 +203,12 @@ export const SUBSCRIPTION_PRODUCTS = [
 
 在 Creem Dashboard 中设置 Webhook URL：
 ```
-https://videofly.app/api/auth/creem/webhook
+https://reelkey.app/api/auth/creem/webhook
 ```
+
+BYOK lifetime 买断履约使用自定义 webhook 路由
+`src/app/api/auth/creem/webhook/route.ts`。Creem 后台的 Signing secret 必须同步到
+Vercel Production 的 `CREEM_WEBHOOK_SECRET`，修改后需要重新部署。
 
 ### 📊 当前价格方案
 
@@ -272,9 +276,11 @@ CREEM_API_KEY=creem_live_xxx
 CREEM_WEBHOOK_SECRET=whsec_xxx
 ```
 
-#### Better Auth 集成
+#### Better Auth 与 BYOK Webhook
 
-Creem 通过 Better Auth 插件自动处理支付流程：
+Creem 的 checkout、portal 和订阅能力仍通过 Better Auth 插件接入；BYOK lifetime
+买断的 `checkout.completed` 履约由自定义 webhook 路由处理，写入 `byok_entitlements`。
+不要只依赖 Better Auth 插件默认 webhook 来完成 BYOK 买断授权。
 
 ```typescript
 // src/lib/auth/auth.ts
@@ -287,24 +293,16 @@ export const auth = betterAuth({
       webhookSecret: process.env.CREEM_WEBHOOK_SECRET,
       testMode: process.env.NODE_ENV !== "production",
       persistSubscriptions: true,
-
-      // 支付成功回调（自动充值积分）
-      onGrantAccess: async ({ customer, product }) => {
-        // 根据产品 ID 充值对应积分
-        const pricingConfig = getProductById(product.id);
-        if (pricingConfig) {
-          await creditService.recharge({
-            userId: customer.userId,
-            credits: pricingConfig.credits,
-            orderNo: `creem_${product.id}`,
-            transType: "ORDER_PAY",
-          });
-        }
-      },
     }),
   ],
 });
 ```
+
+BYOK 授权验收标准：
+
+- 真实 `checkout.completed` 事件里 product ID 命中 lifetime 产品
+- `object.metadata.referenceId` 是 ReelKey 用户 ID
+- `byok_entitlements` 写入 `status = active`
 
 #### 客户端使用
 

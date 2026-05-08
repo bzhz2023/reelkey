@@ -552,12 +552,30 @@ const handleCancel = async () => {
 
 ### 4.6 Webhook 处理
 
-Better Auth Creem 插件会自动处理 Webhook，无需手动配置路由。插件内部会：
+ReelKey 保留 Better Auth Creem 插件用于 checkout、portal 和订阅类能力，但 BYOK lifetime
+买断履约使用自定义 webhook 路由：
 
-1. 验证 Webhook 签名
-2. 解析事件类型
-3. 调用 `onGrantAccess` 或 `onRevokeAccess` 回调
-4. 更新数据库中的订阅状态
+```text
+src/app/api/auth/creem/webhook/route.ts
+https://reelkey.app/api/auth/creem/webhook
+```
+
+原因：生产实测中 Better Auth 插件默认 webhook 能收到 `checkout.completed` 并进入
+`onCheckoutCompleted`，但在 Vercel serverless 环境下后续异步写库可能没有可靠完成。
+BYOK 买断是核心履约路径，必须在自定义路由里完成签名校验、事件解析、授权写库，并在
+`byokEntitlementService.grantLifetime(...)` await 完成后再返回 200。
+
+自定义 webhook 处理规则：
+
+1. 使用 `CREEM_WEBHOOK_SECRET` 校验 `creem-signature`
+2. 只对 `checkout.completed` 触发 BYOK 买断授权
+3. 要求 product ID 命中配置的 lifetime 产品 ID，或 metadata 能明确标识 lifetime checkout
+4. 要求 `object.metadata.referenceId` 为 ReelKey 用户 ID
+5. 写入 `byok_entitlements`，用 `order_id`/`user_id` 做幂等保护
+
+Creem Dashboard 的 **Send test event** 只能验证 endpoint 连通和签名，不等同于完整支付授权测试；
+测试事件经常没有真实 product ID 和 `metadata.referenceId`。完整验收应使用真实 checkout，或重放真实
+`checkout.completed` 事件，并检查 `byok_entitlements` 是否新增 `active` 记录。
 
 ### 4.7 环境变量
 

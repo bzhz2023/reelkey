@@ -1,10 +1,11 @@
 # ReelKey MVP 全流程测试用例
 
-最后更新：2026-05-05
+最后更新：2026-05-08
 
 ## 测试范围
 
-本测试清单覆盖支付以外的 MVP 主链路。Creem 支付通过后，再补充支付成功、Webhook 授权、买断状态刷新和退款/撤权用例。
+本测试清单覆盖 MVP 主链路。Creem BYOK 买断支付已完成真实链路验证：真实
+`checkout.completed` webhook 可写入 `byok_entitlements` 并授予 lifetime access。
 
 ## 前置条件
 
@@ -45,9 +46,15 @@
 | ID | 场景 | 步骤 | 预期 |
 | --- | --- | --- | --- |
 | RK-PAY-001 | 早鸟买断 checkout | 免费用户点击 $29 买断入口 | 打开 Creem checkout；产品、价格、用户 reference 正确 |
-| RK-PAY-002 | Webhook 授权 | 完成测试支付并等待 webhook | `byok_entitlements` 写入有效记录；用户刷新后变为买断状态 |
+| RK-PAY-002 | Webhook 授权 | 完成真实测试支付并等待 webhook | `byok_entitlements` 写入有效记录；用户刷新后变为买断状态 |
 | RK-PAY-003 | 买断权益即时生效 | 支付成功后回到生成页 | 可选择全部模型；无限次生成；完成视频上传 R2 |
 | RK-PAY-004 | 重复 webhook | 重放同一 Creem 事件 | 不重复写入或产生错误授权；日志显示幂等处理 |
+
+支付验证备注：
+
+- Creem Dashboard 的 **Send test event** 只能验证 webhook 连通和签名；测试事件可能没有真实 product ID 和 `metadata.referenceId`，不能证明授权落库。
+- 完整支付验收必须使用真实 checkout，或在 Creem Dashboard 重放真实 `checkout.completed` 事件。
+- 有效授权记录应包含 `user_id`、`status = active`、lifetime product ID、`order_id`、`checkout_id` 和 metadata 里的 `referenceId`。
 
 ## 暂不测或后续版本
 
