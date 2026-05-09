@@ -161,6 +161,7 @@
 - [ ] 应用 URL (`NEXT_PUBLIC_APP_URL`)
 - [ ] Better Auth Secret (`BETTER_AUTH_SECRET`)
 - [ ] Google OAuth (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
+- [ ] Google Search Console (`GOOGLE_SITE_VERIFICATION`)
 - [ ] AI 提供商 API Keys (`EVOLINK_API_KEY`, `KIE_API_KEY`)
 - [ ] 回调 URL (`AI_CALLBACK_URL`, `CALLBACK_HMAC_SECRET`)
 - [ ] 存储配置 (`STORAGE_*`)

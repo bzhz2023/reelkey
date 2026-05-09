@@ -34,6 +34,7 @@ DATABASE_URL=postgresql://user:password@host:port/database?sslmode=require
 # ============================================
 NEXT_PUBLIC_APP_URL=https://videofly.app  # 生产环境域名
 NEXT_PUBLIC_BILLING_PROVIDER=creem        # 支付提供商
+GOOGLE_SITE_VERIFICATION=                 # Google Search Console HTML tag token
 
 # ============================================
 # 认证配置

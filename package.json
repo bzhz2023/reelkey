@@ -23,7 +23,8 @@
     "script:add-credits": "dotenv -e .env.local -- tsx scripts/add-credits.ts",
     "script:check-credits": "dotenv -e .env.local -- tsx scripts/check-user-credits.ts",
     "script:reset-credits": "dotenv -e .env.local -- tsx scripts/reset-user-credits.ts",
-    "script:test-proxy": "node scripts/test-proxy.mjs"
+    "script:test-proxy": "node scripts/test-proxy.mjs",
+    "script:verify-gsc": "dotenv -e .env.local -- node scripts/verify-google-search-console.mjs"
   },
   "dependencies": {
     "@creem_io/better-auth": "^0.0.12",

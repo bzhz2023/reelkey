@@ -30,7 +30,18 @@ const fontHeading = localFont({
   variable: "--font-heading",
 });
 
+function normalizeGoogleSiteVerification(value: string | undefined) {
+  if (!value) return undefined;
 
+  const trimmed = value.trim();
+  const contentMatch = trimmed.match(/content=["']([^"']+)["']/i);
+
+  return contentMatch?.[1]?.trim() || trimmed;
+}
+
+const googleSiteVerification = normalizeGoogleSiteVerification(
+  process.env.GOOGLE_SITE_VERIFICATION
+);
 
 export function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
@@ -94,6 +105,11 @@ export const metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+  verification: googleSiteVerification
+    ? {
+        google: googleSiteVerification,
+      }
+    : undefined,
   metadataBase: new URL(siteConfig.url),
 };
 
