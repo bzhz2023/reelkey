@@ -21,6 +21,10 @@ function isLocalhost(hostname: string | undefined) {
   );
 }
 
+function isProvisionedScript(script: string) {
+  return /\/js\/pa-[^/]+\.js$/.test(script);
+}
+
 /**
  * Plausible Analytics
  *
@@ -43,14 +47,29 @@ export function PlausibleAnalytics() {
 
   const script =
     process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT?.trim() || DEFAULT_PLAUSIBLE_SCRIPT;
+  const provisionedScript = isProvisionedScript(script);
 
   return (
-    <Script
-      id="plausible-analytics"
-      defer
-      strategy="afterInteractive"
-      data-domain={domain}
-      src={script}
-    />
+    <>
+      {provisionedScript ? (
+        <Script
+          id="plausible-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+              plausible.init();
+            `,
+          }}
+        />
+      ) : null}
+      <Script
+        id="plausible-analytics"
+        defer
+        strategy="afterInteractive"
+        data-domain={provisionedScript ? undefined : domain}
+        src={script}
+      />
+    </>
   );
 }

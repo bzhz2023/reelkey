@@ -88,14 +88,15 @@ NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 NEXT_PUBLIC_PLAUSIBLE_ENABLED=true
 NEXT_PUBLIC_PLAUSIBLE_DOMAIN=reelkey.app
-NEXT_PUBLIC_PLAUSIBLE_SCRIPT=https://plausible.io/js/script.js
+NEXT_PUBLIC_PLAUSIBLE_SCRIPT=https://plausible.io/js/pa-xxxxxxxxxxxxxxxxxxxx.js
 ```
 
 ### Plausible Analytics
 
 项目已在根布局自动接入 Plausible：
 
-- 生产环境默认会从 `NEXT_PUBLIC_APP_URL` 推断统计域名，并加载 Plausible Cloud 脚本 `https://plausible.io/js/script.js`
+- 生产环境默认会从 `NEXT_PUBLIC_APP_URL` 推断统计域名，并加载 Plausible Cloud 旧版通用脚本 `https://plausible.io/js/script.js`
+- 新建 Plausible 站点如果给出 `https://plausible.io/js/pa-*.js` 这种站点专属脚本，设置到 `NEXT_PUBLIC_PLAUSIBLE_SCRIPT`，项目会自动按新版 snippet 初始化
 - 本地 `localhost` / `127.0.0.1` 会自动跳过，避免污染统计数据
 - 如果 Plausible 后台站点域名和 `NEXT_PUBLIC_APP_URL` 不一致，设置 `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`
 - 如果使用自托管 Plausible，设置 `NEXT_PUBLIC_PLAUSIBLE_SCRIPT`
