@@ -31,7 +31,7 @@ export default async function PrivacyPage({
                             <li><strong>账户信息：</strong>当您通过 Google OAuth 注册时，我们收集您的电子邮件地址、用户名和头像。</li>
                             <li><strong>许可证信息：</strong>您的购买记录和许可证状态，用于验证您的访问权限。</li>
                             <li><strong>视频生成记录：</strong>您提交的文本提示词、选择的模型参数、生成的视频文件 URL 及生成时间。我们不收集视频的实际内容用于训练目的。</li>
-                            <li><strong>使用数据：</strong>IP 地址、浏览器类型、访问时间等基本技术信息，用于安全防护和服务改进。</li>
+                            <li><strong>使用数据：</strong>IP 地址、浏览器类型、访问时间、页面交互和会话行为等技术信息，用于安全防护、问题排查和服务改进。</li>
                             <li><strong>支付信息：</strong>支付处理由 Creem（creem.io）完成。我们不存储您的信用卡号或支付凭据，仅接收 Creem 提供的购买确认和客户 ID。</li>
                         </ul>
 
@@ -65,6 +65,7 @@ export default async function PrivacyPage({
                             <li><strong>Creem（creem.io）</strong>：支付处理和许可证管理。</li>
                             <li><strong>Google OAuth</strong>：账户登录认证。</li>
                             <li><strong>Vercel</strong>：网站托管和部署。</li>
+                            <li><strong>Microsoft Clarity</strong>：使用情况分析、热力图和会话回放，用于了解页面交互、排查体验问题并改进产品。</li>
                             <li><strong>Resend</strong>：事务性邮件发送（如购买确认邮件）。</li>
                         </ul>
                         <p>以上服务提供商仅在其提供服务所必要的范围内处理您的数据，我们要求其遵守适用的数据保护法律。</p>
@@ -115,7 +116,7 @@ export default async function PrivacyPage({
                             <li><strong>Account Information:</strong> When you register via Google OAuth, we collect your email address, username, and profile picture.</li>
                             <li><strong>License Information:</strong> Your purchase record and license status, used to verify your access entitlements.</li>
                             <li><strong>Video Generation Records:</strong> The text prompts you submit, model parameters you select, generated video file URLs, and generation timestamps. We do not use your video content for model training.</li>
-                            <li><strong>Usage Data:</strong> IP address, browser type, and access times for security and service improvement purposes.</li>
+                            <li><strong>Usage Data:</strong> IP address, browser type, access times, page interactions, and session behavior for security, troubleshooting, and service improvement purposes.</li>
                             <li><strong>Payment Information:</strong> Payment processing is handled entirely by Creem (creem.io). We do not store your credit card number or payment credentials. We receive only a purchase confirmation and customer ID from Creem.</li>
                         </ul>
 
@@ -149,6 +150,7 @@ export default async function PrivacyPage({
                             <li><strong>Creem (creem.io)</strong>: Payment processing and license management.</li>
                             <li><strong>Google OAuth</strong>: Account authentication.</li>
                             <li><strong>Vercel</strong>: Website hosting and deployment.</li>
+                            <li><strong>Microsoft Clarity</strong>: Usage analytics, heatmaps, and session recordings to understand page interactions, troubleshoot experience issues, and improve the product.</li>
                             <li><strong>Resend</strong>: Transactional email delivery (e.g., purchase confirmation emails).</li>
                         </ul>
                         <p>Each provider processes your data only to the extent necessary to provide their service, and we require them to comply with applicable data protection laws.</p>
