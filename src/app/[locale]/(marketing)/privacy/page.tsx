@@ -151,6 +151,7 @@ export default async function PrivacyPage({
                             <li><strong>Google OAuth</strong>: Account authentication.</li>
                             <li><strong>Vercel</strong>: Website hosting and deployment.</li>
                             <li><strong>Microsoft Clarity</strong>: Usage analytics, heatmaps, and session recordings to understand page interactions, troubleshoot experience issues, and improve the product.</li>
+                            <li><strong>Plausible Analytics</strong>: Privacy-focused website analytics to understand aggregate traffic and product usage without cross-site tracking.</li>
                             <li><strong>Resend</strong>: Transactional email delivery (e.g., purchase confirmation emails).</li>
                         </ul>
                         <p>Each provider processes your data only to the extent necessary to provide their service, and we require them to comply with applicable data protection laws.</p>

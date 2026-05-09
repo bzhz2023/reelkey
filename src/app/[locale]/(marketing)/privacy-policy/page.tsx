@@ -37,6 +37,7 @@ export default function PrivacyPolicyPage() {
                 <h2>3. How We Use Your Data</h2>
                 <p>We use your data to provide and improve our services, including generating AI videos and maintaining your transaction history.</p>
                 <p>We may use Microsoft Clarity for usage analytics, heatmaps, and session recordings to understand page interactions, troubleshoot experience issues, and improve the product.</p>
+                <p>We may use Plausible Analytics for privacy-focused aggregate website analytics without cross-site tracking.</p>
 
                 <h2>4. Data Security</h2>
                 <p>We implement appropriate security measures to protect your personal information.</p>
