@@ -86,7 +86,20 @@ ADMIN_EMAIL=admin@videofly.app
 # ============================================
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+NEXT_PUBLIC_PLAUSIBLE_ENABLED=true
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN=reelkey.app
+NEXT_PUBLIC_PLAUSIBLE_SCRIPT=https://plausible.io/js/script.js
 ```
+
+### Plausible Analytics
+
+项目已在根布局自动接入 Plausible：
+
+- 生产环境默认会从 `NEXT_PUBLIC_APP_URL` 推断统计域名，并加载 Plausible Cloud 脚本 `https://plausible.io/js/script.js`
+- 本地 `localhost` / `127.0.0.1` 会自动跳过，避免污染统计数据
+- 如果 Plausible 后台站点域名和 `NEXT_PUBLIC_APP_URL` 不一致，设置 `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`
+- 如果使用自托管 Plausible，设置 `NEXT_PUBLIC_PLAUSIBLE_SCRIPT`
+- 如果需要临时关闭，设置 `NEXT_PUBLIC_PLAUSIBLE_ENABLED=false`
 
 ### ⚠️ 重要说明
 

@@ -19,6 +19,9 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
     NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
+    NEXT_PUBLIC_PLAUSIBLE_ENABLED: z.enum(["true", "false"]).optional(),
+    NEXT_PUBLIC_PLAUSIBLE_DOMAIN: z.string().optional(),
+    NEXT_PUBLIC_PLAUSIBLE_SCRIPT: z.string().url().optional(),
   },
   runtimeEnv: {
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
@@ -40,5 +43,9 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_CLARITY_PROJECT_ID: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID,
+    NEXT_PUBLIC_PLAUSIBLE_ENABLED:
+      process.env.NEXT_PUBLIC_PLAUSIBLE_ENABLED,
+    NEXT_PUBLIC_PLAUSIBLE_DOMAIN: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
+    NEXT_PUBLIC_PLAUSIBLE_SCRIPT: process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT,
   },
 });

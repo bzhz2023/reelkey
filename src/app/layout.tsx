@@ -127,6 +127,7 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <ClarityAnalytics />
+        <PlausibleAnalytics />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -166,7 +167,6 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>
-              <PlausibleAnalytics />
               {children}
               <Analytics />
               <SpeedInsights />

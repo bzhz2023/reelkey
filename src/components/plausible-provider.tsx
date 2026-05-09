@@ -1,6 +1,25 @@
-'use client';
+import Script from "next/script";
 
-import Script from 'next/script';
+const DEFAULT_PLAUSIBLE_SCRIPT = "https://plausible.io/js/script.js";
+
+function getHostname(value: string | undefined) {
+  if (!value) return undefined;
+
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+function isLocalhost(hostname: string | undefined) {
+  return (
+    !hostname ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1"
+  );
+}
 
 /**
  * Plausible Analytics
@@ -9,17 +28,29 @@ import Script from 'next/script';
  * https://plausible.io/docs/script
  */
 export function PlausibleAnalytics() {
-  const domain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN as string;
-  if (!domain) {
+  const enabled = process.env.NEXT_PUBLIC_PLAUSIBLE_ENABLED;
+  if (enabled === "false") {
     return null;
   }
 
-  const script = process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT as string;
-  if (!script) {
+  const configuredDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim();
+  const appDomain = getHostname(process.env.NEXT_PUBLIC_APP_URL);
+  const domain = configuredDomain || appDomain;
+
+  if (isLocalhost(domain)) {
     return null;
   }
+
+  const script =
+    process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT?.trim() || DEFAULT_PLAUSIBLE_SCRIPT;
 
   return (
-    <Script defer type="text/javascript" data-domain={domain} src={script} />
+    <Script
+      id="plausible-analytics"
+      defer
+      strategy="afterInteractive"
+      data-domain={domain}
+      src={script}
+    />
   );
 }

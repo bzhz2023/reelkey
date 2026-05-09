@@ -162,6 +162,7 @@
 - [ ] Better Auth Secret (`BETTER_AUTH_SECRET`)
 - [ ] Google OAuth (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
 - [ ] Google Search Console (`GOOGLE_SITE_VERIFICATION`)
+- [ ] Plausible Analytics（在 Plausible 后台添加 `NEXT_PUBLIC_APP_URL` 对应域名）
 - [ ] AI 提供商 API Keys (`EVOLINK_API_KEY`, `KIE_API_KEY`)
 - [ ] 回调 URL (`AI_CALLBACK_URL`, `CALLBACK_HMAC_SECRET`)
 - [ ] 存储配置 (`STORAGE_*`)
