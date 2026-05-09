@@ -11,10 +11,11 @@
  * - Dashed border upload area
  */
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useLocale } from "next-intl";
 import { cn } from "@/components/ui";
 import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator/defaults";
+import { isVideoModelModeSupported } from "@/config/video-model-registry";
 import {
   CREDITS_CONFIG,
   getAvailableModels,
@@ -67,6 +68,10 @@ const PANEL_TEXT = {
       "Describe the video you want to create, e.g., A cat playing in a sunny garden with natural lighting and fresh atmosphere...",
     referenceImage: "REFERENCE IMAGE",
     imageSource: "IMAGE SOURCE",
+    images: "IMAGES",
+    addImage: "Add image",
+    imageCount: "Images",
+    multiImageHint: "Upload a start and end image for models that support two-image motion.",
     firstFrame: "FIRST FRAME",
     lastFrame: "LAST FRAME",
     uploadImage: "Upload image",
@@ -101,6 +106,10 @@ const PANEL_TEXT = {
       "描述你想生成的视频，例如：一只猫在阳光明媚的花园里玩耍，自然光照，氛围清新...",
     referenceImage: "参考图片",
     imageSource: "图片来源",
+    images: "图片",
+    addImage: "添加图片",
+    imageCount: "图片",
+    multiImageHint: "支持双图的模型可上传起始图和结束图。",
     firstFrame: "起始帧",
     lastFrame: "结束帧",
     uploadImage: "上传图片",
@@ -197,8 +206,17 @@ interface GeneratorPanelProps {
   onProFeatureClick?: (feature: string) => void;
 }
 
+interface UploadedInputImage {
+  id: string;
+  file?: File;
+  url?: string;
+  previewUrl: string;
+  name: string;
+}
+
 export interface GeneratorData {
   toolType: string;
+  mode?: string;
   model: string;
   prompt: string;
   duration: number;
@@ -242,10 +260,23 @@ export function GeneratorPanel({
   const [imageUrl, setImageUrl] = useState<string | null>(
     initialImageUrl || null,
   );
+  const [imageInputs, setImageInputs] = useState<UploadedInputImage[]>(
+    initialImageUrl
+      ? [
+          {
+            id: "initial-image",
+            url: initialImageUrl,
+            previewUrl: initialImageUrl,
+            name: "Initial image",
+          },
+        ]
+      : [],
+  );
   const [endImageFile, setEndImageFile] = useState<File | null>(null);
   const [endImageUrl, setEndImageUrl] = useState<string | null>(null);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [generateAudio, setGenerateAudio] = useState(true);
+  const objectUrlsRef = useRef<Set<string>>(new Set());
 
   // Filter models based on tool type
   const availableModels = useMemo(() => {
@@ -402,6 +433,13 @@ export function GeneratorPanel({
   const hasDurationOptions = Boolean(currentModel?.durations?.length);
   const hasQualityOptions = Boolean(currentModel?.qualities?.length);
   const modelSupportsAudio = currentModel?.supportsAudio === true;
+  const imageInputLimit = useMemo(() => {
+    if (!currentModel || toolType !== "image-to-video") return 1;
+    return isVideoModelModeSupported(currentModel.id, "frames-to-video")
+      ? 2
+      : 1;
+  }, [currentModel, toolType]);
+  const supportsMultipleImages = imageInputLimit > 1;
   const estimatedCostLabel = useMemo(() => {
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
 
@@ -417,21 +455,43 @@ export function GeneratorPanel({
     }
     const hasPrompt = prompt.trim().length > 0;
     const requiresImage = toolType !== "text-to-video";
-    const hasImage = Boolean(imageFile || imageUrl);
+    const hasImage =
+      toolType === "image-to-video"
+        ? imageInputs.length > 0
+        : Boolean(imageFile || imageUrl);
     const hasEndFrame = Boolean(endImageFile || endImageUrl);
     if (!hasPrompt || isLoading) return;
     if (requiresImage && !hasImage) return;
     if (toolType === "frames-to-video" && !hasEndFrame) return;
 
-    const imageFiles = [imageFile, endImageFile].filter(
-      (file): file is File => Boolean(file),
-    );
-    const imageUrls = [imageUrl, endImageUrl].filter(
-      (url): url is string => Boolean(url),
-    );
+    const galleryImages =
+      toolType === "image-to-video"
+        ? imageInputs.slice(0, imageInputLimit)
+        : [];
+    const imageFiles =
+      toolType === "image-to-video"
+        ? galleryImages
+            .map((image) => image.file)
+            .filter((file): file is File => Boolean(file))
+        : [imageFile, endImageFile].filter((file): file is File =>
+            Boolean(file),
+          );
+    const imageUrls =
+      toolType === "image-to-video"
+        ? galleryImages
+            .map((image) => image.url)
+            .filter((url): url is string => Boolean(url))
+        : [imageUrl, endImageUrl].filter((url): url is string => Boolean(url));
+    const submittedMode =
+      toolType === "image-to-video" &&
+      galleryImages.length > 1 &&
+      isVideoModelModeSupported(selectedModel, "frames-to-video")
+        ? "frames-to-video"
+        : toolType;
 
     const data: GeneratorData = {
       toolType,
+      mode: submittedMode,
       model: selectedModel,
       prompt: prompt.trim(),
       duration,
@@ -439,8 +499,8 @@ export function GeneratorPanel({
       quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
       outputNumber: 1,
       generateAudio: modelSupportsAudio ? generateAudio : undefined,
-      imageFile: imageFile || undefined,
-      imageUrl: imageUrl || undefined,
+      imageFile: imageFiles[0],
+      imageUrl: imageUrls[0],
       imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       estimatedCredits,
@@ -455,6 +515,8 @@ export function GeneratorPanel({
     quality,
     imageFile,
     imageUrl,
+    imageInputs,
+    imageInputLimit,
     endImageFile,
     endImageUrl,
     estimatedCredits,
@@ -467,6 +529,31 @@ export function GeneratorPanel({
     isPro,
     onProFeatureClick,
   ]);
+
+  const revokeObjectUrl = useCallback((previewUrl?: string) => {
+    if (previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+      objectUrlsRef.current.delete(previewUrl);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      objectUrlsRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (toolType !== "image-to-video") return;
+    setImageInputs((prev) => {
+      if (prev.length <= imageInputLimit) return prev;
+      prev.slice(imageInputLimit).forEach((image) =>
+        revokeObjectUrl(image.previewUrl),
+      );
+      return prev.slice(0, imageInputLimit);
+    });
+  }, [imageInputLimit, revokeObjectUrl, toolType]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -496,7 +583,44 @@ export function GeneratorPanel({
     setImageUrl(null);
   };
 
-  const hasStartFrame = Boolean(imageFile || imageUrl);
+  const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files ?? []);
+    if (selectedFiles.length > 0) {
+      const nextImages = selectedFiles.map((file) => {
+        const previewUrl = URL.createObjectURL(file);
+        objectUrlsRef.current.add(previewUrl);
+        return {
+          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+          file,
+          previewUrl,
+          name: file.name,
+        };
+      });
+
+      setImageInputs((prev) => {
+        const availableSlots = Math.max(0, imageInputLimit - prev.length);
+        const accepted = nextImages.slice(0, availableSlots);
+        nextImages.slice(availableSlots).forEach((image) =>
+          revokeObjectUrl(image.previewUrl),
+        );
+        return [...prev, ...accepted];
+      });
+    }
+    e.target.value = "";
+  };
+
+  const handleRemoveGalleryImage = (imageId: string) => {
+    setImageInputs((prev) => {
+      const image = prev.find((item) => item.id === imageId);
+      revokeObjectUrl(image?.previewUrl);
+      return prev.filter((item) => item.id !== imageId);
+    });
+  };
+
+  const hasStartFrame =
+    toolType === "image-to-video"
+      ? imageInputs.length > 0
+      : Boolean(imageFile || imageUrl);
   const hasEndFrame = Boolean(endImageFile || endImageUrl);
   const canSubmit =
     hasAvailableModels &&
@@ -505,6 +629,73 @@ export function GeneratorPanel({
     !(toolType !== "text-to-video" && !hasStartFrame) &&
     !(toolType === "frames-to-video" && !hasEndFrame) &&
     !isLoading;
+
+  const renderImageGalleryUpload = () => {
+    const canAddMore = imageInputs.length < imageInputLimit;
+    return (
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <SectionLabel required className="mb-0">
+            {supportsMultipleImages ? text.images : text.imageSource}
+          </SectionLabel>
+          <span className="text-xs text-muted-foreground">
+            {text.imageCount} {imageInputs.length}/{imageInputLimit}
+          </span>
+        </div>
+        {supportsMultipleImages && (
+          <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+            {text.multiImageHint}
+          </p>
+        )}
+        <div className="grid grid-cols-3 gap-3">
+          {imageInputs.map((image, index) => (
+            <div
+              key={image.id}
+              className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/40"
+              title={image.name}
+            >
+              <img
+                src={image.previewUrl}
+                alt={image.name}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute left-1.5 top-1.5 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                {index + 1}
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemoveGalleryImage(image.id)}
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/65 p-1 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                aria-label={`Remove ${image.name}`}
+                disabled={isLoading}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+          {canAddMore && (
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
+              <ImageIcon className="h-6 w-6" />
+              <span className="mt-2 text-xs font-medium">
+                {imageInputs.length === 0 ? text.uploadImage : text.addImage}
+              </span>
+              <span className="mt-1 px-2 text-center text-[10px] leading-tight text-muted-foreground/70">
+                {text.uploadHint}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple={supportsMultipleImages}
+                onChange={handleGalleryImageChange}
+                className="hidden"
+                disabled={isLoading}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // Get page title
   const getPageTitle = () => {
@@ -717,13 +908,12 @@ export function GeneratorPanel({
               {(toolType === "image-to-video" ||
                 toolType === "reference-to-video") &&
                 currentModel?.supportImageToVideo &&
-                renderImageUpload({
-                  label:
-                    toolType === "reference-to-video"
-                      ? text.referenceImage
-                      : text.imageSource,
-                  required: toolType === "image-to-video",
-                })}
+                (toolType === "image-to-video"
+                  ? renderImageGalleryUpload()
+                  : renderImageUpload({
+                      label: text.referenceImage,
+                      required: false,
+                    }))}
 
               {/* Settings Group */}
               <div className="space-y-5">

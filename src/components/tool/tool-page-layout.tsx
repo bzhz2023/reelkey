@@ -718,7 +718,7 @@ export function ToolPageLayout({
     }
 
     try {
-      const selectedMode = config.generator.mode || toolRoute;
+      const selectedMode = data.mode || config.generator.mode || toolRoute;
       const imageFiles = data.imageFiles?.length
         ? data.imageFiles
         : data.imageFile
