@@ -433,12 +433,13 @@ export function GeneratorPanel({
   const hasDurationOptions = Boolean(currentModel?.durations?.length);
   const hasQualityOptions = Boolean(currentModel?.qualities?.length);
   const modelSupportsAudio = currentModel?.supportsAudio === true;
+  const currentModelMetadata = currentModel
+    ? modelMetadata.get(currentModel.id)
+    : undefined;
   const imageInputLimit = useMemo(() => {
     if (!currentModel || toolType !== "image-to-video") return 1;
-    return isVideoModelModeSupported(currentModel.id, "frames-to-video")
-      ? 2
-      : 1;
-  }, [currentModel, toolType]);
+    return Math.max(1, currentModelMetadata?.maxImages ?? 1);
+  }, [currentModel, currentModelMetadata, toolType]);
   const supportsMultipleImages = imageInputLimit > 1;
   const estimatedCostLabel = useMemo(() => {
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
@@ -482,12 +483,25 @@ export function GeneratorPanel({
             .map((image) => image.url)
             .filter((url): url is string => Boolean(url))
         : [imageUrl, endImageUrl].filter((url): url is string => Boolean(url));
-    const submittedMode =
-      toolType === "image-to-video" &&
-      galleryImages.length > 1 &&
-      isVideoModelModeSupported(selectedModel, "frames-to-video")
-        ? "frames-to-video"
-        : toolType;
+    let submittedMode = toolType;
+    if (toolType === "image-to-video" && galleryImages.length > 1) {
+      const supportsFramesMode = isVideoModelModeSupported(
+        selectedModel,
+        "frames-to-video",
+      );
+      const supportsReferenceMode = isVideoModelModeSupported(
+        selectedModel,
+        "reference-to-video",
+      );
+      submittedMode =
+        galleryImages.length > 2 && supportsReferenceMode
+          ? "reference-to-video"
+          : supportsFramesMode
+            ? "frames-to-video"
+            : supportsReferenceMode
+              ? "reference-to-video"
+              : "image-to-video";
+    }
 
     const data: GeneratorData = {
       toolType,

@@ -231,7 +231,12 @@ function buildFalInput(
     }
   }
   if (mode === "reference-to-video" && imageUrls.length > 0) {
-    if (modelId === "happyhorse-1.0") {
+    if (
+      modelId === "happyhorse-1.0" ||
+      modelId === "seedance-2.0" ||
+      modelId === "veo-3.1" ||
+      modelId === "veo-3.1-fast"
+    ) {
       base.image_urls = imageUrls;
     } else {
       base.video_urls = imageUrls;
