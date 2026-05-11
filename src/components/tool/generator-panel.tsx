@@ -17,10 +17,11 @@ import { cn } from "@/components/ui";
 import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator/defaults";
 import { isVideoModelModeSupported } from "@/config/video-model-registry";
 import {
-  buildPromptWithImageReferenceNotes,
+  buildPromptWithAssetReferenceNotes,
   findActiveImageReferenceRange,
   getImageReferenceLabel,
   insertImageReferenceLabel,
+  type AssetReferenceNote,
   type PromptReferenceRange,
 } from "@/components/tool/image-prompt-references";
 import {
@@ -33,9 +34,12 @@ import {
   X,
   Sparkles,
   Image as ImageIcon,
+  Images,
   Clock,
   Check,
   Volume2,
+  Plus,
+  UserRound,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -45,6 +49,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
 // ============================================================================
@@ -77,9 +86,25 @@ const PANEL_TEXT = {
     imageSource: "IMAGE SOURCE",
     images: "IMAGES",
     addImage: "Add image",
+    add: "Add",
+    addAssetTitle: "Add input",
+    addAssetDescription: "Choose how this input should guide the video.",
+    addNormalImage: "Add normal image",
+    addNormalImageDesc: "Use image references as scene, frame, or style inputs.",
+    createSubject: "Create subject",
+    createSubjectDesc: "Group several angles into one character or hero reference.",
+    chooseSubjectImages: "Choose subject images",
+    addMoreSubjectImages: "Add more images",
+    createSubjectConfirm: "Create subject",
+    cancel: "Cancel",
+    selectedImages: "Selected images",
+    subjectMinHint: "Add at least 2 images to create a subject.",
+    subject: "Subject",
+    subjectCount: "Subject",
+    subjectDisabledHint: "Switch to a model that supports multiple reference images.",
     imageCount: "Images",
-    multiImageHint: "Upload a start and end image for models that support two-image motion.",
-    imageReferenceHint: "Type @ to reference an uploaded image",
+    multiImageHint: "Upload normal images or create a subject from multiple reference angles.",
+    imageReferenceHint: "Type @ to reference uploaded images or subjects",
     firstFrame: "FIRST FRAME",
     lastFrame: "LAST FRAME",
     uploadImage: "Upload image",
@@ -116,9 +141,25 @@ const PANEL_TEXT = {
     imageSource: "图片来源",
     images: "图片",
     addImage: "添加图片",
+    add: "添加",
+    addAssetTitle: "添加输入",
+    addAssetDescription: "选择这些图片要以哪种方式影响视频。",
+    addNormalImage: "添加普通图片",
+    addNormalImageDesc: "作为场景、首帧或风格参考图使用。",
+    createSubject: "创建主体",
+    createSubjectDesc: "把多个角度组合成一个主角/主体参考。",
+    chooseSubjectImages: "选择主体图片",
+    addMoreSubjectImages: "继续添加图片",
+    createSubjectConfirm: "创建主体",
+    cancel: "取消",
+    selectedImages: "已选图片",
+    subjectMinHint: "至少添加 2 张图片后才能创建主体。",
+    subject: "主体",
+    subjectCount: "主体",
+    subjectDisabledHint: "请切换到支持多张参考图的模型。",
     imageCount: "图片",
-    multiImageHint: "支持双图的模型可上传起始图和结束图。",
-    imageReferenceHint: "输入 @ 引用已上传图片",
+    multiImageHint: "可以添加普通图片，也可以用多张角度图创建主体。",
+    imageReferenceHint: "输入 @ 引用已上传图片或主体",
     firstFrame: "起始帧",
     lastFrame: "结束帧",
     uploadImage: "上传图片",
@@ -223,6 +264,19 @@ interface UploadedInputImage {
   name: string;
 }
 
+interface SubjectInputAsset {
+  id: string;
+  type: "subject";
+  name: string;
+  images: UploadedInputImage[];
+}
+
+interface ImageInputAsset extends UploadedInputImage {
+  type: "image";
+}
+
+type InputAsset = ImageInputAsset | SubjectInputAsset;
+
 export interface GeneratorData {
   toolType: string;
   mode?: string;
@@ -269,11 +323,12 @@ export function GeneratorPanel({
   const [imageUrl, setImageUrl] = useState<string | null>(
     initialImageUrl || null,
   );
-  const [imageInputs, setImageInputs] = useState<UploadedInputImage[]>(
+  const [imageInputs, setImageInputs] = useState<InputAsset[]>(
     initialImageUrl
       ? [
           {
             id: "initial-image",
+            type: "image",
             url: initialImageUrl,
             previewUrl: initialImageUrl,
             name: "Initial image",
@@ -293,6 +348,13 @@ export function GeneratorPanel({
     useState(false);
   const [highlightedImageReferenceIndex, setHighlightedImageReferenceIndex] =
     useState(0);
+  const [isAddAssetPopoverOpen, setIsAddAssetPopoverOpen] = useState(false);
+  const [isCreatingSubject, setIsCreatingSubject] = useState(false);
+  const [pendingSubjectImages, setPendingSubjectImages] = useState<
+    UploadedInputImage[]
+  >([]);
+  const normalImageInputRef = useRef<HTMLInputElement | null>(null);
+  const subjectImageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Filter models based on tool type
   const availableModels = useMemo(() => {
@@ -458,6 +520,55 @@ export function GeneratorPanel({
   }, [currentModel, currentModelMetadata, toolType]);
   const supportsMultipleImages = imageInputLimit > 1;
   const promptReferenceLocale = locale === "zh" ? "zh" : "en";
+  const flattenedImages = useMemo(() => {
+    return imageInputs.flatMap((asset) =>
+      asset.type === "subject" ? asset.images : [asset],
+    );
+  }, [imageInputs]);
+  const assetReferenceItems = useMemo(() => {
+    let imageCounter = 0;
+    let subjectCounter = 0;
+    let uploadedImageIndex = 0;
+
+    return imageInputs.map((asset) => {
+      if (asset.type === "subject") {
+        subjectCounter += 1;
+        const imageIndexes = asset.images.map(() => {
+          uploadedImageIndex += 1;
+          return uploadedImageIndex;
+        });
+        return {
+          asset,
+          label:
+            locale === "zh"
+              ? `@主体${subjectCounter}`
+              : `@Subject ${subjectCounter}`,
+          note: {
+            label:
+              locale === "zh"
+                ? `@主体${subjectCounter}`
+                : `@Subject ${subjectCounter}`,
+            kind: "subject",
+            name: asset.name,
+            imageIndexes,
+          } satisfies AssetReferenceNote,
+        };
+      }
+
+      imageCounter += 1;
+      uploadedImageIndex += 1;
+      const label = getImageReferenceLabel(imageCounter - 1, promptReferenceLocale);
+      return {
+        asset,
+        label,
+        note: {
+          label,
+          kind: "image",
+          imageIndexes: [uploadedImageIndex],
+        } satisfies AssetReferenceNote,
+      };
+    });
+  }, [imageInputs, locale, promptReferenceLocale]);
   const canReferenceImages =
     toolType === "image-to-video" && imageInputs.length > 0;
   const estimatedCostLabel = useMemo(() => {
@@ -486,7 +597,7 @@ export function GeneratorPanel({
 
     const galleryImages =
       toolType === "image-to-video"
-        ? imageInputs.slice(0, imageInputLimit)
+        ? flattenedImages.slice(0, imageInputLimit)
         : [];
     const imageFiles =
       toolType === "image-to-video"
@@ -522,9 +633,9 @@ export function GeneratorPanel({
               : "image-to-video";
     }
 
-    const submittedPrompt = buildPromptWithImageReferenceNotes({
+    const submittedPrompt = buildPromptWithAssetReferenceNotes({
       prompt: prompt.trim(),
-      imageCount: galleryImages.length,
+      references: assetReferenceItems.map((item) => item.note),
       locale: promptReferenceLocale,
     });
 
@@ -556,6 +667,8 @@ export function GeneratorPanel({
     imageFile,
     imageUrl,
     imageInputs,
+    flattenedImages,
+    assetReferenceItems,
     imageInputLimit,
     endImageFile,
     endImageUrl,
@@ -607,6 +720,8 @@ export function GeneratorPanel({
 
   const selectImageReference = useCallback(
     (index: number) => {
+      const referenceItem = assetReferenceItems[index];
+      if (!referenceItem) return;
       const textarea = promptTextareaRef.current;
       const selectionStart =
         imageReferenceRange?.end ?? textarea?.selectionStart ?? prompt.length;
@@ -615,7 +730,7 @@ export function GeneratorPanel({
         prompt,
         selectionStart,
         selectionEnd,
-        label: getImageReferenceLabel(index, promptReferenceLocale),
+        label: referenceItem.label,
       });
 
       setPrompt(result.prompt);
@@ -631,20 +746,20 @@ export function GeneratorPanel({
     },
     [
       closeImageReferenceMenu,
+      assetReferenceItems,
       imageReferenceRange,
       prompt,
-      promptReferenceLocale,
     ],
   );
 
   const handlePromptKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (!isImageReferenceMenuOpen || imageInputs.length === 0) return;
+      if (!isImageReferenceMenuOpen || assetReferenceItems.length === 0) return;
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
         setHighlightedImageReferenceIndex((index) =>
-          Math.min(index + 1, imageInputs.length - 1),
+          Math.min(index + 1, assetReferenceItems.length - 1),
         );
         return;
       }
@@ -668,8 +783,8 @@ export function GeneratorPanel({
     },
     [
       closeImageReferenceMenu,
+      assetReferenceItems.length,
       highlightedImageReferenceIndex,
-      imageInputs.length,
       isImageReferenceMenuOpen,
       selectImageReference,
     ],
@@ -682,6 +797,42 @@ export function GeneratorPanel({
     }
   }, []);
 
+  const getAssetImageCount = useCallback((asset: InputAsset) => {
+    return asset.type === "subject" ? asset.images.length : 1;
+  }, []);
+
+  const revokeAssetObjectUrls = useCallback(
+    (asset?: InputAsset) => {
+      if (!asset) return;
+      if (asset.type === "subject") {
+        asset.images.forEach((image) => revokeObjectUrl(image.previewUrl));
+        return;
+      }
+      revokeObjectUrl(asset.previewUrl);
+    },
+    [revokeObjectUrl],
+  );
+
+  const clearPendingSubjectImages = useCallback(() => {
+    setPendingSubjectImages((prev) => {
+      prev.forEach((image) => revokeObjectUrl(image.previewUrl));
+      return [];
+    });
+  }, [revokeObjectUrl]);
+
+  const createUploadedInputImages = useCallback((files: File[]) => {
+    return files.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      objectUrlsRef.current.add(previewUrl);
+      return {
+        id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+        file,
+        previewUrl,
+        name: file.name,
+      };
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
@@ -692,13 +843,30 @@ export function GeneratorPanel({
   useEffect(() => {
     if (toolType !== "image-to-video") return;
     setImageInputs((prev) => {
-      if (prev.length <= imageInputLimit) return prev;
-      prev.slice(imageInputLimit).forEach((image) =>
-        revokeObjectUrl(image.previewUrl),
-      );
-      return prev.slice(0, imageInputLimit);
+      let usedSlots = 0;
+      const accepted: InputAsset[] = [];
+      const rejected: InputAsset[] = [];
+
+      prev.forEach((asset) => {
+        const imageCount = getAssetImageCount(asset);
+        if (usedSlots + imageCount <= imageInputLimit) {
+          accepted.push(asset);
+          usedSlots += imageCount;
+          return;
+        }
+        rejected.push(asset);
+      });
+
+      if (rejected.length === 0) return prev;
+      rejected.forEach(revokeAssetObjectUrls);
+      return accepted;
     });
-  }, [imageInputLimit, revokeObjectUrl, toolType]);
+  }, [
+    getAssetImageCount,
+    imageInputLimit,
+    revokeAssetObjectUrls,
+    toolType,
+  ]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -731,33 +899,85 @@ export function GeneratorPanel({
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files ?? []);
     if (selectedFiles.length > 0) {
-      const nextImages = selectedFiles.map((file) => {
-        const previewUrl = URL.createObjectURL(file);
-        objectUrlsRef.current.add(previewUrl);
-        return {
-          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-          file,
-          previewUrl,
-          name: file.name,
-        };
-      });
+      const nextImages = createUploadedInputImages(selectedFiles);
 
       setImageInputs((prev) => {
-        const availableSlots = Math.max(0, imageInputLimit - prev.length);
+        const usedSlots = prev.reduce(
+          (total, asset) => total + getAssetImageCount(asset),
+          0,
+        );
+        const availableSlots = Math.max(0, imageInputLimit - usedSlots);
         const accepted = nextImages.slice(0, availableSlots);
         nextImages.slice(availableSlots).forEach((image) =>
           revokeObjectUrl(image.previewUrl),
         );
+        return [
+          ...prev,
+          ...accepted.map((image) => ({ ...image, type: "image" as const })),
+        ];
+      });
+    }
+    e.target.value = "";
+  };
+
+  const handleSubjectImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const selectedFiles = Array.from(e.target.files ?? []);
+    if (selectedFiles.length > 0) {
+      const nextImages = createUploadedInputImages(selectedFiles);
+      const usedSlots = flattenedImages.length + pendingSubjectImages.length;
+      const availableSlots = Math.max(0, imageInputLimit - usedSlots);
+      const accepted = nextImages.slice(0, availableSlots);
+      nextImages.slice(availableSlots).forEach((image) =>
+        revokeObjectUrl(image.previewUrl),
+      );
+
+      setPendingSubjectImages((prev) => {
+        if (accepted.length === 0) return prev;
         return [...prev, ...accepted];
       });
     }
     e.target.value = "";
   };
 
+  const handleRemovePendingSubjectImage = (imageId: string) => {
+    setPendingSubjectImages((prev) => {
+      const image = prev.find((item) => item.id === imageId);
+      revokeObjectUrl(image?.previewUrl);
+      return prev.filter((item) => item.id !== imageId);
+    });
+  };
+
+  const handleCancelSubjectCreation = () => {
+    clearPendingSubjectImages();
+    setIsCreatingSubject(false);
+  };
+
+  const handleCreateSubject = () => {
+    if (pendingSubjectImages.length < 2) return;
+    const images = pendingSubjectImages;
+    const subjectNumber =
+      imageInputs.filter((asset) => asset.type === "subject").length + 1;
+
+    setImageInputs((prev) => [
+      ...prev,
+      {
+        id: `subject-${crypto.randomUUID()}`,
+        type: "subject",
+        name: `${text.subject} ${subjectNumber}`,
+        images,
+      },
+    ]);
+    setPendingSubjectImages([]);
+    setIsCreatingSubject(false);
+    setIsAddAssetPopoverOpen(false);
+  };
+
   const handleRemoveGalleryImage = (imageId: string) => {
     setImageInputs((prev) => {
       const image = prev.find((item) => item.id === imageId);
-      revokeObjectUrl(image?.previewUrl);
+      revokeAssetObjectUrls(image);
       return prev.filter((item) => item.id !== imageId);
     });
   };
@@ -775,8 +995,216 @@ export function GeneratorPanel({
     !(toolType === "frames-to-video" && !hasEndFrame) &&
     !isLoading;
 
+  const renderSubjectPreview = (asset: SubjectInputAsset) => {
+    const visibleImages = asset.images.slice(0, 4);
+    const extraCount = Math.max(0, asset.images.length - visibleImages.length);
+    const gridClass =
+      visibleImages.length === 1 ? "grid-cols-1" : "grid-cols-2";
+
+    return (
+      <div className={cn("grid h-full w-full gap-0.5", gridClass)}>
+        {visibleImages.map((image) => (
+          <img
+            key={image.id}
+            src={image.previewUrl}
+            alt={image.name}
+            className="h-full min-h-0 w-full object-cover"
+          />
+        ))}
+        {extraCount > 0 && (
+          <div className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            +{extraCount}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAssetPreview = (asset: InputAsset, index: number) => {
+    const referenceItem = assetReferenceItems[index];
+    const label = referenceItem?.label ?? `${index + 1}`;
+    const displayLabel = label.replace(/^@/, "");
+    const imageCount = getAssetImageCount(asset);
+
+    return (
+      <div
+        key={asset.id}
+        className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/40"
+        title={asset.name}
+      >
+        {asset.type === "subject" ? (
+          renderSubjectPreview(asset)
+        ) : (
+          <img
+            src={asset.previewUrl}
+            alt={asset.name}
+            className="h-full w-full object-cover"
+          />
+        )}
+        <div className="absolute left-1.5 top-1.5 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white">
+          {displayLabel}
+        </div>
+        {asset.type === "subject" && (
+          <div className="absolute bottom-1.5 left-1.5 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            {imageCount} {text.imageCount}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => handleRemoveGalleryImage(asset.id)}
+          className="absolute right-1.5 top-1.5 rounded-full bg-black/65 p-1 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+          aria-label={`Remove ${asset.name}`}
+          disabled={isLoading}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  };
+
+  const renderAddAssetPopoverContent = (canCreateSubject: boolean) => {
+    const remainingSubjectSlots = Math.max(
+      0,
+      imageInputLimit - flattenedImages.length - pendingSubjectImages.length,
+    );
+    const canAddSubjectImages =
+      canCreateSubject && remainingSubjectSlots > 0 && !isLoading;
+    const canConfirmSubject = pendingSubjectImages.length >= 2;
+
+    if (isCreatingSubject) {
+      return (
+        <div className="space-y-3">
+          <div>
+            <div className="text-sm font-semibold text-foreground">
+              {text.createSubject}
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {text.createSubjectDesc}
+            </p>
+          </div>
+          {pendingSubjectImages.length > 0 && (
+            <div>
+              <div className="mb-2 text-xs font-medium text-muted-foreground">
+                {text.selectedImages} {pendingSubjectImages.length}
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {pendingSubjectImages.map((image) => (
+                  <div
+                    key={image.id}
+                    className="group relative aspect-square overflow-hidden rounded-md border border-border bg-muted/40"
+                  >
+                    <img
+                      src={image.previewUrl}
+                      alt={image.name}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePendingSubjectImage(image.id)}
+                      className="absolute right-1 top-1 rounded-full bg-black/70 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label={`Remove ${image.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => subjectImageInputRef.current?.click()}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!canAddSubjectImages}
+          >
+            <Images className="h-4 w-4" />
+            {pendingSubjectImages.length > 0
+              ? text.addMoreSubjectImages
+              : text.chooseSubjectImages}
+          </button>
+          {!canConfirmSubject && (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {text.subjectMinHint}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={handleCancelSubjectCreation}
+              className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
+            >
+              {text.cancel}
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateSubject}
+              className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canConfirmSubject}
+            >
+              {text.createSubjectConfirm}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        <div>
+          <div className="text-sm font-semibold text-foreground">
+            {text.addAssetTitle}
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {text.addAssetDescription}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setIsAddAssetPopoverOpen(false);
+            normalImageInputRef.current?.click();
+          }}
+          className="flex w-full gap-3 rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:border-primary/50 hover:bg-muted/50"
+          disabled={isLoading}
+        >
+          <ImageIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <span>
+            <span className="block text-sm font-medium text-foreground">
+              {text.addNormalImage}
+            </span>
+            <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+              {text.addNormalImageDesc}
+            </span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            clearPendingSubjectImages();
+            setIsCreatingSubject(true);
+          }}
+          className="flex w-full gap-3 rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:border-primary/50 hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isLoading || !canCreateSubject}
+        >
+          <UserRound className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <span>
+            <span className="block text-sm font-medium text-foreground">
+              {text.createSubject}
+            </span>
+            <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+              {canCreateSubject
+                ? text.createSubjectDesc
+                : text.subjectDisabledHint}
+            </span>
+          </span>
+        </button>
+      </div>
+    );
+  };
+
   const renderImageGalleryUpload = () => {
-    const canAddMore = imageInputs.length < imageInputLimit;
+    const canAddMore = flattenedImages.length < imageInputLimit;
+    const canCreateSubject = imageInputLimit - flattenedImages.length >= 2;
     return (
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
@@ -784,7 +1212,7 @@ export function GeneratorPanel({
             {supportsMultipleImages ? text.images : text.imageSource}
           </SectionLabel>
           <span className="text-xs text-muted-foreground">
-            {text.imageCount} {imageInputs.length}/{imageInputLimit}
+            {text.imageCount} {flattenedImages.length}/{imageInputLimit}
           </span>
         </div>
         {supportsMultipleImages && (
@@ -793,51 +1221,56 @@ export function GeneratorPanel({
           </p>
         )}
         <div className="grid grid-cols-3 gap-3">
-          {imageInputs.map((image, index) => (
-            <div
-              key={image.id}
-              className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/40"
-              title={image.name}
-            >
-              <img
-                src={image.previewUrl}
-                alt={image.name}
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute left-1.5 top-1.5 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                {index + 1}
-              </div>
-              <button
-                type="button"
-                onClick={() => handleRemoveGalleryImage(image.id)}
-                className="absolute right-1.5 top-1.5 rounded-full bg-black/65 p-1 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
-                aria-label={`Remove ${image.name}`}
-                disabled={isLoading}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
+          {imageInputs.map((asset, index) => renderAssetPreview(asset, index))}
           {canAddMore && (
-            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
-              <ImageIcon className="h-6 w-6" />
-              <span className="mt-2 text-xs font-medium">
-                {imageInputs.length === 0 ? text.uploadImage : text.addImage}
-              </span>
-              <span className="mt-1 px-2 text-center text-[10px] leading-tight text-muted-foreground/70">
-                {text.uploadHint}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple={supportsMultipleImages}
-                onChange={handleGalleryImageChange}
-                className="hidden"
-                disabled={isLoading}
-              />
-            </label>
+            <Popover
+              open={isAddAssetPopoverOpen}
+              onOpenChange={(open) => {
+                setIsAddAssetPopoverOpen(open);
+                if (!open) {
+                  handleCancelSubjectCreation();
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  disabled={isLoading}
+                >
+                  <Plus className="h-6 w-6" />
+                  <span className="mt-2 text-xs font-medium">
+                    {imageInputs.length === 0 ? text.add : text.addImage}
+                  </span>
+                  <span className="mt-1 px-2 text-center text-[10px] leading-tight text-muted-foreground/70">
+                    {text.uploadHint}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-80 p-3">
+                {renderAddAssetPopoverContent(canCreateSubject)}
+              </PopoverContent>
+            </Popover>
           )}
         </div>
+        <input
+          ref={normalImageInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleGalleryImageChange}
+          className="hidden"
+          disabled={isLoading}
+        />
+        <input
+          ref={subjectImageInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleSubjectImageChange}
+          className="hidden"
+          disabled={isLoading || !canCreateSubject}
+        />
       </div>
     );
   };
@@ -1050,16 +1483,17 @@ export function GeneratorPanel({
                     rows={4}
                     maxLength={2000}
                   />
-                  {isImageReferenceMenuOpen && imageInputs.length > 0 && (
+                  {isImageReferenceMenuOpen && assetReferenceItems.length > 0 && (
                     <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl">
-                      {imageInputs.map((image, index) => {
-                        const label = getImageReferenceLabel(
-                          index,
-                          promptReferenceLocale,
-                        );
+                      {assetReferenceItems.map((referenceItem, index) => {
+                        const { asset, label } = referenceItem;
+                        const previewUrl =
+                          asset.type === "subject"
+                            ? asset.images[0]?.previewUrl
+                            : asset.previewUrl;
                         return (
                           <button
-                            key={image.id}
+                            key={asset.id}
                             type="button"
                             onMouseDown={(event) => {
                               event.preventDefault();
@@ -1075,16 +1509,24 @@ export function GeneratorPanel({
                                 : "hover:bg-muted/70",
                             )}
                           >
-                            <img
-                              src={image.previewUrl}
-                              alt={image.name}
-                              className="h-9 w-9 shrink-0 rounded-md object-cover"
-                            />
+                            {previewUrl ? (
+                              <img
+                                src={previewUrl}
+                                alt={asset.name}
+                                className="h-9 w-9 shrink-0 rounded-md object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                                <Images className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
                             <span className="shrink-0 font-medium text-foreground">
                               {label}
                             </span>
                             <span className="min-w-0 truncate text-muted-foreground">
-                              {image.name}
+                              {asset.type === "subject"
+                                ? `${asset.name} · ${asset.images.length} ${text.imageCount}`
+                                : asset.name}
                             </span>
                           </button>
                         );

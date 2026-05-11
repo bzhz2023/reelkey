@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildPromptWithAssetReferenceNotes,
   buildPromptWithImageReferenceNotes,
   findActiveImageReferenceRange,
   getImageReferenceLabel,
@@ -64,4 +65,46 @@ assert.equal(
     locale: "en",
   }),
   "Image reference notes: @Image 1 refers to uploaded image 1.\n\nUse @Image 1 as the subject",
+);
+
+assert.equal(
+  buildPromptWithAssetReferenceNotes({
+    prompt: "让 @主体1 走进 @图1 的场景",
+    references: [
+      {
+        label: "@图1",
+        kind: "image",
+        imageIndexes: [1],
+      },
+      {
+        label: "@主体1",
+        kind: "subject",
+        name: "主体 1",
+        imageIndexes: [2, 3, 4],
+      },
+    ],
+    locale: "zh",
+  }),
+  "引用说明：@图1 指第 1 张上传图片；@主体1 是主体 1，由第 2、3、4 张上传图片共同描述。\n\n让 @主体1 走进 @图1 的场景",
+);
+
+assert.equal(
+  buildPromptWithAssetReferenceNotes({
+    prompt: "Make @Subject 1 run past @Image 1",
+    references: [
+      {
+        label: "@Image 1",
+        kind: "image",
+        imageIndexes: [1],
+      },
+      {
+        label: "@Subject 1",
+        kind: "subject",
+        name: "Subject 1",
+        imageIndexes: [2, 3],
+      },
+    ],
+    locale: "en",
+  }),
+  "Reference notes: @Image 1 refers to uploaded image 1; @Subject 1 is Subject 1, described by uploaded images 2 and 3.\n\nMake @Subject 1 run past @Image 1",
 );

@@ -5,6 +5,13 @@ export interface PromptReferenceRange {
   end: number;
 }
 
+export interface AssetReferenceNote {
+  label: string;
+  kind: "image" | "subject";
+  name?: string;
+  imageIndexes: number[];
+}
+
 export function getImageReferenceLabel(
   index: number,
   locale: PromptReferenceLocale,
@@ -76,4 +83,52 @@ export function buildPromptWithImageReferenceNotes({
           .join("; ")}.`;
 
   return `${notes}\n\n${prompt}`;
+}
+
+function formatZhIndexes(indexes: number[]) {
+  return indexes.join("、");
+}
+
+function formatEnIndexes(indexes: number[]) {
+  if (indexes.length <= 1) return `${indexes[0] ?? ""}`;
+  if (indexes.length === 2) return `${indexes[0]} and ${indexes[1]}`;
+  return `${indexes.slice(0, -1).join(", ")}, and ${indexes[indexes.length - 1]}`;
+}
+
+export function buildPromptWithAssetReferenceNotes({
+  prompt,
+  references,
+  locale,
+}: {
+  prompt: string;
+  references: AssetReferenceNote[];
+  locale: PromptReferenceLocale;
+}) {
+  const activeReferences = references.filter((reference) =>
+    prompt.includes(reference.label),
+  );
+
+  if (activeReferences.length === 0) return prompt;
+
+  const notes = activeReferences.map((reference) => {
+    if (locale === "zh") {
+      if (reference.kind === "subject") {
+        const name = reference.name || reference.label.replace(/^@/, "");
+        return `${reference.label} 是${name}，由第 ${formatZhIndexes(reference.imageIndexes)} 张上传图片共同描述`;
+      }
+      return `${reference.label} 指第 ${reference.imageIndexes[0]} 张上传图片`;
+    }
+
+    if (reference.kind === "subject") {
+      const name = reference.name || reference.label.replace(/^@/, "");
+      return `${reference.label} is ${name}, described by uploaded images ${formatEnIndexes(reference.imageIndexes)}`;
+    }
+    return `${reference.label} refers to uploaded image ${reference.imageIndexes[0]}`;
+  });
+
+  const prefix = locale === "zh" ? "引用说明：" : "Reference notes: ";
+  const separator = locale === "zh" ? "；" : "; ";
+  const suffix = locale === "zh" ? "。" : ".";
+
+  return `${prefix}${notes.join(separator)}${suffix}\n\n${prompt}`;
 }
