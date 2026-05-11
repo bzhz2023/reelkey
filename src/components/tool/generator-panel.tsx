@@ -17,6 +17,13 @@ import { cn } from "@/components/ui";
 import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator/defaults";
 import { isVideoModelModeSupported } from "@/config/video-model-registry";
 import {
+  buildPromptWithImageReferenceNotes,
+  findActiveImageReferenceRange,
+  getImageReferenceLabel,
+  insertImageReferenceLabel,
+  type PromptReferenceRange,
+} from "@/components/tool/image-prompt-references";
+import {
   CREDITS_CONFIG,
   getAvailableModels,
   calculateModelCredits,
@@ -72,6 +79,7 @@ const PANEL_TEXT = {
     addImage: "Add image",
     imageCount: "Images",
     multiImageHint: "Upload a start and end image for models that support two-image motion.",
+    imageReferenceHint: "Type @ to reference an uploaded image",
     firstFrame: "FIRST FRAME",
     lastFrame: "LAST FRAME",
     uploadImage: "Upload image",
@@ -110,6 +118,7 @@ const PANEL_TEXT = {
     addImage: "添加图片",
     imageCount: "图片",
     multiImageHint: "支持双图的模型可上传起始图和结束图。",
+    imageReferenceHint: "输入 @ 引用已上传图片",
     firstFrame: "起始帧",
     lastFrame: "结束帧",
     uploadImage: "上传图片",
@@ -277,6 +286,13 @@ export function GeneratorPanel({
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [generateAudio, setGenerateAudio] = useState(true);
   const objectUrlsRef = useRef<Set<string>>(new Set());
+  const promptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [imageReferenceRange, setImageReferenceRange] =
+    useState<PromptReferenceRange | null>(null);
+  const [isImageReferenceMenuOpen, setIsImageReferenceMenuOpen] =
+    useState(false);
+  const [highlightedImageReferenceIndex, setHighlightedImageReferenceIndex] =
+    useState(0);
 
   // Filter models based on tool type
   const availableModels = useMemo(() => {
@@ -441,6 +457,9 @@ export function GeneratorPanel({
     return Math.max(1, currentModelMetadata?.maxImages ?? 1);
   }, [currentModel, currentModelMetadata, toolType]);
   const supportsMultipleImages = imageInputLimit > 1;
+  const promptReferenceLocale = locale === "zh" ? "zh" : "en";
+  const canReferenceImages =
+    toolType === "image-to-video" && imageInputs.length > 0;
   const estimatedCostLabel = useMemo(() => {
     if (!isByokMode) return `${estimatedCredits} ${text.credits}`;
 
@@ -503,11 +522,17 @@ export function GeneratorPanel({
               : "image-to-video";
     }
 
+    const submittedPrompt = buildPromptWithImageReferenceNotes({
+      prompt: prompt.trim(),
+      imageCount: galleryImages.length,
+      locale: promptReferenceLocale,
+    });
+
     const data: GeneratorData = {
       toolType,
       mode: submittedMode,
       model: selectedModel,
-      prompt: prompt.trim(),
+      prompt: submittedPrompt,
       duration,
       aspectRatio,
       quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
@@ -523,6 +548,7 @@ export function GeneratorPanel({
     onSubmit?.(data);
   }, [
     prompt,
+    promptReferenceLocale,
     selectedModel,
     duration,
     aspectRatio,
@@ -543,6 +569,111 @@ export function GeneratorPanel({
     isPro,
     onProFeatureClick,
   ]);
+
+  const closeImageReferenceMenu = useCallback(() => {
+    setIsImageReferenceMenuOpen(false);
+    setImageReferenceRange(null);
+    setHighlightedImageReferenceIndex(0);
+  }, []);
+
+  const updateImageReferenceMenu = useCallback(
+    (value: string, cursorPosition: number) => {
+      if (!canReferenceImages) {
+        closeImageReferenceMenu();
+        return;
+      }
+
+      const range = findActiveImageReferenceRange(value, cursorPosition);
+      if (!range) {
+        closeImageReferenceMenu();
+        return;
+      }
+
+      setImageReferenceRange(range);
+      setIsImageReferenceMenuOpen(true);
+      setHighlightedImageReferenceIndex(0);
+    },
+    [canReferenceImages, closeImageReferenceMenu],
+  );
+
+  const handlePromptChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      setPrompt(value);
+      updateImageReferenceMenu(value, event.target.selectionStart);
+    },
+    [updateImageReferenceMenu],
+  );
+
+  const selectImageReference = useCallback(
+    (index: number) => {
+      const textarea = promptTextareaRef.current;
+      const selectionStart =
+        imageReferenceRange?.end ?? textarea?.selectionStart ?? prompt.length;
+      const selectionEnd = textarea?.selectionEnd ?? selectionStart;
+      const result = insertImageReferenceLabel({
+        prompt,
+        selectionStart,
+        selectionEnd,
+        label: getImageReferenceLabel(index, promptReferenceLocale),
+      });
+
+      setPrompt(result.prompt);
+      closeImageReferenceMenu();
+
+      requestAnimationFrame(() => {
+        textarea?.focus();
+        textarea?.setSelectionRange(
+          result.cursorPosition,
+          result.cursorPosition,
+        );
+      });
+    },
+    [
+      closeImageReferenceMenu,
+      imageReferenceRange,
+      prompt,
+      promptReferenceLocale,
+    ],
+  );
+
+  const handlePromptKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (!isImageReferenceMenuOpen || imageInputs.length === 0) return;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setHighlightedImageReferenceIndex((index) =>
+          Math.min(index + 1, imageInputs.length - 1),
+        );
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setHighlightedImageReferenceIndex((index) => Math.max(index - 1, 0));
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
+        selectImageReference(highlightedImageReferenceIndex);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeImageReferenceMenu();
+      }
+    },
+    [
+      closeImageReferenceMenu,
+      highlightedImageReferenceIndex,
+      imageInputs.length,
+      isImageReferenceMenuOpen,
+      selectImageReference,
+    ],
+  );
 
   const revokeObjectUrl = useCallback((previewUrl?: string) => {
     if (previewUrl?.startsWith("blob:")) {
@@ -892,16 +1023,75 @@ export function GeneratorPanel({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <SectionLabel className="mb-0">{text.prompt}</SectionLabel>
+                  {canReferenceImages && (
+                    <span className="text-xs text-muted-foreground">
+                      {text.imageReferenceHint}
+                    </span>
+                  )}
                 </div>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={text.promptPlaceholder}
-                  disabled={isLoading}
-                  className="w-full min-h-[100px] max-h-[200px] px-4 py-3 rounded-lg bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:border-primary transition-colors text-sm leading-relaxed"
-                  rows={4}
-                  maxLength={2000}
-                />
+                <div className="relative">
+                  <textarea
+                    ref={promptTextareaRef}
+                    value={prompt}
+                    onChange={handlePromptChange}
+                    onKeyDown={handlePromptKeyDown}
+                    onClick={(event) =>
+                      updateImageReferenceMenu(
+                        event.currentTarget.value,
+                        event.currentTarget.selectionStart,
+                      )
+                    }
+                    onBlur={() => {
+                      window.setTimeout(closeImageReferenceMenu, 120);
+                    }}
+                    placeholder={text.promptPlaceholder}
+                    disabled={isLoading}
+                    className="w-full min-h-[100px] max-h-[200px] px-4 py-3 rounded-lg bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:border-primary transition-colors text-sm leading-relaxed"
+                    rows={4}
+                    maxLength={2000}
+                  />
+                  {isImageReferenceMenuOpen && imageInputs.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl">
+                      {imageInputs.map((image, index) => {
+                        const label = getImageReferenceLabel(
+                          index,
+                          promptReferenceLocale,
+                        );
+                        return (
+                          <button
+                            key={image.id}
+                            type="button"
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                              selectImageReference(index);
+                            }}
+                            onMouseEnter={() =>
+                              setHighlightedImageReferenceIndex(index)
+                            }
+                            className={cn(
+                              "flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors",
+                              highlightedImageReferenceIndex === index
+                                ? "bg-muted"
+                                : "hover:bg-muted/70",
+                            )}
+                          >
+                            <img
+                              src={image.previewUrl}
+                              alt={image.name}
+                              className="h-9 w-9 shrink-0 rounded-md object-cover"
+                            />
+                            <span className="shrink-0 font-medium text-foreground">
+                              {label}
+                            </span>
+                            <span className="min-w-0 truncate text-muted-foreground">
+                              {image.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {toolType === "frames-to-video" &&
