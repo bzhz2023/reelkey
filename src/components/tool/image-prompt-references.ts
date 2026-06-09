@@ -24,10 +24,10 @@ export function findActiveImageReferenceRange(
   cursorPosition: number,
 ): PromptReferenceRange | null {
   const beforeCursor = prompt.slice(0, cursorPosition);
-  const match = /(^|\s)(@[^\s@]*)$/.exec(beforeCursor);
+  const match = /(@[^\s@]*)$/.exec(beforeCursor);
   if (!match) return null;
 
-  const token = match[2];
+  const token = match[1];
   const start = beforeCursor.length - token.length;
   return { start, end: cursorPosition };
 }
