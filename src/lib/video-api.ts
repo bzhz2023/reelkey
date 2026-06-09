@@ -1,6 +1,12 @@
 import type { SubmitData } from "@/components/video-generator";
 import { falKeyStorage } from "@/lib/fal-key";
 
+const MAX_DIRECT_IMAGE_UPLOAD_SIZE = 20 * 1024 * 1024;
+const MAX_FUNCTION_IMAGE_UPLOAD_SIZE = 4 * 1024 * 1024; // Vercel Function 请求体上限 4.5MB，预留 multipart 开销
+const LARGE_PAYLOAD_MESSAGE = "Image is too large. Please upload an image under 20 MB.";
+const DIRECT_UPLOAD_FAILED_MESSAGE =
+  "Image upload failed. Please try again, or contact support if the issue persists.";
+
 /**
  * API request format
  */
@@ -41,10 +47,89 @@ export function resolutionToQuality(resolution?: string): string {
   return "720p";
 }
 
+export async function parseApiResponse<T = unknown>(response: Response): Promise<T | null> {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    const message =
+      response.status === 413 || /request entity too large|payload too large|FUNCTION_PAYLOAD_TOO_LARGE/i.test(text)
+        ? LARGE_PAYLOAD_MESSAGE
+        : text.slice(0, 200) || `Request failed with status ${response.status}`;
+
+    return {
+      success: false,
+      error: { message },
+    } as T;
+  }
+}
+
 /**
  * Upload image and return public URL
  */
 export async function uploadImage(file: File): Promise<string> {
+  if (file.size > MAX_DIRECT_IMAGE_UPLOAD_SIZE) {
+    throw new Error(LARGE_PAYLOAD_MESSAGE);
+  }
+
+  try {
+    return await uploadImageDirect(file);
+  } catch (error) {
+    if (file.size > MAX_FUNCTION_IMAGE_UPLOAD_SIZE) {
+      throw error;
+    }
+    return uploadImageViaApi(file);
+  }
+}
+
+async function uploadImageDirect(file: File): Promise<string> {
+  const presignRes = await fetch("/api/v1/upload/presign", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+    }),
+  });
+
+  const presignData = await parseApiResponse<{
+    success?: boolean;
+    data?: { uploadUrl?: string; publicUrl?: string };
+    error?: { message?: string };
+  }>(presignRes);
+
+  if (!presignData?.success || !presignData.data?.uploadUrl || !presignData.data.publicUrl) {
+    throw new Error(presignData?.error?.message || "Failed to prepare image upload");
+  }
+
+  let uploadRes: Response;
+  try {
+    uploadRes = await fetch(presignData.data.uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+  } catch {
+    throw new Error(DIRECT_UPLOAD_FAILED_MESSAGE);
+  }
+
+  if (!uploadRes.ok) {
+    throw new Error(DIRECT_UPLOAD_FAILED_MESSAGE);
+  }
+
+  return presignData.data.publicUrl;
+}
+
+async function uploadImageViaApi(file: File): Promise<string> {
+  if (file.size > MAX_FUNCTION_IMAGE_UPLOAD_SIZE) {
+    throw new Error(LARGE_PAYLOAD_MESSAGE);
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 
@@ -53,12 +138,20 @@ export async function uploadImage(file: File): Promise<string> {
     body: formData,
   });
 
-  const uploadData = await uploadRes.json();
-  if (!uploadData.success) {
-    throw new Error(uploadData.error?.message || "Failed to upload image");
+  const uploadData = await parseApiResponse<{
+    success?: boolean;
+    data?: { publicUrl?: string };
+    error?: { message?: string };
+  }>(uploadRes);
+  if (!uploadData?.success) {
+    throw new Error(uploadData?.error?.message || "Failed to upload image");
   }
 
-  return uploadData.data.publicUrl as string;
+  if (!uploadData.data?.publicUrl) {
+    throw new Error("Failed to upload image");
+  }
+
+  return uploadData.data.publicUrl;
 }
 
 /**
@@ -124,16 +217,24 @@ export async function generateVideo(
     body: JSON.stringify(request),
   });
 
-  const data = await res.json();
+  const data = await parseApiResponse<{
+    success?: boolean;
+    data?: { videoUuid: string; status: string; creditsUsed: number };
+    error?: { message?: string; details?: { code?: string } };
+  }>(res);
 
-  if (!data.success) {
-    const code = data.error?.details?.code;
+  if (!data?.success) {
+    const code = data?.error?.details?.code;
     if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("fal-key-invalid"));
       }
     }
-    throw new Error(data.error?.message || "Failed to generate video");
+    throw new Error(data?.error?.message || "Failed to generate video");
+  }
+
+  if (!data.data) {
+    throw new Error("Failed to generate video");
   }
 
   return data.data;

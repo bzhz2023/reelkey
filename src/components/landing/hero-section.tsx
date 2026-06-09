@@ -23,7 +23,7 @@ import { authClient } from "@/lib/auth/client";
 import { calculateModelCredits, getAvailableModels } from "@/config/credits";
 import { NEW_USER_GIFT } from "@/config/pricing-user";
 import { BYOK_MODE } from "@/config/byok-mode";
-import { uploadImage } from "@/lib/video-api";
+import { parseApiResponse, uploadImage } from "@/lib/video-api";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { videoTaskStorage } from "@/lib/video-task-storage";
 import { falKeyStorage } from "@/lib/fal-key";
@@ -336,13 +336,21 @@ export function HeroSection({
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await parseApiResponse<{
+          error?: { message?: string };
+          message?: string;
+        }>(response);
         throw new Error(
           error?.error?.message || error?.message || "Failed to generate video",
         );
       }
 
-      const result = await response.json();
+      const result = await parseApiResponse<{
+        data: { videoUuid: string; taskId: string };
+      }>(response);
+      if (!result?.data?.videoUuid) {
+        throw new Error("Failed to generate video");
+      }
       const toolRoute = getToolRouteByMode(normalizedMode);
       toast.success("Generation started");
       try {

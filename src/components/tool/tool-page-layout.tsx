@@ -30,7 +30,7 @@ import { useFalKeyPrompt } from "@/hooks/use-fal-key-prompt";
 import type { Video } from "@/db";
 import type { ToolPageConfig } from "@/config/tool-pages";
 import { GeneratorPanel, type GeneratorData } from "@/components/tool/generator-panel";
-import { uploadImage } from "@/lib/video-api";
+import { parseApiResponse, uploadImage } from "@/lib/video-api";
 import { toast } from "sonner";
 
 type ToolGenerationType =
@@ -757,7 +757,10 @@ export function ToolPageLayout({
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await parseApiResponse<{
+          error?: { message?: string; details?: { code?: string } };
+          message?: string;
+        }>(response);
         const code = error?.error?.details?.code;
         if (code === "FAL_KEY_MISSING" || code === "FAL_KEY_INVALID") {
           pendingFalRetryRef.current = { type: "submit", data };
@@ -769,7 +772,12 @@ export function ToolPageLayout({
         throw new Error(error?.error?.message || error?.message || "Failed to generate video");
       }
 
-      const result = await response.json();
+      const result = await parseApiResponse<{
+        data: { videoUuid: string; taskId: string };
+      }>(response);
+      if (!result?.data?.videoUuid) {
+        throw new Error("Failed to generate video");
+      }
       const videoUuid = result.data.videoUuid as string;
 
       toast.success("Generation started");
@@ -869,7 +877,7 @@ export function ToolPageLayout({
       if (!response.ok) {
         throw new Error("Failed to retry video");
       }
-      await response.json();
+      await parseApiResponse(response);
       resetNotification(uuid);
       resetNotification(`${uuid}:failed`);
       addGeneratingId(uuid);

@@ -12,7 +12,7 @@ const ALLOWED_IMAGE_TYPES = [
   "image/webp",
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB，避免超过 Vercel Function 4.5MB 请求体限制
 
 export async function POST(request: Request) {
   try {
