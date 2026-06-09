@@ -103,15 +103,6 @@ function getCachedLifetimeAccess(userId?: string) {
   }
 }
 
-function getLastCachedToolUserId() {
-  if (typeof window === "undefined") return undefined;
-  try {
-    return localStorage.getItem(LAST_TOOL_USER_ID_KEY) ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function setCachedLifetimeAccess(userId: string, hasLifetimeAccess: boolean) {
   lifetimeAccessCache.set(userId, hasLifetimeAccess);
   if (typeof window === "undefined") return;
@@ -200,6 +191,7 @@ export function ToolPageLayout({
   });
 
   // 状态
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentVideos, setCurrentVideos] = useState<Video[]>([]);
   const [generatingIds, setGeneratingIds] = useState<string[]>([]);
@@ -212,7 +204,7 @@ export function ToolPageLayout({
   const [activeTab, setActiveTab] = useState<"generator" | "result">("generator");
   const [resolvedLifetimeAccess, setResolvedLifetimeAccess] = useState(() => {
     if (hasLifetimeAccess) return true;
-    return getCachedLifetimeAccess(initialUser?.id ?? getLastCachedToolUserId()) ?? false;
+    return false;
   });
   const [prefillData, setPrefillData] = useState<{
     prompt?: string;
@@ -222,7 +214,13 @@ export function ToolPageLayout({
     quality?: string;
     imageUrl?: string;
   } | null>(null);
-  const user = session?.user ?? initialUser ?? lastKnownToolUser;
+  const user = hasHydrated ? session?.user ?? initialUser ?? lastKnownToolUser : initialUser;
+  const shouldShowSessionPending =
+    (!hasHydrated && !initialUser) || (isSessionPending && !user);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (session?.user) {
@@ -897,7 +895,7 @@ export function ToolPageLayout({
   // 移动端：显示标签导航
   const showMobileTabs = true;
 
-  if (isSessionPending && !user) {
+  if (shouldShowSessionPending) {
     return (
       <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
         {showMobileTabs && (
