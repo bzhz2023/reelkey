@@ -12,6 +12,7 @@ import { cn } from "@/components/ui";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/query-provider";
 
+import { ChunkLoadRecovery } from "@/components/chunk-load-recovery";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClarityAnalytics } from "@/components/clarity-provider";
@@ -167,6 +168,7 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>
+              <ChunkLoadRecovery />
               {children}
               <Analytics />
               <SpeedInsights />
